@@ -27,14 +27,14 @@ public class RenderPathWorker extends SwingWorker<Void, Void> {
   // private static final Logger log = LogManager.getLogger(RenderPathWorker.class);
 
   ZoneRenderer zoneRenderer;
-  ZoneWalker walker;
+  @Nonnull ZoneWalker walker;
   CellPoint startPoint, endPoint;
   private final boolean restrictMovement;
   private final Set<TerrainModifierOperation> terrainModifiersIgnored;
   private final @Nonnull Token keyToken;
 
   public RenderPathWorker(
-      ZoneWalker walker,
+      @Nonnull ZoneWalker walker,
       CellPoint endPoint,
       boolean restrictMovement,
       Set<TerrainModifierOperation> terrainModifiersIgnored,
