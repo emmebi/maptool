@@ -968,7 +968,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     /*
      * setExtendedTokenLayoutProps(StrProp/JSON Object, token: currentToken(), mapName = current map)
      */
-      if (functionName.equalsIgnoreCase("setExtendedTokenLayoutProps")) {
+    if (functionName.equalsIgnoreCase("setExtendedTokenLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 1, 3);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
       JsonObject json;
