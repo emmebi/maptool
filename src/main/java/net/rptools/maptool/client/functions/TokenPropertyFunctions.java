@@ -936,6 +936,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       String scale = String.valueOf(token.getSizeScale());
       String xOffset = String.valueOf(token.getAnchorX());
       String yOffset = String.valueOf(token.getAnchorY());
+      String rotation = String.valueOf(token.getImageRotation());
       String scaleX = String.valueOf(token.getScaleX());
       String scaleY = String.valueOf(token.getScaleY());
       String footprintScaleValue =
@@ -948,28 +949,33 @@ public class TokenPropertyFunctions extends AbstractFunction {
         jarr.addProperty("xOffset", xOffset);
         jarr.addProperty("yOffset", yOffset);
         jarr.addProperty("scaleX", scaleX);
+        jarr.addProperty("rotation", rotation);
         jarr.addProperty("scaleY", scaleY);
         jarr.addProperty("footprintScale", footprintScaleValue);
         return jarr;
       } else {
-        return "scale="
-            + scale
-            + delim
-            + "xOffset="
-            + xOffset
-            + delim
-            + "yOffset="
-            + yOffset
-            + delim
-            + "scaleX="
-            + scaleX
-            + delim
-            + "scaleY="
-            + scaleY
-            + delim
-            + "footprintScale="
-            + delim
-            + footprintScaleValue;
+        StringBuilder sb = new StringBuilder();
+        return sb.append("scale=")
+            .append(scale)
+            .append(delim)
+            .append("xOffset=")
+            .append(xOffset)
+            .append(delim)
+            .append("yOffset=")
+            .append(yOffset)
+            .append(delim)
+            .append("rotation=")
+            .append(rotation)
+            .append(delim)
+            .append("scaleX=")
+            .append(scaleX)
+            .append(delim)
+            .append("scaleY=")
+            .append(scaleY)
+            .append(delim)
+            .append("footprintScale=")
+            .append(delim)
+            .append(footprintScaleValue);
       }
     }
     /*
@@ -1005,6 +1011,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
             case "yoffset" -> token.setAnchor(token.getAnchorX(), jobj.get(s).getAsInt());
             case "scalex" -> token.setScaleX(jobj.get(s).getAsDouble());
             case "scaley" -> token.setScaleY(jobj.get(s).getAsDouble());
+            case "rotation" -> token.setImageRotation(jobj.get(s).getAsDouble());
             default -> {
               continue;
             }
