@@ -476,11 +476,11 @@ public class GraphicsUtil {
       case GridFactory.HEX_HORI -> {
         sides = 6;
         startAngle = Math.TAU / 12;
-        hScale = vScale = root3 / 4d;
+        hScale = vScale = root3 / 3d;
       }
       case GridFactory.HEX_VERT -> {
         sides = 6;
-        hScale = vScale = Math.sqrt(3d / 2d);
+        hScale = vScale = root3 / 3d;
       }
       case GridFactory.ISOMETRIC -> {
         sides = 4;
@@ -489,7 +489,7 @@ public class GraphicsUtil {
       case GridFactory.ISOMETRIC_HEX -> {
         sides = 6;
         startAngle = Math.TAU / 24;
-        hScale = vScale = Math.sqrt(3d / 2d);
+        hScale = vScale = root3 / 3d;
         skew = Math.toRadians(30d);
       }
       case GridFactory.NONE -> {
