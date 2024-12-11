@@ -111,7 +111,7 @@ public class TokenImage extends AbstractFunction {
       token = FunctionUtil.getTokenFromParam(resolver, functionName, args, 1, 2);
 
       MapTool.serverCommand().updateTokenProperty(token, Token.Update.setTokenOpacity, strOpacity);
-      return token.getTokenOpacity();
+      return token.getOpacity();
     }
 
     if (functionName.equalsIgnoreCase("getTokenOpacity")) {
@@ -121,7 +121,7 @@ public class TokenImage extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, args, 0, 2);
       token = FunctionUtil.getTokenFromParam(resolver, functionName, args, 0, 1);
 
-      return token.getTokenOpacity();
+      return token.getOpacity();
     }
 
     if (functionName.equalsIgnoreCase("setTokenImage")) {

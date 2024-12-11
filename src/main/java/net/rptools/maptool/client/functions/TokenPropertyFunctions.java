@@ -114,6 +114,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
         "setNotes",
         "getTokenLayoutProps",
         "setTokenLayoutProps",
+        "setExtendedTokenLayoutProps",
         "setTokenSnapToGrid",
         "getAllowsURIAccess",
         "setAllowsURIAccess",
@@ -712,7 +713,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     if (functionName.equalsIgnoreCase("isFlippedIso")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
-      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -921,7 +922,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
       MapTool.serverCommand().updateTokenProperty(token, Token.Update.flipIso);
-      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -929,24 +930,91 @@ public class TokenPropertyFunctions extends AbstractFunction {
      */
     if (functionName.equalsIgnoreCase("getTokenLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 3);
-      String delim = parameters.size() > 0 ? parameters.get(0).toString() : ",";
+      String delim = parameters.size() > 0 ? parameters.get(0).toString() : ";";
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
 
-      Double scale = token.getSizeScale();
-      int xOffset = token.getAnchorX();
-      int yOffset = token.getAnchorY();
+      String scale = String.valueOf(token.getSizeScale());
+      String xOffset = String.valueOf(token.getAnchorX());
+      String yOffset = String.valueOf(token.getAnchorY());
+      String scaleX = String.valueOf(token.getScaleX());
+      String scaleY = String.valueOf(token.getScaleY());
+      String footprintScaleValue =
+          String.valueOf(
+              token.getFootprint(token.getZoneRenderer().getZone().getGrid()).getScale());
 
       if ("json".equals(delim)) {
         JsonObject jarr = new JsonObject();
         jarr.addProperty("scale", scale);
         jarr.addProperty("xOffset", xOffset);
         jarr.addProperty("yOffset", yOffset);
+        jarr.addProperty("scaleX", scaleX);
+        jarr.addProperty("scaleY", scaleY);
+        jarr.addProperty("footprintScale", footprintScaleValue);
         return jarr;
       } else {
-        return "scale=" + scale + delim + "xOffset=" + xOffset + delim + "yOffset=" + yOffset;
+        return "scale="
+            + scale
+            + delim
+            + "xOffset="
+            + xOffset
+            + delim
+            + "yOffset="
+            + yOffset
+            + delim
+            + "scaleX="
+            + scaleX
+            + delim
+            + "scaleY="
+            + scaleY
+            + delim
+            + "footprintScale="
+            + delim
+            + footprintScaleValue;
       }
     }
-
+    /*
+     * setExtendedTokenLayoutProps(StrProp/JSON Object, token: currentToken(), mapName = current map)
+     */
+    if (functionName.equalsIgnoreCase("setExtendedTokenLayoutProps")) {
+      FunctionUtil.checkNumberParam(functionName, parameters, 1, 3);
+      Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
+      JsonObject json;
+      try { // try for json object
+        json = FunctionUtil.paramAsJsonObject("setExtendedTokenLayoutProps", parameters, 0);
+      } catch (ParserException pe) {
+        try { // try for strProp
+          json =
+              JSONMacroFunctions.getInstance()
+                  .getJsonObjectFunctions()
+                  .fromStrProp(
+                      FunctionUtil.paramAsString(
+                          "setExtendedTokenLayoutProps", parameters, 0, true),
+                      ";");
+        } catch (ParserException pe2) {
+          throw new ParserException(
+              I18N.getText(
+                  "macro.function.input.illegalArgumentType", "unknown", "JSON Object/StrProp"));
+        }
+      }
+      if (json != null && json.isJsonObject()) {
+        JsonObject jobj = json.getAsJsonObject();
+        for (String s : jobj.keySet()) {
+          switch (s.toLowerCase()) {
+            case "scale" -> token.setSizeScale(jobj.get(s).getAsDouble());
+            case "xoffset" -> token.setAnchor(jobj.get(s).getAsInt(), token.getAnchorY());
+            case "yoffset" -> token.setAnchor(token.getAnchorX(), jobj.get(s).getAsInt());
+            case "scalex" -> token.setScaleX(jobj.get(s).getAsDouble());
+            case "scaley" -> token.setScaleY(jobj.get(s).getAsDouble());
+            default -> {
+              continue;
+            }
+          }
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }
     /*
      * setTokenLayoutProps(scale, xOffset, yOffset, token: currentToken(), mapName = current map)
      */
