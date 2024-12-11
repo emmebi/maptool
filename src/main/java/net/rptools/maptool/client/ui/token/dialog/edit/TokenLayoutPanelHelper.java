@@ -22,10 +22,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,29 +118,29 @@ public class TokenLayoutPanelHelper {
   Grid grid = MapTool.getFrame().getCurrentZoneRenderer().getZone().getGrid();
   RenderBits renderBits = new RenderBits();
   boolean isoGrid = grid.isIsometric();
-  boolean noGrid = GridFactory.getGridType(grid) == GridFactory.NONE;
-  boolean squareGrid = GridFactory.getGridType(grid) == GridFactory.SQUARE;
+  boolean noGrid = GridFactory.getGridType(grid).equals(GridFactory.NONE);
+  boolean squareGrid = GridFactory.getGridType(grid).equals(GridFactory.SQUARE);
   boolean hexGrid = false;
   boolean isIsoFigure = false;
   int gridSize = grid.getSize();
   double cellHeight = grid.getCellHeight();
   double cellWidth = grid.getCellWidth();
   private static final CellPoint ORIGIN = new CellPoint(0, 0);
-  private Token token, originalToken, mirrorToken;
+  private Token originalToken, mirrorToken;
   private BufferedImage tokenImage;
   TokenFootprint footprint;
   Rectangle2D footprintBounds;
   Set<CellPoint> occupiedCells;
   ArrayList<Point2D> cellCentres;
-  // controls/components
+  /* controls/components */
   AbeillePanel parent;
   private JRootPane parentRoot;
-  private TokenLayoutRenderPanel renderPanel;
+  private final TokenLayoutRenderPanel renderPanel;
   private JComboBox sizeCombo;
-  private JLabel rotationLabel, scaleLabel;
+  private JLabel scaleLabel;
   private JSpinner anchorXSpinner, anchorYSpinner, rotationSpinner, scaleSpinner, zoomSpinner;
   private JSlider anchorXSlider, anchorYSlider, rotationSlider, scaleSlider, zoomSlider;
-  private AbstractButton scaleButton, layoutHelpButton, okButton;
+  private AbstractButton scaleButton, okButton;
 
   public void setOKButton(JButton b) {
     okButton = b;
@@ -152,37 +150,35 @@ public class TokenLayoutPanelHelper {
     parentRoot = rp;
   }
 
-  private String helpText = assembleHelpText();
+  private final String helpText = assembleHelpText();
 
   // @formatter:off
   // spotless:off
-    // Component Getters
+    /* Component Getters */
     public JComboBox getSizeCombo(){ if (sizeCombo == null) sizeCombo = (JComboBox) parent.getComponent("size"); return sizeCombo; }
-    // Labels
-    public JLabel getRotationLabel(){ if (rotationLabel == null) rotationLabel = parent.getLabel("rotationLabel"); return rotationLabel; }
+    /* Labels */
     public JLabel getScaleLabel(){ if (scaleLabel == null) scaleLabel = parent.getLabel("scaleLabel"); return scaleLabel; }
-    // Spinners
+    /* Spinners */
     public JSpinner getAnchorXSpinner() { if (anchorXSpinner == null) anchorXSpinner = parent.getSpinner("anchorXSpinner"); return anchorXSpinner; }
     public JSpinner getAnchorYSpinner() { if (anchorYSpinner == null) anchorYSpinner = parent.getSpinner("anchorYSpinner"); return anchorYSpinner; }
     public JSpinner getRotationSpinner() { if (rotationSpinner == null) rotationSpinner = parent.getSpinner("rotationSpinner"); return rotationSpinner; }
     public JSpinner getScaleSpinner() { if (scaleSpinner == null) scaleSpinner = parent.getSpinner("scaleSpinner"); return scaleSpinner; }
     public JSpinner getZoomSpinner() { if (zoomSpinner == null) zoomSpinner = parent.getSpinner("zoomSpinner"); return zoomSpinner; }
-    // Sliders
+    /* Sliders */
     public JSlider getAnchorXSlider() { if (anchorXSlider == null)  anchorXSlider = (JSlider) parent.getComponent("anchorXSlider"); return anchorXSlider; }
     public JSlider getAnchorYSlider() { if (anchorYSlider == null) anchorYSlider = (JSlider) parent.getComponent("anchorYSlider"); return anchorYSlider; }
     public JSlider getRotationSlider() { if (rotationSlider == null) rotationSlider = (JSlider) parent.getComponent("rotationSlider"); return rotationSlider; }
     public JSlider getScaleSlider() { if (scaleSlider == null) scaleSlider = (JSlider) parent.getComponent("scaleSlider"); return scaleSlider; }
     public JSlider getZoomSlider() { if (zoomSlider == null) zoomSlider = (JSlider) parent.getComponent("zoomSlider"); return zoomSlider; }
-    // Buttons
+    /* Buttons */
     public AbstractButton getScaleButton() { if (scaleButton == null) scaleButton = parent.getButton("scaleButton"); return scaleButton; }
-    public AbstractButton getHelpButton() {if (layoutHelpButton == null) layoutHelpButton = parent.getButton("layoutHelpButton"); return layoutHelpButton; }
-    // Panel
+    /* Panel */
     public TokenLayoutRenderPanel getRenderPanel() { return renderPanel; }
-    // Linked controls
+    /* Linked controls */
     SpinnerSliderPaired anchorXPair, anchorYPair, rotationPair, scalePair, zoomPair;
 
 
-    // Token value getters pointing to the mirror token
+    /* Token value getters pointing to the mirror token */
     public double getTokenSizeScale() { return mirrorToken.getSizeScale(); }
     public double getTokenScaleX() { return  mirrorToken.getScaleX(); }
     public double getTokenScaleY() { return mirrorToken.getScaleY(); }
@@ -193,13 +189,12 @@ public class TokenLayoutPanelHelper {
     public boolean getTokenFlippedY() { return mirrorToken.isFlippedY(); }
     public boolean getTokenFlippedIso() { return mirrorToken.isFlippedIso(); }
 
-    // Token value setters pointing to the mirror token
+    /* Token value setters pointing to the mirror token */
     protected void setTokenScaleX(double scale) { mirrorToken.setScaleX(scale);}
     protected void setTokenScaleY(double scale) { mirrorToken.setScaleY(scale); }
     protected void setTokenSizeScale(double scale) { mirrorToken.setSizeScale(scale); }
     protected void setTokenAnchorX(Number x) { mirrorToken.setAnchorX(x.intValue()); }
     protected void setTokenAnchorY(Number y) { mirrorToken.setAnchorY(y.intValue()); }
-    protected void setTokenImageRotation(double value) { mirrorToken.setImageRotation(MathUtil.doublePrecision(value, 4)); }
     protected void setTokenImageRotation(Number value) { mirrorToken.setImageRotation(MathUtil.doublePrecision(value.doubleValue(), 4)); }
     protected void setTokenFlipIso(Boolean b) {
         mirrorToken.setFlippedIso(b);
@@ -235,7 +230,7 @@ public class TokenLayoutPanelHelper {
    * There is one spinner/slider for three different scale settings. This sets the value for the
    * active axis/axes
    *
-   * @param value the scale value being set
+   * @param n (Number) the scale value being set
    */
   protected void setScaleByAxis(Number n) {
     double value = MathUtil.doublePrecision(n.doubleValue(), 4);
@@ -263,8 +258,8 @@ public class TokenLayoutPanelHelper {
     }
   }
 
-  // used to determine which scale is being edited
-  private int scaleAxis = 0; // 0 is XY, 1 is X, 2 is Y
+  /* used to determine which scale is being edited: 0 is XY, 1 is X, 2 is Y */
+  private int scaleAxis = 0;
 
   /**
    * These functions serve to link the scale and zoom sliders and spinners and allow a useful
@@ -273,8 +268,8 @@ public class TokenLayoutPanelHelper {
    */
   Function<Integer, Number> percentSliderToSpinner =
       i ->
-          i.intValue() <= 0
-              ? MathUtil.mapToRange(((Number) i).doubleValue(), -200.0, 0.0, 0.0, 1.0).doubleValue()
+          i <= 0
+              ? MathUtil.mapToRange(((Number) i).doubleValue(), -200.0, 0.0, 0.0, 1.0)
               : MathUtil.mapToRange(((Number) i).doubleValue(), 0.0, 200.0, 1.0, 3.0).doubleValue();
 
   Function<Number, Integer> percentSpinnerToSlider =
@@ -305,36 +300,20 @@ public class TokenLayoutPanelHelper {
     setToken(originalToken, true);
   }
 
-  // Listeners
+  /* Listeners */
   PropertyChangeListener controlListener =
-      new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          log.debug("controlListener " + evt);
-          if (evt.getPropertyName().toLowerCase().contains("spinnervalue")) {
-            iFeelDirty();
-          } else if (evt.getPropertyName().toLowerCase().contains("flip")) {
-            storeFlipDirections();
-          }
+      evt -> {
+        log.debug("controlListener " + evt);
+        if (evt.getPropertyName().toLowerCase().contains("spinnervalue")) {
+          iFeelDirty();
+        } else if (evt.getPropertyName().toLowerCase().contains("flip")) {
+          storeFlipDirections();
         }
       };
 
-  PropertyChangeListener mirrorTokenListener =
-      new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-          log.debug(
-              "mirrorTokenListener - "
-                  + evt.getPropertyName()
-                  + ":"
-                  + evt.getOldValue()
-                  + ":"
-                  + evt.getNewValue());
-        }
-      };
   FocusListener focusListener =
       new FocusListener() {
-        // Toggle "Enter" closing the window.
+        /* Toggle "Enter" closing the window. */
         @Override
         public void focusGained(FocusEvent e) {
           ((JComponent) e.getComponent()).getRootPane().setDefaultButton(null);
@@ -355,14 +334,9 @@ public class TokenLayoutPanelHelper {
         }
       };
 
-  protected Token getMirrorToken() {
-    return mirrorToken;
-  }
-
   /** Mark the rendering panel in need of repainting */
   void iFeelDirty() {
     Rectangle panelBounds = getRenderPanel().getBounds();
-    panelBounds = getRenderPanel().getBounds();
     RepaintManager.currentManager(getRenderPanel())
         .addDirtyRegion(
             getRenderPanel(), panelBounds.x, panelBounds.y, panelBounds.width, panelBounds.height);
@@ -391,18 +365,16 @@ public class TokenLayoutPanelHelper {
     grid = MapTool.getFrame().getCurrentZoneRenderer().getZone().getGrid();
     isoGrid = grid.isIsometric();
     hexGrid = grid.isHex();
-    noGrid = GridFactory.getGridType(grid) == GridFactory.NONE;
-    squareGrid = GridFactory.getGridType(grid) == GridFactory.SQUARE;
+    noGrid = GridFactory.getGridType(grid).equals(GridFactory.NONE);
+    squareGrid = GridFactory.getGridType(grid).equals(GridFactory.SQUARE);
     renderBits = new RenderBits();
     gridSize = grid.getSize();
     cellHeight = grid.getCellHeight();
     cellWidth = grid.getCellWidth();
 
-    this.token = token;
-    this.originalToken = new Token(this.token, true); // duplicate for resetting purposes
-    // The mirror token exists so we can write token changes without committing them prior to
-    // clicking OK
-    this.mirrorToken = new Token(this.token, false);
+    this.originalToken = new Token(token, true); // duplicate for resetting purposes
+    /* The mirror token exists so we can write token changes without committing them prior to clicking OK */
+    this.mirrorToken = new Token(token, false);
 
     if (useDefaults) {
       mirrorToken.setImageRotation(0);
@@ -412,7 +384,7 @@ public class TokenLayoutPanelHelper {
       mirrorToken.setAnchor(0, 0);
     }
 
-    if (mirrorToken.getFootprint(grid) != (TokenFootprint) getSizeCombo().getSelectedItem()) {
+    if (mirrorToken.getFootprint(grid) != getSizeCombo().getSelectedItem()) {
       TokenFootprint tmpFP = (TokenFootprint) getSizeCombo().getSelectedItem();
       if (tmpFP != null) {
         mirrorToken.setFootprint(grid, grid.getFootprint(tmpFP.getId()));
@@ -428,20 +400,20 @@ public class TokenLayoutPanelHelper {
     getAnchorXSlider().setMinimum((int) -Math.ceil(footprintBounds.getWidth()));
     getAnchorXSlider().setMaximum((int) Math.ceil(footprintBounds.getWidth()));
     if (isIsoFigure) {
-      // Allow more vertical travel for iso figures
+      /* Allow more vertical travel for iso figures */
       getAnchorYSlider().setMinimum((int) -Math.ceil(1.4 * footprintBounds.getHeight()));
       getAnchorYSlider().setMaximum((int) Math.ceil(1.4 * footprintBounds.getHeight()));
     } else {
       getAnchorYSlider().setMinimum((int) -Math.ceil(footprintBounds.getHeight()));
       getAnchorYSlider().setMaximum((int) Math.ceil(footprintBounds.getHeight()));
     }
-    // align mouse drag bounds with sliders
+    /* align mouse drag bounds with sliders */
     getRenderPanel().setMaxXoff(getAnchorXSlider().getMaximum());
     getRenderPanel().setMaxYoff(getAnchorYSlider().getMaximum());
 
     storeFlipDirections();
 
-    // Assign Suppliers and Consumers to the linked controls and add a PropertyChangeListener
+    /* Assign Suppliers and Consumers to the linked controls and add a PropertyChangeListener */
     anchorXPair.setPropertySetter(this::setTokenAnchorX);
     anchorXPair.setPropertyGetter(this::getTokenAnchorX);
     anchorXPair.setPropertyName("AnchorX");
@@ -533,14 +505,11 @@ public class TokenLayoutPanelHelper {
             percentSpinnerToSlider,
             percentSliderToSpinner);
     scalePair.addVetoableChangeListener(
-        new VetoableChangeListener() {
-          @Override
-          public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
-            if (evt.getPropertyName().toLowerCase().contains("value")
-                && evt.getNewValue().getClass().isAssignableFrom(Double.class)
-                && ((Number) evt.getNewValue()).doubleValue() < 0.1) {
-              throw new PropertyVetoException("Minimum scale value reached", evt);
-            }
+        evt -> {
+          if (evt.getPropertyName().toLowerCase().contains("value")
+              && evt.getNewValue().getClass().isAssignableFrom(Double.class)
+              && ((Number) evt.getNewValue()).doubleValue() < 0.1) {
+            throw new PropertyVetoException("Minimum scale value reached", evt);
           }
         });
     zoomPair =
@@ -551,14 +520,11 @@ public class TokenLayoutPanelHelper {
             percentSpinnerToSlider,
             percentSliderToSpinner);
     zoomPair.addVetoableChangeListener(
-        new VetoableChangeListener() {
-          @Override
-          public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
-            if (evt.getPropertyName().toLowerCase().contains("value")
-                && evt.getNewValue().getClass().isAssignableFrom(Double.class)
-                && ((Number) evt.getNewValue()).doubleValue() < 0.34) {
-              throw new PropertyVetoException("Minimum zoom value reached", evt);
-            }
+        evt -> {
+          if (evt.getPropertyName().toLowerCase().contains("value")
+              && evt.getNewValue().getClass().isAssignableFrom(Double.class)
+              && ((Number) evt.getNewValue()).doubleValue() < 0.34) {
+            throw new PropertyVetoException("Minimum zoom value reached", evt);
           }
         });
     anchorXPair.addPropertyChangeListener(evt -> iFeelDirty());
@@ -569,14 +535,14 @@ public class TokenLayoutPanelHelper {
   }
 
   public void initSpinners() {
-    // models
+    /* models */
     getAnchorXSpinner().setModel(new SpinnerNumberModel(0d, -200d, 200d, 1d));
     getAnchorYSpinner().setModel(new SpinnerNumberModel(0d, -200d, 200d, 1d));
     getRotationSpinner().setModel(new SpinnerNumberModel(0d, 0d, 360d, 1d));
     getScaleSpinner().setModel(new SpinnerNumberModel(1d, 0d, 3d, 0.1));
     getZoomSpinner().setModel(new SpinnerNumberModel(1d, 0d, 3d, 0.1));
     getZoomSpinner().setVisible(false);
-    // editors
+    /* editors */
     getAnchorXSpinner().setEditor(new JSpinner.NumberEditor(anchorXSpinner, "0"));
     getAnchorYSpinner().setEditor(new JSpinner.NumberEditor(anchorYSpinner, "0"));
     getRotationSpinner().setEditor(new JSpinner.NumberEditor(rotationSpinner, "0.0"));
@@ -587,7 +553,7 @@ public class TokenLayoutPanelHelper {
     ((JSpinner.NumberEditor) getRotationSpinner().getEditor()).getTextField().setColumns(3);
     ((JSpinner.NumberEditor) getScaleSpinner().getEditor()).getTextField().setColumns(4);
 
-    // listeners
+    /* listeners */
     ((JSpinner.NumberEditor) getAnchorXSpinner().getEditor())
         .getTextField()
         .addFocusListener(focusListener);
@@ -603,7 +569,7 @@ public class TokenLayoutPanelHelper {
   }
 
   public void initButtons() {
-    // icons
+    /* icons */
     createButtonIcons();
 
     scaleButton = new FlatButton();
@@ -612,7 +578,7 @@ public class TokenLayoutPanelHelper {
     getScaleButton().setIcon(scaleIcons[scaleAxis]);
     getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "   ");
 
-    layoutHelpButton = new FlatButton();
+    AbstractButton layoutHelpButton = new FlatButton();
     ((FlatButton) layoutHelpButton).setButtonType(FlatButton.ButtonType.help);
     parent.replaceComponent("layoutTabPanel", "layoutHelpButton", layoutHelpButton);
     layoutHelpButton.setToolTipText(helpText);
@@ -630,37 +596,27 @@ public class TokenLayoutPanelHelper {
   private String assembleHelpText() {
     String rowText = "<tr><th align='right'>%s<td>%s";
     String caption = "<html><table><caption color='white' bgcolor='navy'><b>%s</b></caption>";
-    StringBuilder sb = new StringBuilder();
-    sb.append(caption.formatted(I18N.getString("EditTokenDialog.layout.help.caption")));
-    sb.append(
-        rowText.formatted(
+    return caption.formatted(I18N.getString("EditTokenDialog.layout.help.caption"))
+        + rowText.formatted(
             I18N.getString("Mouse.leftDrag"),
-            I18N.getString("EditTokenDialog.layout.help.moveImage")));
-    sb.append(
-        rowText.formatted(
+            I18N.getString("EditTokenDialog.layout.help.moveImage"))
+        + rowText.formatted(
             I18N.getString("Mouse.rightDrag"),
-            I18N.getString("EditTokenDialog.layout.help.moveView")));
-    sb.append(
-        rowText.formatted(
+            I18N.getString("EditTokenDialog.layout.help.moveView"))
+        + rowText.formatted(
             I18N.getString("Mouse.leftDoubleClick"),
-            I18N.getString("EditTokenDialog.layout.help.reset")));
-    sb.append(
-        rowText.formatted(
+            I18N.getString("EditTokenDialog.layout.help.reset"))
+        + rowText.formatted(
             I18N.getString("Mouse.rightDoubleClick"),
-            I18N.getString("EditTokenDialog.layout.help.resetDefaults")));
-    sb.append(
-        rowText.formatted(
-            I18N.getString("Mouse.wheel"),
-            I18N.getString("EditTokenDialog.layout.help.scaleImage")));
-    sb.append(
-        rowText.formatted(
+            I18N.getString("EditTokenDialog.layout.help.resetDefaults"))
+        + rowText.formatted(
+            I18N.getString("Mouse.wheel"), I18N.getString("EditTokenDialog.layout.help.scaleImage"))
+        + rowText.formatted(
             I18N.getString("Mouse.shiftWheel"),
-            I18N.getString("EditTokenDialog.layout.help.rotateImage")));
-    sb.append(
-        rowText.formatted(
+            I18N.getString("EditTokenDialog.layout.help.rotateImage"))
+        + rowText.formatted(
             I18N.getString("Mouse.ctrlWheel"),
-            I18N.getString("EditTokenDialog.layout.help.zoomView")));
-    return sb.toString();
+            I18N.getString("EditTokenDialog.layout.help.zoomView"));
   }
 
   private void showHelp() {
@@ -712,8 +668,8 @@ public class TokenLayoutPanelHelper {
         g2d.dispose();
       }
     }
-    Dictionary offSetYLabels = new Hashtable();
-    Dictionary offSetXLabels = new Hashtable();
+    Dictionary<Integer, JLabel> offSetYLabels = new Hashtable<>();
+    Dictionary<Integer, JLabel> offSetXLabels = new Hashtable<>();
     for (int i = -1200; i <= 1200; i += 50) {
       JLabel label1 = new JLabel(String.valueOf(i));
       offSetYLabels.put(i, label1);
@@ -726,7 +682,7 @@ public class TokenLayoutPanelHelper {
     getAnchorXSlider().setLabelTable(offSetXLabels);
 
     DecimalFormat df = new DecimalFormat("##0%");
-    Dictionary pctLabels = new Hashtable();
+    Dictionary<Integer, JLabel> pctLabels = new Hashtable<>();
     pctLabels.put(-200, new JLabel(df.format(0)));
     pctLabels.put(-100, new JLabel(df.format(0.5)));
     pctLabels.put(0, new JLabel(df.format(1)));
@@ -772,7 +728,7 @@ public class TokenLayoutPanelHelper {
   public static ImageIcon makeSVGIcon(int size, String svg) {
     InputStream stream = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8));
     FlatSVGIcon.ColorFilter colorFilter = new FlatSVGIcon.ColorFilter();
-    // Convert a the original color into another one supposedly
+    /* Convert a the original color into another one supposedly */
     colorFilter.add(Color.BLACK, UI_DEFAULTS.getColor(FlatIconColors.OBJECTS_BLACK_TEXT));
     colorFilter.add(Color.WHITE, UI_DEFAULTS.getColor(FlatIconColors.ACTIONS_BLUE_DARK));
     try {
@@ -799,15 +755,15 @@ public class TokenLayoutPanelHelper {
       getScaleButton().setIcon(scaleIcons[scaleAxis]);
       switch (scaleAxis) {
         case 0 -> {
-          getScaleSlider().setValue(percentSpinnerToSlider.apply(getTokenSizeScale()).intValue());
+          getScaleSlider().setValue(percentSpinnerToSlider.apply(getTokenSizeScale()));
           getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "  ");
         }
         case 1 -> {
-          getScaleSlider().setValue(percentSpinnerToSlider.apply(getTokenScaleX()).intValue());
+          getScaleSlider().setValue(percentSpinnerToSlider.apply(getTokenScaleX()));
           getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "-X");
         }
         case 2 -> {
-          getScaleSlider().setValue(percentSpinnerToSlider.apply(getTokenScaleY()).intValue());
+          getScaleSlider().setValue(percentSpinnerToSlider.apply(getTokenScaleY()));
           getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "-Y");
         }
       }
@@ -841,7 +797,7 @@ public class TokenLayoutPanelHelper {
       viewOffset = getRenderPanel().getViewOffset();
       centrePoint =
           new Point2D.Double(
-              size.width / 2 + viewOffset.getX(), size.height / 2 + viewOffset.getY());
+              size.width / 2d + viewOffset.getX(), size.height / 2d + viewOffset.getY());
 
       if (zoomFactor != getRenderPanel().getZoomFactor()) {
         zoomFactor = getRenderPanel().getZoomFactor();
@@ -850,7 +806,7 @@ public class TokenLayoutPanelHelper {
       }
 
       if (tokenImage == null) {
-        // just to avoid Div/0 if called before image loaded
+        /* just to avoid Div/0 if called before image loaded */
         tokenImage =
             new BufferedImage(
                 (int) footprintBounds.getWidth(),
@@ -859,13 +815,12 @@ public class TokenLayoutPanelHelper {
       }
 
       if (isIsoFigure) {
-        // If figure we need to calculate an additional offset for the token height outside
-        // footprint
+        /* If figure we calculate an additional offset for token height outside footprint */
         double imageFitRatio =
             footprintBounds.getWidth() / tokenImage.getWidth(); // scale for width
         if (tokenImage.getHeight() * footprintBounds.getWidth() / tokenImage.getWidth()
             > 2 * footprintBounds.getHeight()) {
-          // if this results in being more than twice the footprint height, use height instead
+          /* if this results in being more than twice the footprint height, use height instead */
           imageFitRatio = footprintBounds.getHeight() * 2 / tokenImage.getHeight();
         }
         double th = tokenImage.getHeight() * imageFitRatio;
@@ -887,7 +842,7 @@ public class TokenLayoutPanelHelper {
       boolean mapValues = constrainedZoom != 1f;
       for (int i = 0; i < strokeModels.length; i++) {
         BasicStroke model = strokeModels[i];
-        float useWidth = 0;
+        float useWidth;
         if (mapValues) {
           useWidth =
               MathUtil.mapToRange(
@@ -963,8 +918,7 @@ public class TokenLayoutPanelHelper {
     protected BufferedImage getFlippedImage(BufferedImage bi) {
       log.debug("getFlippedImage - flipStates: " + flipStates);
       int direction =
-          0
-              + (flipStates.contains(FlipState.HORIZONTAL) ? 1 : 0)
+          (flipStates.contains(FlipState.HORIZONTAL) ? 1 : 0)
               + (flipStates.contains(FlipState.VERTICAL) ? 2 : 0);
       if (direction != 0) {
         bi = ImageUtil.flipCartesian(bi, direction);
@@ -973,17 +927,6 @@ public class TokenLayoutPanelHelper {
         bi = ImageUtil.flipIsometric(bi, true);
       }
       return bi;
-    }
-
-    /**
-     * Rotates a buffered image by the provided angle in degrees
-     *
-     * @param bi Image to transform
-     * @param angle Angle in degrees
-     * @return Rotated bufferedImage
-     */
-    protected BufferedImage getRotatedImage(BufferedImage bi, Number angle) {
-      return ImageUtil.rotateImage(bi, angle.doubleValue());
     }
 
     private Shape createGridShape(boolean trueSize) {
@@ -1033,12 +976,12 @@ public class TokenLayoutPanelHelper {
      * ring of a different colour at the radius associated with the footprint scale. Also paints
      * some radial lines to assist with alignment
      *
-     * @param g
-     * @param zoomFactor
+     * @param g graphics object
+     * @param zoomFactor zoom level applied to view
      */
     void paintRings(Graphics g, double zoomFactor) {
       Graphics2D g2d = (Graphics2D) g.create();
-      // used with no grid. A set of rings and radial lines.
+      /* used with no grid. A set of rings and radial lines. */
       TokenFootprint fp = mirrorToken.getFootprint(grid);
       Rectangle2D fpCellBounds = fp.getBounds(grid, ORIGIN);
       fpCellBounds =
@@ -1058,10 +1001,10 @@ public class TokenLayoutPanelHelper {
       Line2D lineLong = new Line2D.Double(cx + currentRadius / 2d, cy, maxRadius, cy);
       Line2D lineShort = new Line2D.Double(cx + gap * 2d, cy, maxRadius, cy);
 
-      // draw radial lines
+      /* draw radial lines */
       for (double i = 0; i < 24; i++) {
         if (i % 6 == 0) {
-          continue; // skip cardinal lines
+          continue; /* skip cardinal lines */
         }
         paintShapeOutLine(
             g2d,
@@ -1071,7 +1014,7 @@ public class TokenLayoutPanelHelper {
             true);
       }
 
-      // draw rings
+      /* draw rings */
       while (currentRadius < maxRadius) {
         Ellipse2D e =
             new Ellipse2D.Double(
@@ -1091,16 +1034,13 @@ public class TokenLayoutPanelHelper {
     /**
      * Horizontal and vertical lines oriented on cx/cy
      *
-     * @param g
+     * @param g graphics object
      * @param rotation used to draw lines on rotated images
-     * @param cx vertical line position
-     * @param cy horizontal line position
      * @param solid Draw as solid else dashed
      * @param colourSet1 Use colour set 1 else 2
      */
     void paintCentreLines(Graphics g, double rotation, boolean solid, boolean colourSet1) {
-      Graphics old = g;
-      // create crosshair with a central gap
+      /* create cross-hair with a central gap */
       double cx = centrePoint.getX();
       double cy = centrePoint.getY();
       Rectangle2D r = viewBounds;
@@ -1132,7 +1072,6 @@ public class TokenLayoutPanelHelper {
         s = lines;
       }
       paintShapeOutLine(g, s, solid, colourSet1);
-      g = old;
     }
 
     /*
@@ -1158,8 +1097,6 @@ public class TokenLayoutPanelHelper {
       Graphics2D g2d = (Graphics2D) g.create();
       Composite oldAc = g2d.getComposite();
       AlphaComposite ac;
-      BasicStroke[] strokes = solid ? solidStrokes : dashedStrokes;
-
       for (int i = 0; i < 4; i++) {
         switch (i) {
           case 0, 1 -> g2d.setColor(colourSet1 ? colours[2] : colours[3]);
@@ -1209,7 +1146,7 @@ public class TokenLayoutPanelHelper {
       double yCorrection = isIsoFigure ? footprintScale * footprintBounds.getHeight() / 2d : 0;
 
       Shape scaledOutline, scaledFill;
-      // for drawing sub-cell-sizes
+      /* for drawing sub-cell-sizes */
       if (footprintScale < 1d) {
         scaledOutline =
             AffineTransform.getScaleInstance(footprintScale, footprintScale)
@@ -1284,7 +1221,6 @@ public class TokenLayoutPanelHelper {
     void paintToken(Graphics g, boolean translucent) {
       Graphics2D g2d = (Graphics2D) g.create();
       g2d.setRenderingHints(RENDERING_HINTS);
-      AffineTransform oldXform = g2d.getTransform();
       if (centreMark == null) {
         createCentreMark();
       }
