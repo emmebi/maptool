@@ -357,14 +357,9 @@ public class GraphicsUtil {
         RenderingHints.KEY_ANTIALIASING,
         RenderingHints.VALUE_ANTIALIAS_OFF); // Faster without antialiasing, and looks just as good
 
-    // float alpha = (float)initialAlpha / width / 6;
     float alpha = .04f;
     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
     for (int i = 1; i < width; i += 2) {
-      // if (alpha * i < .2) {
-      // // Too faded to see anyway, don't waste cycles on it
-      // continue;
-      // }
       g2.setStroke(new BasicStroke(i));
       g2.draw(shape);
     }
@@ -375,8 +370,8 @@ public class GraphicsUtil {
     if (points.length < 2) {
       throw new IllegalArgumentException("Must supply at least two points");
     }
-    List<Point2D> bottomList = new ArrayList<Point2D>(points.length);
-    List<Point2D> topList = new ArrayList<Point2D>(points.length);
+    List<Point2D> bottomList = new ArrayList<>(points.length);
+    List<Point2D> topList = new ArrayList<>(points.length);
 
     for (int i = 0; i < points.length; i++) {
       double angle =
@@ -395,17 +390,13 @@ public class GraphicsUtil {
 
       double bottomAngle = (angle + delta / 2) % 360;
       double topAngle = bottomAngle + 180;
-      // System.out.println(angle + " - " + delta + " - " + bottomAngle + " - " + topAngle);
-
       bottomList.add(getPointAtVector(points[i], bottomAngle, width));
       topList.add(getPointAtVector(points[i], topAngle, width));
     }
-    // System.out.println(bottomList);
-    // System.out.println(topList);
     Collections.reverse(topList);
 
     GeneralPath path = new GeneralPath();
-    Point2D initialPoint = bottomList.remove(0);
+    Point2D initialPoint = bottomList.removeFirst();
     path.moveTo((float) initialPoint.getX(), (float) initialPoint.getY());
 
     for (Point2D point : bottomList) {
@@ -421,10 +412,6 @@ public class GraphicsUtil {
   private static Point2D getPointAtVector(Point2D point, double angle, double length) {
     double x = point.getX() + length * Math.cos(Math.toRadians(angle));
     double y = point.getY() - length * Math.sin(Math.toRadians(angle));
-
-    // System.out.println(point + " - " + angle + " - " + x + "x" + y + " - " +
-    // Math.cos(Math.toRadians(angle)) + " - " + Math.sin(Math.toRadians(angle)) + " - " +
-    // Math.toRadians(angle));
     return new Point2D.Double(x, y);
   }
 
@@ -433,8 +420,6 @@ public class GraphicsUtil {
         new Point2D[] {
           new Point(20, 20), new Point(50, 50), new Point(80, 20), new Point(100, 100)
         };
-    // final Point2D[] points = new Point2D[]{new Point(50, 50), new Point(20, 20), new Point(20,
-    // 100), new Point(50,75)};
     final Area line = createLine(10, points);
 
     JFrame f = new JFrame();
@@ -464,14 +449,15 @@ public class GraphicsUtil {
   }
 
   public static Shape createGridShape(String gridType, double size) {
-    Shape gridShape;
+    final Shape gridShape;
     int sides = 0;
     double startAngle = 0;
     double increment;
     double skew = 0;
     double hScale = 1;
     double vScale = 1;
-    double root3 = Math.sqrt(3d);
+    final double root2 = Math.sqrt(2d);
+    final double root3 = Math.sqrt(3d);
     switch (gridType) {
       case GridFactory.HEX_HORI -> {
         sides = 6;
@@ -497,6 +483,7 @@ public class GraphicsUtil {
       }
       case GridFactory.SQUARE -> {
         sides = 4;
+        hScale = vScale = root2 / 2d;
         startAngle = Math.TAU / 8d;
       }
     }
@@ -514,6 +501,6 @@ public class GraphicsUtil {
     } else {
       gridShape = path;
     }
-    return path;
+    return gridShape;
   }
 }
