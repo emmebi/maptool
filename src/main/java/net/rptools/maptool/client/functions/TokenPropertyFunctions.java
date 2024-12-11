@@ -955,33 +955,20 @@ public class TokenPropertyFunctions extends AbstractFunction {
         return jarr;
       } else {
         StringBuilder sb = new StringBuilder();
-        return sb.append("scale=")
-            .append(scale)
-            .append(delim)
-            .append("xOffset=")
-            .append(xOffset)
-            .append(delim)
-            .append("yOffset=")
-            .append(yOffset)
-            .append(delim)
-            .append("rotation=")
-            .append(rotation)
-            .append(delim)
-            .append("scaleX=")
-            .append(scaleX)
-            .append(delim)
-            .append("scaleY=")
-            .append(scaleY)
-            .append(delim)
-            .append("footprintScale=")
-            .append(delim)
-            .append(footprintScaleValue);
+        sb.append("scale=" + scale + delim);
+        sb.append("xOffset=" + xOffset + delim);
+        sb.append("yOffset=" + yOffset + delim);
+        sb.append("rotation=" + rotation + delim);
+        sb.append("scaleX=" + scaleX + delim);
+        sb.append("scaleY=" + scaleY + delim);
+        sb.append("footprintScale=" + footprintScaleValue);
+        return sb.toString();
       }
     }
     /*
      * setExtendedTokenLayoutProps(StrProp/JSON Object, token: currentToken(), mapName = current map)
      */
-    if (functionName.equalsIgnoreCase("setExtendedTokenLayoutProps")) {
+      if (functionName.equalsIgnoreCase("setExtendedTokenLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 1, 3);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
       JsonObject json;
