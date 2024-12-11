@@ -640,7 +640,7 @@ enum TokenUpdateDto {
     setVisible = 34;
     setVisibleOnlyToOwner = 35;
     setIsAlwaysVisible = 36;
-    setTokenOpacity = 37;
+    setOpacity = 37;
     setTerrainModifier = 38;
     setTerrainModifierOperation = 39;
     setTerrainModifiersIgnored = 40;

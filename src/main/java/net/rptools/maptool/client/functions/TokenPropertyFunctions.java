@@ -713,7 +713,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     if (functionName.equalsIgnoreCase("isFlippedIso")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
-      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -922,7 +922,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
       MapTool.serverCommand().updateTokenProperty(token, Token.Update.flipIso);
-      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*

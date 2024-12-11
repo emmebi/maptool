@@ -15,30 +15,25 @@
 package net.rptools.lib.image;
 
 import com.twelvemonkeys.image.ResampleOp;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.MediaTracker;
-import java.awt.Transparency;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
 import java.awt.image.PixelGrabber;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Map;
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
+import javax.swing.*;
+import net.rptools.lib.MathUtil;
 import net.rptools.maptool.client.AppPreferences;
+import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
+import net.rptools.maptool.model.*;
+import net.rptools.maptool.util.ImageManager;
+import net.rptools.parser.ParserException;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,41 +42,329 @@ import org.apache.logging.log4j.Logger;
  * @author trevor
  */
 public class ImageUtil {
-  private static final Logger log = LogManager.getLogger();
-
   public static final String HINT_TRANSPARENCY = "hintTransparency";
-
-  // TODO: perhaps look at reintroducing this later
-  // private static GraphicsConfiguration graphicsConfig =
-  // GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-
   public static final FilenameFilter SUPPORTED_IMAGE_FILE_FILTER =
       (dir, name) -> {
         name = name.toLowerCase();
         return Arrays.asList(ImageIO.getReaderFileSuffixes()).contains(name);
       };
 
+  // TODO: perhaps look at reintroducing this later
+  // private static GraphicsConfiguration graphicsConfig =
+  // GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+  private static final Logger log = LogManager.getLogger();
+
   // public static void setGraphicsConfiguration(GraphicsConfiguration config) {
   // graphicsConfig = config;
   // }
   //
+  private static final JPanel observer = new JPanel();
+  private static final int[][] outlineNeighborMap = {
+    {0, -1, 100}, // N
+    {1, 0, 100}, // E
+    {0, 1, 100}, // S
+    {-1, 0, 100} // W
+    ,
+    {-1, -1}, // NW
+    {1, -1}, // NE
+    {-1, 1}, // SW
+    {1, 1}, // SE
+  };
+  private static RenderingHints renderingHintsQuality;
+
+  public static BufferedImage replaceColor(BufferedImage src, int sourceRGB, int replaceRGB) {
+    for (int y = 0; y < src.getHeight(); y++) {
+      for (int x = 0; x < src.getWidth(); x++) {
+        int rawRGB = src.getRGB(x, y);
+        int rgb = rawRGB & 0xffffff;
+        int alpha = rawRGB & 0xff000000;
+
+        if (rgb == sourceRGB) {
+          src.setRGB(x, y, alpha | replaceRGB);
+        }
+      }
+    }
+    return src;
+  }
+
+  public static int negativeColourInt(int rgb) {
+    int r = 255 - ((rgb >> 16) & 0xFF);
+    int g = 255 - ((rgb >> 8) & 0xFF);
+    int b = 255 - (rgb & 0xFF);
+    int negativeRGB = (r << 16) | (g << 8) | b;
+    return negativeRGB;
+  }
+
+  public static BufferedImage negativeImage(BufferedImage originalImage) {
+    // Get the dimensions of the image
+    int width = originalImage.getWidth();
+    int height = originalImage.getHeight();
+    // Create a new BufferedImage for the negative image
+    BufferedImage negativeImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    // Loop through each pixel of the original image and convert it to its negative
+    for (int y = 0; y < height; y++) {
+      for (int x = 0; x < width; x++) {
+        int negativeRGB = negativeColourInt(originalImage.getRGB(x, y));
+        negativeImage.setRGB(x, y, negativeRGB);
+      }
+    }
+    return negativeImage;
+  }
+
+  /**
+   * Scales the provided image with the ZoneRenderer scale, the token footprint, and the token's
+   * layout scale factors.
+   *
+   * @param bi Image to scale
+   * @return Scaled bufferedImage
+   */
+  public static BufferedImage getScaledTokenImage(BufferedImage bi, Token token, ZoneRenderer zr) {
+    Grid grid = zr.getZone().getGrid();
+    double zoneS = zr.getScale();
+    return getScaledTokenImage(bi, token, grid, zoneS);
+  }
+
+  public static BufferedImage getScaledTokenImage(
+      BufferedImage img, Token token, Grid grid, double zoom) {
+    TokenFootprint footprint = token.getFootprint(grid);
+    Rectangle2D footprintBounds = footprint.getBounds(grid, new CellPoint(0, 0));
+    double zoomS = zoom;
+    double fpS =
+        footprint
+            .getScale(); // except gridless, this should be 1 for footprints larger than the grid
+    // size
+    double fpW, fpH;
+    // multiply by zoom level to prevent mutliple scaling ops which lose definition
+    if (grid.equals(GridFactory.NONE)) {
+      fpW = fpH = grid.getSize() * fpS * zoomS; // all gridless are relative to the grid size
+    } else {
+      fpW = footprintBounds.getWidth() * fpS * zoomS;
+      fpH = footprintBounds.getHeight() * fpS * zoomS;
+    }
+
+    double imgW = img.getWidth();
+    double imgH = img.getHeight();
+    double sXY = token.getSizeScale();
+    double sX = token.getScaleX();
+    double sY = token.getScaleY();
+    // scale to fit image inside footprint bounds using the dimension that needs the most scaling,
+    // i.e. lowest ratio
+    double imageFootprintRatio = 1;
+    if (token.getShape() == Token.TokenShape.FIGURE && grid.isIsometric()) {
+      // uses double footprint height
+      imageFootprintRatio = Math.min(fpW / imgW, fpH * 2 / imgH);
+    } else {
+      imageFootprintRatio = Math.min(fpW / imgW, fpH / imgH);
+    }
+    // combine with token scale properties
+    if (sX != 1 || sY != 1 || sXY != 1 || imageFootprintRatio != 1) {
+      int outputWidth = (int) Math.ceil(imgW * sXY * sX * imageFootprintRatio);
+      int outputHeight = (int) Math.ceil(imgH * sXY * sY * imageFootprintRatio);
+      token.setWidth(outputWidth);
+      token.setHeight(outputHeight);
+      try {
+        return ImageUtil.scaleBufferedImage(img, outputWidth, outputHeight);
+      } catch (Exception e) {
+        log.debug(e.getLocalizedMessage(), e);
+        return img;
+      }
+    } else {
+      return img;
+    }
+  }
+
+  /**
+   * Create a copy of the image that is compatible with the current graphics context
+   *
+   * @param img to use
+   * @return compatible BufferedImage
+   */
+  public static BufferedImage createCompatibleImage(Image img) {
+    return createCompatibleImage(img, null);
+  }
+
+  public static BufferedImage createCompatibleImage(int width, int height, int transparency) {
+    return new BufferedImage(width, height, transparency);
+  }
+
+  /**
+   * Convert a BufferedImage to byte[] in the jpg format.
+   *
+   * @param image the buffered image.
+   * @return the byte[] of the image
+   * @throws IOException if the image cannot be written to the output stream.
+   */
+  public static byte[] imageToBytes(BufferedImage image) throws IOException {
+
+    // First try jpg, if it cant be converted to jpg try png
+    byte[] imageBytes = imageToBytes(image, "jpg");
+    if (imageBytes.length > 0) {
+      return imageBytes;
+    }
+
+    return imageToBytes(image, "png");
+  }
+
+  /**
+   * Convert a BufferedImage to byte[] in an given format.
+   *
+   * @param image the buffered image.
+   * @param format a String containing the informal name of the format.
+   * @return the byte[] of the image.
+   * @throws IOException if the image cannot be written to the output stream.
+   */
+  public static byte[] imageToBytes(BufferedImage image, String format) throws IOException {
+    ByteArrayOutputStream outStream = new ByteArrayOutputStream(10000);
+    ImageIO.write(image, format, outStream);
+
+    return outStream.toByteArray();
+  }
+
+  public static void clearImage(BufferedImage image) {
+    if (image == null) {
+      return;
+    }
+
+    Graphics2D g = null;
+    try {
+      g = (Graphics2D) image.getGraphics();
+      Composite oldComposite = g.getComposite();
+      g.setComposite(AlphaComposite.Clear);
+      g.fillRect(0, 0, image.getWidth(), image.getHeight());
+      g.setComposite(oldComposite);
+    } finally {
+      if (g != null) {
+        g.dispose();
+      }
+    }
+  }
+
+  public static BufferedImage createOutline(BufferedImage sourceImage, Color color) {
+    if (sourceImage == null) {
+      return null;
+    }
+    BufferedImage image =
+        new BufferedImage(
+            sourceImage.getWidth() + 2, sourceImage.getHeight() + 2, Transparency.BITMASK);
+
+    for (int row = 0; row < image.getHeight(); row++) {
+      for (int col = 0; col < image.getWidth(); col++) {
+        int sourceX = col - 1;
+        int sourceY = row - 1;
+
+        // Pixel under current location
+        if (sourceX >= 0
+            && sourceY >= 0
+            && sourceX <= sourceImage.getWidth() - 1
+            && sourceY <= sourceImage.getHeight() - 1) {
+          int sourcePixel = sourceImage.getRGB(sourceX, sourceY);
+          if (sourcePixel >> 24 != 0) {
+            // Not an empty pixel, don't overwrite it
+            continue;
+          }
+        }
+        for (int[] neighbor : outlineNeighborMap) {
+          int x = sourceX + neighbor[0];
+          int y = sourceY + neighbor[1];
+
+          if (x >= 0
+              && y >= 0
+              && x <= sourceImage.getWidth() - 1
+              && y <= sourceImage.getHeight() - 1
+              && (sourceImage.getRGB(x, y) >> 24) != 0) {
+            image.setRGB(col, row, color.getRGB());
+            break;
+          }
+        }
+      }
+    }
+    return image;
+  }
+
+  /**
+   * Returns the provided image flipped according to the token's flip-states
+   *
+   * @param image The image to be processed
+   * @param token The token containing the flip-states
+   * @return A modified image, or the original image if no processing performed.
+   */
+  public static BufferedImage flipTokenImage(BufferedImage image, Token token) {
+    int direction = 0 + (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
+    image = flipCartesian(image, direction);
+    if (token.isFlippedIso()) {
+      return IsometricGrid.isoImage(image);
+    } else {
+      return image;
+    }
+  }
+
   /**
    * Load the image. Does not create a graphics configuration compatible version.
    *
    * @param file the file with the image in it
-   * @throws IOException when the image can't be read in the file
    * @return an {@link Image} from the content of the file
+   * @throws IOException when the image can't be read in the file
    */
   public static Image getImage(File file) throws IOException {
     return bytesToImage(FileUtils.readFileToByteArray(file), file.getCanonicalPath());
   }
 
   /**
+   * Converts a byte array into an {@link Image} instance.
+   *
+   * @param imageBytes bytes to convert
+   * @param imageName name of image
+   * @return the image
+   * @throws IOException if image could not be loaded
+   */
+  public static Image bytesToImage(byte[] imageBytes, String imageName) throws IOException {
+    if (imageBytes == null) {
+      throw new IOException("Could not load image - no data provided");
+    }
+    boolean interrupted = false;
+    Throwable exception = null;
+    Image image;
+    image = ImageIO.read(new ByteArrayInputStream(imageBytes));
+    MediaTracker tracker = new MediaTracker(observer);
+    tracker.addImage(image, 0);
+    do {
+      try {
+        interrupted = false;
+        tracker.waitForID(0); // This is the only method that throws an exception
+      } catch (InterruptedException t) {
+        interrupted = true;
+      } catch (Throwable t) {
+        exception = t;
+      }
+    } while (interrupted);
+    if (image == null) {
+      throw new IOException("Could not load image " + imageName, exception);
+    }
+    return image;
+  }
+
+  public static BufferedImage getCompatibleImage(String image) throws IOException {
+    return getCompatibleImage(image, null);
+  }
+
+  public static BufferedImage getCompatibleImage(String image, Map<String, Object> hints)
+      throws IOException {
+    return createCompatibleImage(getImage(image), hints);
+  }
+
+  public static BufferedImage createCompatibleImage(Image img, Map<String, Object> hints) {
+    if (img == null) {
+      return null;
+    }
+    return createCompatibleImage(img, img.getWidth(null), img.getHeight(null), hints);
+  }
+
+  /**
    * Load the image in the classpath. Does not create a graphics configuration compatible version.
    *
    * @param image the resource name of the image file
-   * @throws IOException when the image can't be read in the file
    * @return an {@link Image} from the content of the file
+   * @throws IOException when the image can't be read in the file
    */
   public static Image getImage(String image) throws IOException {
     ByteArrayOutputStream dataStream = new ByteArrayOutputStream(8192);
@@ -96,36 +379,6 @@ public class ImageUtil {
       dataStream.write(bite);
     }
     return bytesToImage(dataStream.toByteArray(), image);
-  }
-
-  public static BufferedImage getCompatibleImage(String image) throws IOException {
-    return getCompatibleImage(image, null);
-  }
-
-  public static BufferedImage getCompatibleImage(String image, Map<String, Object> hints)
-      throws IOException {
-    return createCompatibleImage(getImage(image), hints);
-  }
-
-  /**
-   * Create a copy of the image that is compatible with the current graphics context
-   *
-   * @param img to use
-   * @return compatible BufferedImage
-   */
-  public static BufferedImage createCompatibleImage(Image img) {
-    return createCompatibleImage(img, null);
-  }
-
-  public static BufferedImage createCompatibleImage(Image img, Map<String, Object> hints) {
-    if (img == null) {
-      return null;
-    }
-    return createCompatibleImage(img, img.getWidth(null), img.getHeight(null), hints);
-  }
-
-  public static BufferedImage createCompatibleImage(int width, int height, int transparency) {
-    return new BufferedImage(width, height, transparency);
   }
 
   /**
@@ -247,144 +500,105 @@ public class ImageUtil {
     return foundTransparent ? Transparency.BITMASK : Transparency.OPAQUE;
   }
 
-  /**
-   * Convert a BufferedImage to byte[] in the jpg format.
-   *
-   * @param image the buffered image.
-   * @return the byte[] of the image
-   * @throws IOException if the image cannot be written to the output stream.
-   */
-  public static byte[] imageToBytes(BufferedImage image) throws IOException {
-
-    // First try jpg, if it cant be converted to jpg try png
-    byte[] imageBytes = imageToBytes(image, "jpg");
-    if (imageBytes.length > 0) {
-      return imageBytes;
-    }
-
-    return imageToBytes(image, "png");
+  public static double getIsoFigureHeightOffset(Token token, Rectangle2D footprintBounds) {
+    double scale = getIsoFigureScaleFactor(token, footprintBounds);
+    double th = token.getHeight() * scale;
+    return footprintBounds.getHeight() - th;
   }
 
   /**
-   * Convert a BufferedImage to byte[] in an given format.
+   * Use width ratio unless height exceeds double footprint height
    *
-   * @param image the buffered image.
-   * @param format a String containing the informal name of the format.
-   * @return the byte[] of the image.
-   * @throws IOException if the image cannot be written to the output stream.
+   * @param token
+   * @param footprintBounds
+   * @return double
    */
-  public static byte[] imageToBytes(BufferedImage image, String format) throws IOException {
-    ByteArrayOutputStream outStream = new ByteArrayOutputStream(10000);
-    ImageIO.write(image, format, outStream);
-
-    return outStream.toByteArray();
+  public static double getIsoFigureScaleFactor(Token token, Rectangle2D footprintBounds) {
+    return Math.min(
+        footprintBounds.getWidth() / token.getWidth(),
+        footprintBounds.getHeight() * 2 / token.getHeight());
   }
 
-  private static final JPanel observer = new JPanel();
+  /**
+   * Get the offset values required to align an image within specified bounds
+   *
+   * @param imgSize Dimension
+   * @param footprintBounds Rectangle
+   * @return int array of length 2 [x,y]
+   */
+  public static double[] getImageAlignmentOffsets(BufferedImage image, Rectangle footprintBounds) {
+    double[] offsets = new double[2];
+    offsets[0] =
+        image.getWidth() < footprintBounds.width
+            ? (footprintBounds.width - image.getWidth()) / 2
+            : image.getWidth() > footprintBounds.width
+                ? -(image.getWidth() - footprintBounds.width) / 2
+                : 0;
+    offsets[1] =
+        image.getHeight() < footprintBounds.height
+            ? (footprintBounds.height - image.getHeight()) / 2
+            : image.getHeight() > footprintBounds.height
+                ? -(image.getHeight() - footprintBounds.height) / 2
+                : 0;
+    return offsets;
+  }
 
   /**
-   * Converts a byte array into an {@link Image} instance.
+   * Gets the token image; applies flipping, scaling, and image rotation, but not facing.
    *
-   * @param imageBytes bytes to convert
-   * @param imageName name of image
-   * @return the image
-   * @throws IOException if image could not be loaded
+   * @param token
+   * @param zr
+   * @return modified image
    */
-  public static Image bytesToImage(byte[] imageBytes, String imageName) throws IOException {
-    if (imageBytes == null) {
-      throw new IOException("Could not load image - no data provided");
+  public static BufferedImage getTokenRenderImage(Token token, ZoneRenderer zr) {
+    BufferedImage image = getTokenImage(token, zr);
+
+    int flipDirection = 0 + (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
+    image = flipCartesian(image, flipDirection);
+    if (token.isFlippedIso() && zr.getZone().getGrid().isIsometric()) {
+      image = flipIsometric(image, true);
     }
-    boolean interrupted = false;
-    Throwable exception = null;
-    Image image;
-    image = ImageIO.read(new ByteArrayInputStream(imageBytes));
-    MediaTracker tracker = new MediaTracker(observer);
-    tracker.addImage(image, 0);
-    do {
-      try {
-        interrupted = false;
-        tracker.waitForID(0); // This is the only method that throws an exception
-      } catch (InterruptedException t) {
-        interrupted = true;
-      } catch (Throwable t) {
-        exception = t;
-      }
-    } while (interrupted);
-    if (image == null) {
-      throw new IOException("Could not load image " + imageName, exception);
+
+    image = getScaledTokenImage(image, token, zr);
+
+    if (token.getImageRotation() != 0) {
+      image = rotateImage(image, token.getImageRotation());
     }
     return image;
   }
 
-  public static void clearImage(BufferedImage image) {
+  /**
+   * Checks to see if token has an image table and references that if the token has a facing
+   * otherwise uses basic image
+   *
+   * @param token the token to get the image from.
+   * @return BufferedImage
+   */
+  public static BufferedImage getTokenImage(Token token, ZoneRenderer zr) {
+    BufferedImage image = null;
+    // Get the basic image
+    if (token.getHasImageTable()
+        && token.hasFacing()
+        && token.getImageTableName() != null
+        && zr.getZone().getGrid().isIsometric()) {
+      LookupTable lookupTable =
+          MapTool.getCampaign().getLookupTableMap().get(token.getImageTableName());
+      if (lookupTable != null) {
+        try {
+          LookupTable.LookupEntry result =
+              lookupTable.getLookup(Integer.toString(token.getFacing()));
+          if (result != null) {
+            image = ImageManager.getImage(result.getImageId(), zr);
+          }
+        } catch (ParserException p) {
+          // do nothing
+        }
+      }
+    }
+
     if (image == null) {
-      return;
-    }
-
-    Graphics2D g = null;
-    try {
-      g = (Graphics2D) image.getGraphics();
-      Composite oldComposite = g.getComposite();
-      g.setComposite(AlphaComposite.Clear);
-      g.fillRect(0, 0, image.getWidth(), image.getHeight());
-      g.setComposite(oldComposite);
-    } finally {
-      if (g != null) {
-        g.dispose();
-      }
-    }
-  }
-
-  private static final int[][] outlineNeighborMap = {
-    {0, -1, 100}, // N
-    {1, 0, 100}, // E
-    {0, 1, 100}, // S
-    {-1, 0, 100} // W
-    ,
-    {-1, -1}, // NW
-    {1, -1}, // NE
-    {-1, 1}, // SW
-    {1, 1}, // SE
-  };
-
-  public static BufferedImage createOutline(BufferedImage sourceImage, Color color) {
-    if (sourceImage == null) {
-      return null;
-    }
-    BufferedImage image =
-        new BufferedImage(
-            sourceImage.getWidth() + 2, sourceImage.getHeight() + 2, Transparency.BITMASK);
-
-    for (int row = 0; row < image.getHeight(); row++) {
-      for (int col = 0; col < image.getWidth(); col++) {
-        int sourceX = col - 1;
-        int sourceY = row - 1;
-
-        // Pixel under current location
-        if (sourceX >= 0
-            && sourceY >= 0
-            && sourceX <= sourceImage.getWidth() - 1
-            && sourceY <= sourceImage.getHeight() - 1) {
-          int sourcePixel = sourceImage.getRGB(sourceX, sourceY);
-          if (sourcePixel >> 24 != 0) {
-            // Not an empty pixel, don't overwrite it
-            continue;
-          }
-        }
-        for (int[] neighbor : outlineNeighborMap) {
-          int x = sourceX + neighbor[0];
-          int y = sourceY + neighbor[1];
-
-          if (x >= 0
-              && y >= 0
-              && x <= sourceImage.getWidth() - 1
-              && y <= sourceImage.getHeight() - 1
-              && (sourceImage.getRGB(x, y) >> 24) != 0) {
-            image.setRGB(col, row, color.getRGB());
-            break;
-          }
-        }
-      }
+      // Adds zr as observer so we can repaint once the image is ready. Fixes #1700.
+      image = ImageManager.getImage(token.getImageAssetId(), zr);
     }
     return image;
   }
@@ -396,12 +610,16 @@ public class ImageUtil {
    * @param direction 0-nothing, 1-horizontal, 2-vertical, 3-both
    * @return flipped BufferedImage
    */
-  public static BufferedImage flip(BufferedImage image, int direction) {
-    BufferedImage workImage =
-        new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
-
+  public static BufferedImage flipCartesian(BufferedImage image, int direction) {
     boolean flipHorizontal = (direction & 1) == 1;
     boolean flipVertical = (direction & 2) == 2;
+
+    if (!flipHorizontal && !flipVertical) {
+      return image;
+    }
+
+    BufferedImage workImage =
+        new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
 
     int workW = image.getWidth() * (flipHorizontal ? -1 : 1);
     int workH = image.getHeight() * (flipVertical ? -1 : 1);
@@ -415,7 +633,62 @@ public class ImageUtil {
     return workImage;
   }
 
-  public static ImageIcon scaleImage(ImageIcon icon, int w, int h) {
+  public static BufferedImage flipIsometric(BufferedImage image, boolean toRhombus) {
+    BufferedImage workImage;
+    boolean isSquished =
+        MathUtil.inTolerance(image.getHeight(), image.getWidth() / 2d, image.getHeight() * 0.05);
+    if (image.getWidth() != image.getHeight()) {
+      int maxDim = Math.max(image.getWidth(), image.getHeight());
+      int w = 1, h = 1;
+      if (toRhombus) {
+        // make it square and centred
+        w = h = maxDim;
+      } else {
+        if (!isSquished) {
+          w = maxDim;
+          h = (int) Math.ceil(maxDim / 2d);
+        } else {
+          w = image.getWidth();
+          w = (int) Math.ceil(image.getWidth() / 2d);
+        }
+      }
+      workImage = new BufferedImage(w, h, image.getTransparency());
+      Graphics2D wig = workImage.createGraphics();
+      wig.drawImage(
+          image,
+          (workImage.getWidth() - image.getWidth()) / 2,
+          (workImage.getHeight() - image.getHeight()) / 2,
+          image.getWidth(),
+          image.getHeight(),
+          null);
+      wig.dispose();
+      image = workImage;
+    }
+    if (toRhombus) {
+      image = rotateImage(image, 45);
+      image = scaleBufferedImage(image, image.getWidth(), image.getHeight() / 2);
+    } else {
+      image = scaleBufferedImage(image, image.getWidth(), image.getWidth());
+      image = rotateImage(image, -45);
+    }
+    return image;
+  }
+
+  /**
+   * Scales a BufferedImage to a desired width and height and returns the result.
+   *
+   * @param image The BufferedImage to be scaled
+   * @param width Desired width in px
+   * @param height Desired height in px
+   * @return The scaled BufferedImage
+   */
+  public static BufferedImage scaleBufferedImage(BufferedImage image, int width, int height) {
+    ResampleOp resampleOp =
+        new ResampleOp(width, height, AppPreferences.renderQuality.get().getResampleOpFilter());
+    return resampleOp.filter(image, null);
+  }
+
+  public static ImageIcon scaleImageIcon(ImageIcon icon, int w, int h) {
     int nw = icon.getIconWidth();
     int nh = icon.getIconHeight();
 
@@ -432,17 +705,42 @@ public class ImageUtil {
     return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_DEFAULT));
   }
 
-  /**
-   * Scales a BufferedImage to a desired width and height and returns the result.
-   *
-   * @param image The BufferedImage to be scaled
-   * @param width Desired width in px
-   * @param height Desired height in px
-   * @return The scaled BufferedImage
-   */
-  public static BufferedImage scaleBufferedImage(BufferedImage image, int width, int height) {
-    ResampleOp resampleOp =
-        new ResampleOp(width, height, AppPreferences.renderQuality.get().getResampleOpFilter());
-    return resampleOp.filter(image, null);
+  public static RenderingHints getRenderingHintsQuality() {
+    if (renderingHintsQuality == null) {
+      renderingHintsQuality =
+          new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      renderingHintsQuality.put(
+          RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+      renderingHintsQuality.put(
+          RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+      renderingHintsQuality.put(
+          RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+      renderingHintsQuality.put(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+    }
+    return renderingHintsQuality;
+  }
+
+  public static BufferedImage rotateImage(BufferedImage img, double degrees) {
+    double rads = Math.toRadians(degrees);
+    double sin = Math.abs(Math.sin(rads)), cos = Math.abs(Math.cos(rads));
+    int w = img.getWidth();
+    int h = img.getHeight();
+    int newWidth = (int) Math.floor(w * cos + h * sin);
+    int newHeight = (int) Math.floor(h * cos + w * sin);
+
+    BufferedImage rotated = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2d = rotated.createGraphics();
+    g2d.setRenderingHints(getRenderingHintsQuality());
+    AffineTransform at = new AffineTransform();
+    at.translate((newWidth - w) / 2.0, (newHeight - h) / 2.0);
+
+    double x = w / 2.0;
+    double y = h / 2.0;
+
+    at.rotate(rads, x, y);
+    g2d.setTransform(at);
+    g2d.drawImage(img, 0, 0, null);
+    g2d.dispose();
+    return rotated;
   }
 }

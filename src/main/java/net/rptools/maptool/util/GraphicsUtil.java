@@ -27,10 +27,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
-import java.awt.geom.Area;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
+import java.awt.geom.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +41,7 @@ import net.rptools.maptool.client.swing.ImageLabel;
 import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
+import net.rptools.maptool.model.GridFactory;
 
 /** */
 public class GraphicsUtil {
@@ -463,5 +461,59 @@ public class GraphicsUtil {
     f.add(p);
     f.setVisible(true);
     // System.out.println(area.equals(area2));
+  }
+
+  public static Shape createGridShape(String gridType, double size) {
+    Shape gridShape;
+    int sides = 0;
+    double startAngle = 0;
+    double increment;
+    double skew = 0;
+    double hScale = 1;
+    double vScale = 1;
+    double root3 = Math.sqrt(3d);
+    switch (gridType) {
+      case GridFactory.HEX_HORI -> {
+        sides = 6;
+        startAngle = Math.TAU / 12;
+        hScale = vScale = root3 / 4d;
+      }
+      case GridFactory.HEX_VERT -> {
+        sides = 6;
+        hScale = vScale = Math.sqrt(3d / 2d);
+      }
+      case GridFactory.ISOMETRIC -> {
+        sides = 4;
+        vScale = 0.5;
+      }
+      case GridFactory.ISOMETRIC_HEX -> {
+        sides = 6;
+        startAngle = Math.TAU / 24;
+        hScale = vScale = Math.sqrt(3d / 2d);
+        skew = Math.toRadians(30d);
+      }
+      case GridFactory.NONE -> {
+        return new Ellipse2D.Double(-size / 2d, -size / 2d, size, size);
+      }
+      case GridFactory.SQUARE -> {
+        sides = 4;
+        startAngle = Math.TAU / 8d;
+      }
+    }
+    increment = Math.TAU / sides;
+    Path2D path = new Path2D.Double();
+    path.moveTo(Math.cos(startAngle) * size * hScale, Math.sin(startAngle) * size * vScale);
+    for (int i = 1; i < sides; i++) {
+      path.lineTo(
+          Math.cos(startAngle + i * increment) * size * hScale,
+          Math.sin(startAngle + i * increment) * size * vScale);
+    }
+    path.closePath();
+    if (skew != 0) {
+      gridShape = AffineTransform.getShearInstance(skew, 0).createTransformedShape(path);
+    } else {
+      gridShape = path;
+    }
+    return path;
   }
 }

@@ -1444,7 +1444,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           wig.dispose();
         }
         // on the iso plane
-        if (token.getIsFlippedIso()) {
+        if (token.isFlippedIso()) {
           if (flipIsoImageMap.get(token) == null) {
             workImage = IsometricGrid.isoImage(workImage);
           } else {
@@ -2330,7 +2330,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.stop("tokenlist-5");
 
       timer.start("tokenlist-5a");
-      if (token.getIsFlippedIso()) {
+      if (token.isFlippedIso()) {
         if (flipIsoImageMap.get(token) == null) {
           workImage = IsometricGrid.isoImage(workImage);
           flipIsoImageMap.put(token, workImage);

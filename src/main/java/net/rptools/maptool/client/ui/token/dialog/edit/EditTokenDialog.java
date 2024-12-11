@@ -199,6 +199,26 @@ public class EditTokenDialog extends AbeillePanel<Token> {
             super.closeDialog();
           }
         };
+    getTokenLayoutPanel().reset(token);
+    getFlippedX()
+        .addChangeListener(
+            e ->
+                getTokenLayoutPanel()
+                    .getHelper()
+                    .setTokenFlipX(((JCheckBox) e.getSource()).isSelected()));
+    getFlippedY()
+        .addChangeListener(
+            e ->
+                getTokenLayoutPanel()
+                    .getHelper()
+                    .setTokenFlipY(((JCheckBox) e.getSource()).isSelected()));
+    getFlippedIso()
+        .addChangeListener(
+            e ->
+                getTokenLayoutPanel()
+                    .getHelper()
+                    .setTokenFlipIso(((JCheckBox) e.getSource()).isSelected()));
+
     getTokenTopologyPanel().reset(token);
     bind(token);
 
@@ -339,7 +359,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     // OTHER
     getShapeCombo().setSelectedItem(token.getShape());
     setSizeCombo(token);
-
+    getSnapToGrid().setSelected(token.isSnapToGrid());
+    getFlippedIso().setSelected(token.isFlippedIso());
+    getFlippedX().setSelected(token.isFlippedX());
+    getFlippedY().setSelected(token.isFlippedY());
     // Updates the Property Type list.
     updatePropertyTypeCombo();
 
@@ -361,7 +384,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     getTokenLayoutPanel().setToken(token);
     getImageTableCombo().setSelectedItem(token.getImageTableName());
     getTokenOpacitySlider()
-        .setValue(new BigDecimal(token.getTokenOpacity()).multiply(new BigDecimal(100)).intValue());
+        .setValue(new BigDecimal(token.getOpacity()).multiply(new BigDecimal(100)).intValue());
     getTerrainModifier().setText(Double.toString(token.getTerrainModifier()));
     getTerrainModifierOperationComboBox().setSelectedItem(token.getTerrainModifierOperation());
 
@@ -696,7 +719,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   public void initTokenOpacitySlider() {
-    getTokenOpacitySlider().addChangeListener(new SliderListener());
+    getTokenOpacitySlider().addChangeListener(new OpacitySliderListener());
   }
 
   public JSlider getTokenOpacitySlider() {
@@ -721,7 +744,11 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   public void setUniqueLightSourcesEnabled(boolean enabled) {
     getUniqueLightSourcesTextPane().setEnabled(enabled);
-    getLabel("uniqueLightSourcesLabel").setEnabled(enabled);
+    getUniqueLightSourcesPanel().setEnabled(enabled);
+  }
+
+  public JPanel getUniqueLightSourcesPanel() {
+    return (JPanel) getComponent("uniqueLightSourcesPanel");
   }
 
   public JTextPane getUniqueLightSourcesTextPane() {
@@ -747,7 +774,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   public boolean commit() {
     Token token = getModel();
 
-    if (getNameField().getText().equals("")) {
+    if (getNameField().getText().isEmpty()) {
       MapTool.showError("msg.error.emptyTokenName");
       return false;
     }
@@ -784,7 +811,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setPropertyType((String) getPropertyTypeCombo().getSelectedItem());
     token.setSightType((String) getSightTypeCombo().getSelectedItem());
     token.setImageTableName((String) getImageTableCombo().getSelectedItem());
-    token.setTokenOpacity(
+    token.setOpacity(
         new BigDecimal(getTokenOpacitySlider().getValue())
             .divide(new BigDecimal(100))
             .floatValue());
@@ -908,8 +935,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setPortraitImage(getPortraitPanel().getImageId());
 
     // LAYOUT
-    token.setSizeScale(getTokenLayoutPanel().getSizeScale());
-    token.setAnchor(getTokenLayoutPanel().getAnchorX(), getTokenLayoutPanel().getAnchorY());
+    getTokenLayoutPanel().getHelper().commitChanges(token);
+
+    token.setSnapToGrid(getSnapToGrid().isSelected());
 
     // TOPOLOGY
     for (final var type : Zone.TopologyType.values()) {
@@ -940,10 +968,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     MapTool.getFrame().resetTokenPanels();
 
     // Jamz: TODO check if topology changed on token first
-    MapTool.getFrame()
-        .getCurrentZoneRenderer()
-        .getZone()
-        .tokenMaskTopologyChanged(token.getMaskTopologyTypes());
+    //    MapTool.getFrame()
+    //        .getCurrentZoneRenderer()
+    //        .getZone()
+    //        .tokenMaskTopologyChanged(token.getMaskTopologyTypes());
     return true;
   }
 
@@ -979,7 +1007,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     groups.put("", noGroupPanel);
     for (BooleanTokenOverlay overlay : overlays) {
       String group = overlay.getGroup();
-      if (group != null && (group = group.trim()).length() != 0) {
+      if (group != null && !(group = group.trim()).isEmpty()) {
         JPanel panel = groups.get(group);
         if (panel == null) {
           panel =
@@ -1001,7 +1029,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     for (BooleanTokenOverlay state : overlays) {
       String group = state.getGroup();
       var panel = groups.get("");
-      if (group != null && (group = group.trim()).length() != 0) {
+      if (group != null && !(group = group.trim()).isEmpty()) {
         panel = groups.get(group);
       }
       panel.add(new JCheckBox(state.getName()));
@@ -1016,7 +1044,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     JPanel barPanel = new JPanel(new MigLayout("wrap 2", "[fill,grow][fill,grow]"));
     barPanel.setName("bar");
     // Add sliders to the bar panel
-    if (MapTool.getCampaign().getTokenBarsMap().size() > 0) {
+    if (!MapTool.getCampaign().getTokenBarsMap().isEmpty()) {
       barPanel.setBorder(
           BorderFactory.createTitledBorder(I18N.getText("CampaignPropertiesDialog.tab.bars")));
 
@@ -1181,6 +1209,22 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     return (JCheckBox) getComponent("@allowURIAccess");
   }
 
+  public JCheckBox getSnapToGrid() {
+    return getCheckBox("@isSnapToGrid");
+  }
+
+  public JCheckBox getFlippedIso() {
+    return getCheckBox("@isFlippedIso");
+  }
+
+  public JCheckBox getFlippedX() {
+    return getCheckBox("@isFlippedX");
+  }
+
+  public JCheckBox getFlippedY() {
+    return getCheckBox("@isFlippedY");
+  }
+
   public void initSpeechPanel() {
     getSpeechClearAllButton()
         .addActionListener(
@@ -1239,7 +1283,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   public void initTokenLayoutPanel() {
-    TokenLayoutPanel layoutPanel = new TokenLayoutPanel();
+    TokenLayoutRenderPanel layoutPanel = new TokenLayoutRenderPanel();
+    TokenLayoutPanelHelper layoutHelper =
+        new TokenLayoutPanelHelper(this, layoutPanel, getOKButton());
     layoutPanel.setMinimumSize(new Dimension(150, 125));
     layoutPanel.setPreferredSize(new Dimension(150, 125));
     layoutPanel.setName("tokenLayout");
@@ -1275,8 +1321,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     return (ImageAssetPanel) getComponent("charsheet");
   }
 
-  public TokenLayoutPanel getTokenLayoutPanel() {
-    return (TokenLayoutPanel) getComponent("tokenLayout");
+  public TokenLayoutRenderPanel getTokenLayoutPanel() {
+    return (TokenLayoutRenderPanel) getComponent("tokenLayout");
   }
 
   public TokenTopologyPanel getTokenTopologyPanel() {
@@ -1526,7 +1572,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
           if (heroLabData != null) {
             getTokenIconPanel().setImageId(heroLabData.getImageAssetID(index));
-            getTokenLayoutPanel().setTokenImage(heroLabData.getImageAssetID(index));
+            getTokenLayoutPanel().getHelper().setTokenImageId(heroLabData.getImageAssetID(index));
           }
         });
 
@@ -1596,7 +1642,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
       xmlStatblockRSyntaxTextArea.revalidate();
     } catch (IOException e) {
-      e.printStackTrace();
+      log.debug(e.getLocalizedMessage(), e);
     }
 
     RTextScrollPane xmlStatblockRTextScrollPane = new RTextScrollPane(xmlStatblockRSyntaxTextArea);
@@ -1618,7 +1664,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
       textStatblockRSyntaxTextArea.revalidate();
     } catch (IOException e) {
-      e.printStackTrace();
+      log.debug(e.getLocalizedMessage(), e);
     }
 
     RTextScrollPane textStatblockRTextScrollPane =
@@ -1659,7 +1705,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
               MD5Key tokenImageKey = heroLabData.getTokenImage();
               if (tokenImageKey != null) {
                 getTokenIconPanel().setImageId(tokenImageKey);
-                getTokenLayoutPanel().setTokenImage(tokenImageKey);
+                getTokenLayoutPanel().getHelper().setTokenImageId(tokenImageKey);
               }
 
               MD5Key portraitAssetKeY = heroLabData.getPortraitImage();
@@ -1869,7 +1915,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       Map<String, String> map = new HashMap<String, String>();
 
       for (Association<String, String> row : rowList) {
-        if (row.getLeft() == null || row.getLeft().trim().length() == 0) {
+        if (row.getLeft() == null || row.getLeft().trim().isEmpty()) {
           continue;
         }
         map.put(row.getLeft(), row.getRight());
@@ -1928,7 +1974,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
         j.revalidate();
       } catch (IOException e) {
-        e.printStackTrace();
+        log.debug(e.getLocalizedMessage(), e);
       }
       JScrollPane localJScrollPane = new RTextScrollPane(j);
       localJScrollPane.setVerticalScrollBarPolicy(22);
@@ -1997,7 +2043,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
         revalidate();
       } catch (IOException e) {
-        e.printStackTrace();
+        log.debug(e.getLocalizedMessage(), e);
       }
     }
 
@@ -2043,7 +2089,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     @Override
     protected void process(List<Area> areaChunk) {
       if (!isCancelled()) {
-        final var newArea = areaChunk.get(areaChunk.size() - 1);
+        final var newArea = areaChunk.getLast();
         final var optimizedArea =
             TokenVBL.simplifyArea(
                 newArea,
@@ -2062,7 +2108,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  class SliderListener implements ChangeListener {
+  class OpacitySliderListener implements ChangeListener {
 
     public void stateChanged(ChangeEvent e) {
       JSlider source = (JSlider) e.getSource();
@@ -2088,13 +2134,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
           (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       try {
         ImageIcon finalImage =
-            ImageUtil.scaleImage(
+            ImageUtil.scaleImageIcon(
                 new ImageIcon(ImageManager.getImageAndWait(heroLabData.getImageAssetID(index))),
                 250,
                 175);
         label.setIcon(finalImage);
       } catch (Exception e) {
-        e.printStackTrace();
+        log.debug(e.getLocalizedMessage(), e);
       }
       label.setIconTextGap(10);
       label.setHorizontalTextPosition(JLabel.LEFT);
