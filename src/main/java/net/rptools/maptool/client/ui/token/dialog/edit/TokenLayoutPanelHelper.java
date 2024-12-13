@@ -813,19 +813,7 @@ public class TokenLayoutPanelHelper {
                 (int) footprintBounds.getHeight(),
                 BufferedImage.TYPE_4BYTE_ABGR_PRE);
       }
-
-      if (isIsoFigure) {
-        /* If figure we calculate an additional offset for token height outside footprint */
-        double imageFitRatio =
-            footprintBounds.getWidth() / tokenImage.getWidth(); // scale for width
-        if (tokenImage.getHeight() * footprintBounds.getWidth() / tokenImage.getWidth()
-            > 2 * footprintBounds.getHeight()) {
-          /* if this results in being more than twice the footprint height, use height instead */
-          imageFitRatio = footprintBounds.getHeight() * 2 / tokenImage.getHeight();
-        }
-        double th = tokenImage.getHeight() * imageFitRatio;
-        iso_figure_ho = (footprintBounds.getHeight() - th);
-      }
+      iso_figure_ho = ImageUtil.getIsoFigureHeightOffset(mirrorToken, footprintBounds);
 
       workImage = ImageUtil.getScaledTokenImage(tokenImage, mirrorToken, grid, zoomFactor);
       workImage = getFlippedImage(workImage);
@@ -1143,7 +1131,8 @@ public class TokenLayoutPanelHelper {
       g2d.setColor(colours[4]);
 
       double footprintScale = footprint.getScale();
-      double yCorrection = isIsoFigure ? footprintScale * footprintBounds.getHeight() / 2d : 0;
+      double yCorrection =
+          isIsoFigure ? footprintScale * footprintBounds.getHeight() / 2d * zoomFactor : 0;
 
       Shape scaledOutline, scaledFill;
       /* for drawing sub-cell-sizes */
@@ -1227,7 +1216,6 @@ public class TokenLayoutPanelHelper {
 
       g2d.translate(centrePoint.getX(), centrePoint.getY());
       g2d.translate(getTokenAnchorX() * zoomFactor, getTokenAnchorY() * zoomFactor);
-      //      g2d.scale(zoomFactor, zoomFactor);
 
       Composite oldAc = g2d.getComposite();
 

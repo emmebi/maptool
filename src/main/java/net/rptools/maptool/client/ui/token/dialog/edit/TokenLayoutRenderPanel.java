@@ -150,8 +150,13 @@ public class TokenLayoutRenderPanel extends JPanel {
 
   /** Work out a zoom factor to fit the token on screen with a half cell border */
   protected void calcZoomFactor() {
-    Rectangle2D fpBounds = helper.footprintBounds;
-    if (token == null || getSize().height == 0 || size == null || fpBounds == null) {
+    Rectangle2D fpBounds =
+        new Rectangle2D.Double(
+            helper.footprintBounds.getX(),
+            helper.footprintBounds.getY(),
+            helper.footprintBounds.getWidth(),
+            helper.footprintBounds.getHeight());
+    if (token == null || getSize().height == 0 || size == null) {
       return;
     }
     fpBounds.setRect(
@@ -178,7 +183,7 @@ public class TokenLayoutRenderPanel extends JPanel {
     double fitHeight = fpBounds.getHeight() + helper.grid.getCellHeight() / 2;
     // which axis has the least space to grow
     boolean scaleToWidth = size.getWidth() - fitWidth < size.getHeight() - fitHeight;
-    // set the zoomfactor
+    // set the zoom-factor
     double newZoom = scaleToWidth ? size.getWidth() / fitWidth : size.getHeight() / fitHeight;
 
     setZoomFactor(newZoom);
