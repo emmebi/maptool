@@ -46,6 +46,7 @@ import net.rptools.CaseInsensitiveHashMap;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.lib.transferable.TokenTransferData;
+import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
@@ -287,7 +288,8 @@ public class Token implements Cloneable {
       MapTool.getCampaign().getCampaignProperties().getDefaultTokenPropertyType();
 
   private Integer haloColorValue;
-  private transient Color haloColor;
+  private transient Color haloColor =
+      new Color(ImageUtil.negativeColourInt(AppPreferences.defaultGridColor.getDefault().getRGB()));
 
   private Integer visionOverlayColorValue;
   private transient Color visionOverlayColor;
@@ -1516,13 +1518,10 @@ public class Token implements Cloneable {
       footprintBounds.x = getX();
       footprintBounds.y = getY();
     } else {
-      if (getLayer().anchorSnapToGridAtCenter()) {
+      if (getLayer().isSnapToGridAtCenter()) {
         // Center it on the footprint
-        footprintBounds.x -= (w - footprintBounds.width) / 2;
-        footprintBounds.y -= (h - footprintBounds.height) / 2;
-      } else {
-        // footprintBounds.x -= zone.getGrid().getSize()/2;
-        // footprintBounds.y -= zone.getGrid().getSize()/2;
+        footprintBounds.x -= (int) ((w - footprintBounds.width) / 2d);
+        footprintBounds.y -= (int) ((h - footprintBounds.height) / 2d);
       }
     }
     footprintBounds.width = (int) w; // perhaps make this a double
@@ -1548,7 +1547,7 @@ public class Token implements Cloneable {
     Grid grid = zone.getGrid();
     int dragAnchorX, dragAnchorY;
     if (isSnapToGrid() && grid.getCapabilities().isSnapToGridSupported()) {
-      if (!getLayer().isStampLayer() || !getLayer().anchorSnapToGridAtCenter() || isSnapToScale()) {
+      if (!getLayer().isStampLayer() || !getLayer().isSnapToGridAtCenter() || isSnapToScale()) {
         Point2D.Double centerOffset = grid.getCenterOffset();
         dragAnchorX = getX() + (int) centerOffset.x;
         dragAnchorY = getY() + (int) centerOffset.y;
@@ -1612,7 +1611,7 @@ public class Token implements Cloneable {
     Point2D.Double offset = getSnapToUnsnapOffset(zone);
     double newX = getX() + offset.x;
     double newY = getY() + offset.y;
-    if (grid.getCapabilities().isSnapToGridSupported() || !getLayer().anchorSnapToGridAtCenter()) {
+    if (grid.getCapabilities().isSnapToGridSupported() || !getLayer().isSnapToGridAtCenter()) {
       return grid.convert(
           grid.convert(new ZonePoint((int) Math.ceil(newX), (int) Math.ceil(newY))));
     } else {
@@ -1645,13 +1644,13 @@ public class Token implements Cloneable {
     double offsetX, offsetY;
     Rectangle tokenBounds = getBounds(zone);
     Grid grid = zone.getGrid();
-    if (grid.getCapabilities().isSnapToGridSupported() || !getLayer().anchorSnapToGridAtCenter()) {
-      if (!getLayer().anchorSnapToGridAtCenter() || isSnapToScale()) {
+    if (grid.getCapabilities().isSnapToGridSupported() || !getLayer().isSnapToGridAtCenter()) {
+      if (!getLayer().isSnapToGridAtCenter() || isSnapToScale()) {
         TokenFootprint footprint = getFootprint(grid);
         Rectangle footprintBounds = footprint.getBounds(grid);
         double footprintOffsetX = 0;
         double footprintOffsetY = 0;
-        if (getLayer().anchorSnapToGridAtCenter()) {
+        if (getLayer().isSnapToGridAtCenter()) {
           // Non-background tokens can have an offset from top left corner
           footprintOffsetX = tokenBounds.width - footprintBounds.width;
           footprintOffsetY = tokenBounds.height - footprintBounds.height;
