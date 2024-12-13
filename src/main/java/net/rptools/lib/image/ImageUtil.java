@@ -127,19 +127,17 @@ public class ImageUtil {
   public static BufferedImage getScaledTokenImage(
       BufferedImage img, Token token, Grid grid, double zoom) {
     TokenFootprint footprint = token.getFootprint(grid);
-    Rectangle2D footprintBounds = footprint.getBounds(grid, new CellPoint(0, 0));
-    double zoomS = zoom;
-    double fpS =
-        footprint
-            .getScale(); // except gridless, this should be 1 for footprints larger than the grid
+    Rectangle2D footprintBounds = footprint.getBounds(grid); // , new CellPoint(0, 0));
+    // except gridless, this should be 1 for footprints larger than the grid
+    double fpS = footprint.getScale();
     // size
     double fpW, fpH;
-    // multiply by zoom level to prevent mutliple scaling ops which lose definition
-    if (grid.equals(GridFactory.NONE)) {
-      fpW = fpH = grid.getSize() * fpS * zoomS; // all gridless are relative to the grid size
+    // multiply by zoom level to prevent multiple scaling ops which lose definition, i.e. scale once
+    if (GridFactory.getGridType(grid).equals(GridFactory.NONE)) {
+      fpW = fpH = grid.getSize() * fpS * zoom; // all gridless are relative to the grid size
     } else {
-      fpW = footprintBounds.getWidth() * fpS * zoomS;
-      fpH = footprintBounds.getHeight() * fpS * zoomS;
+      fpW = footprintBounds.getWidth() * fpS * zoom;
+      fpH = footprintBounds.getHeight() * fpS * zoom;
     }
 
     double imgW = img.getWidth();
@@ -501,9 +499,12 @@ public class ImageUtil {
   }
 
   public static double getIsoFigureHeightOffset(Token token, Rectangle2D footprintBounds) {
-    double scale = getIsoFigureScaleFactor(token, footprintBounds);
-    double th = token.getHeight() * scale;
-    return footprintBounds.getHeight() - th;
+    if (token.getShape().equals(Token.TokenShape.FIGURE) && !token.isFlippedIso()) {
+      double imageFitRatio = getIsoFigureScaleFactor(token, footprintBounds);
+      double th = token.getHeight() * imageFitRatio;
+      return footprintBounds.getHeight() - th;
+    }
+    return 0;
   }
 
   /**
@@ -520,40 +521,16 @@ public class ImageUtil {
   }
 
   /**
-   * Get the offset values required to align an image within specified bounds
-   *
-   * @param imgSize Dimension
-   * @param footprintBounds Rectangle
-   * @return int array of length 2 [x,y]
-   */
-  public static double[] getImageAlignmentOffsets(BufferedImage image, Rectangle footprintBounds) {
-    double[] offsets = new double[2];
-    offsets[0] =
-        image.getWidth() < footprintBounds.width
-            ? (footprintBounds.width - image.getWidth()) / 2
-            : image.getWidth() > footprintBounds.width
-                ? -(image.getWidth() - footprintBounds.width) / 2
-                : 0;
-    offsets[1] =
-        image.getHeight() < footprintBounds.height
-            ? (footprintBounds.height - image.getHeight()) / 2
-            : image.getHeight() > footprintBounds.height
-                ? -(image.getHeight() - footprintBounds.height) / 2
-                : 0;
-    return offsets;
-  }
-
-  /**
    * Gets the token image; applies flipping, scaling, and image rotation, but not facing.
    *
-   * @param token
-   * @param zr
+   * @param token Token
+   * @param zr ZoneRenderer
    * @return modified image
    */
   public static BufferedImage getTokenRenderImage(Token token, ZoneRenderer zr) {
     BufferedImage image = getTokenImage(token, zr);
 
-    int flipDirection = 0 + (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
+    int flipDirection = (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
     image = flipCartesian(image, flipDirection);
     if (token.isFlippedIso() && zr.getZone().getGrid().isIsometric()) {
       image = flipIsometric(image, true);
