@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client.ui.token.dialog.edit;
 
-import com.formdev.flatlaf.FlatIconColors;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatButton;
@@ -24,10 +23,6 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyVetoException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -463,7 +458,7 @@ public class TokenLayoutPanelHelper {
     }
     double xFix = -aggregateBounds.getCenterX();
     double yFix = -aggregateBounds.getCenterY();
-    cellCentres.replaceAll(pt -> pt = new Point2D.Double(pt.getX() + xFix, pt.getY() + yFix));
+    cellCentres.replaceAll(pt -> new Point2D.Double(pt.getX() + xFix, pt.getY() + yFix));
   }
 
   private void setCentredFootprintBounds() {
@@ -578,8 +573,8 @@ public class TokenLayoutPanelHelper {
     getScaleButton().setIcon(scaleIcons[scaleAxis]);
     getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "   ");
 
-    AbstractButton layoutHelpButton = new FlatButton();
-    ((FlatButton) layoutHelpButton).setButtonType(FlatButton.ButtonType.help);
+    FlatButton layoutHelpButton = new FlatButton();
+    layoutHelpButton.setButtonType(FlatButton.ButtonType.help);
     parent.replaceComponent("layoutTabPanel", "layoutHelpButton", layoutHelpButton);
     layoutHelpButton.setToolTipText(helpText);
     layoutHelpButton.addActionListener(e -> showHelp());
@@ -717,35 +712,12 @@ public class TokenLayoutPanelHelper {
     getZoomSpinner().setValue(1d);
   }
 
-  String scaleStartSVG =
-      "<svg version=\"1.1\" height=\"32\" width=\"32\" viewBox=\"0 0 32 32\" xmlns=\"http://www.w3.org/2000/svg\"><g stroke=\"black\">";
-  String scaleNSSVG =
-      "<path id=\"NS\" d=\"m15 5.5-5 1.6 6-6.1 6 6.1-5-1.6v21l5-1.7-6 6.1-6-6.1 5 1.7z\" fill=\"black\" stroke-width=\"1\"/>";
-  String scaleEWSVG =
-      "<path id=\"EW\" d=\"m27 15-1.6-5 6.1 6-6.1 6 1.6-5h-21l1.7 5-6.1-6 6.1-6-1.7 5z\" fill=\"black\" stroke-width=\"1\"/>";
-  String scaleEndSVG = "<circle id=\"hub\" cx=\"16\" cy=\"16\" r=\"4\" fill=\"white\" /></g></svg>";
-
-  public static ImageIcon makeSVGIcon(int size, String svg) {
-    InputStream stream = new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8));
-    FlatSVGIcon.ColorFilter colorFilter = new FlatSVGIcon.ColorFilter();
-    /* Convert a the original color into another one supposedly */
-    colorFilter.add(Color.BLACK, UI_DEFAULTS.getColor(FlatIconColors.OBJECTS_BLACK_TEXT));
-    colorFilter.add(Color.WHITE, UI_DEFAULTS.getColor(FlatIconColors.ACTIONS_BLUE_DARK));
-    try {
-      FlatSVGIcon flatSVGIcon = new FlatSVGIcon(stream);
-      flatSVGIcon.setColorFilter(colorFilter);
-      return flatSVGIcon.derive(size, size);
-    } catch (IOException e) {
-      return null;
-    }
-  }
-
   ImageIcon[] scaleIcons = new ImageIcon[3];
-
   private void createButtonIcons() {
-    scaleIcons[0] = makeSVGIcon(ICON_SIZE, scaleStartSVG + scaleNSSVG + scaleEWSVG + scaleEndSVG);
-    scaleIcons[1] = makeSVGIcon(ICON_SIZE, scaleStartSVG + scaleEWSVG + scaleEndSVG);
-    scaleIcons[2] = makeSVGIcon(ICON_SIZE, scaleStartSVG + scaleNSSVG + scaleEndSVG);
+    String iconBase = "net/rptools/maptool/client/image/";
+    scaleIcons[0] = new FlatSVGIcon(iconBase + "scale.svg", ICON_SIZE, ICON_SIZE);
+    scaleIcons[1] = new FlatSVGIcon(iconBase + "scaleHor.svg", ICON_SIZE, ICON_SIZE);
+    scaleIcons[2] = new FlatSVGIcon(iconBase + "scaleVert.svg", ICON_SIZE, ICON_SIZE);
   }
 
   private class ScaleButtonListener implements ActionListener {

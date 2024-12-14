@@ -54,7 +54,6 @@ public class FacingArrowRenderer {
     for (int i = 89; i >= 0; i--) {
       fillColours.add(fillColours.get(i));
     }
-    System.out.println(fillColours);
     timer = CodeTimer.get();
   }
 
