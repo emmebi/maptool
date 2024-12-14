@@ -147,79 +147,175 @@ public class TokenLayoutPanelHelper {
 
   private final String helpText = assembleHelpText();
 
-  // @formatter:off
-  // spotless:off
-    /* Component Getters */
-    public JComboBox getSizeCombo(){ if (sizeCombo == null) sizeCombo = (JComboBox) parent.getComponent("size"); return sizeCombo; }
-    /* Labels */
-    public JLabel getScaleLabel(){ if (scaleLabel == null) scaleLabel = parent.getLabel("scaleLabel"); return scaleLabel; }
-    /* Spinners */
-    public JSpinner getAnchorXSpinner() { if (anchorXSpinner == null) anchorXSpinner = parent.getSpinner("anchorXSpinner"); return anchorXSpinner; }
-    public JSpinner getAnchorYSpinner() { if (anchorYSpinner == null) anchorYSpinner = parent.getSpinner("anchorYSpinner"); return anchorYSpinner; }
-    public JSpinner getRotationSpinner() { if (rotationSpinner == null) rotationSpinner = parent.getSpinner("rotationSpinner"); return rotationSpinner; }
-    public JSpinner getScaleSpinner() { if (scaleSpinner == null) scaleSpinner = parent.getSpinner("scaleSpinner"); return scaleSpinner; }
-    public JSpinner getZoomSpinner() { if (zoomSpinner == null) zoomSpinner = parent.getSpinner("zoomSpinner"); return zoomSpinner; }
-    /* Sliders */
-    public JSlider getAnchorXSlider() { if (anchorXSlider == null)  anchorXSlider = (JSlider) parent.getComponent("anchorXSlider"); return anchorXSlider; }
-    public JSlider getAnchorYSlider() { if (anchorYSlider == null) anchorYSlider = (JSlider) parent.getComponent("anchorYSlider"); return anchorYSlider; }
-    public JSlider getRotationSlider() { if (rotationSlider == null) rotationSlider = (JSlider) parent.getComponent("rotationSlider"); return rotationSlider; }
-    public JSlider getScaleSlider() { if (scaleSlider == null) scaleSlider = (JSlider) parent.getComponent("scaleSlider"); return scaleSlider; }
-    public JSlider getZoomSlider() { if (zoomSlider == null) zoomSlider = (JSlider) parent.getComponent("zoomSlider"); return zoomSlider; }
-    /* Buttons */
-    public AbstractButton getScaleButton() { if (scaleButton == null) scaleButton = parent.getButton("scaleButton"); return scaleButton; }
-    /* Panel */
-    public TokenLayoutRenderPanel getRenderPanel() { return renderPanel; }
-    /* Linked controls */
-    SpinnerSliderPaired anchorXPair, anchorYPair, rotationPair, scalePair, zoomPair;
+  /* Component Getters */
+  public JComboBox getSizeCombo() {
+    if (sizeCombo == null) sizeCombo = (JComboBox) parent.getComponent("size");
+    return sizeCombo;
+  }
 
+  /* Labels */
+  public JLabel getScaleLabel() {
+    if (scaleLabel == null) scaleLabel = parent.getLabel("scaleLabel");
+    return scaleLabel;
+  }
 
-    /* Token value getters pointing to the mirror token */
-    public double getTokenSizeScale() { return mirrorToken.getSizeScale(); }
-    public double getTokenScaleX() { return  mirrorToken.getScaleX(); }
-    public double getTokenScaleY() { return mirrorToken.getScaleY(); }
-    public double getTokenImageRotation() { return mirrorToken.getImageRotation(); }
-    public int getTokenAnchorX() { return mirrorToken.getAnchorX(); }
-    public int getTokenAnchorY() { return mirrorToken.getAnchorY(); }
-    public boolean getTokenFlippedX() { return mirrorToken.isFlippedX(); }
-    public boolean getTokenFlippedY() { return mirrorToken.isFlippedY(); }
-    public boolean getTokenFlippedIso() { return mirrorToken.isFlippedIso(); }
+  /* Spinners */
+  public JSpinner getAnchorXSpinner() {
+    if (anchorXSpinner == null) anchorXSpinner = parent.getSpinner("anchorXSpinner");
+    return anchorXSpinner;
+  }
 
-    /* Token value setters pointing to the mirror token */
-    protected void setTokenScaleX(double scale) { mirrorToken.setScaleX(scale);}
-    protected void setTokenScaleY(double scale) { mirrorToken.setScaleY(scale); }
-    protected void setTokenSizeScale(double scale) { mirrorToken.setSizeScale(scale); }
-    protected void setTokenAnchorX(Number x) { mirrorToken.setAnchorX(x.intValue()); }
-    protected void setTokenAnchorY(Number y) { mirrorToken.setAnchorY(y.intValue()); }
-    protected void setTokenImageRotation(Number value) { mirrorToken.setImageRotation(MathUtil.doublePrecision(value.doubleValue(), 4)); }
-    protected void setTokenFlipIso(Boolean b) {
-        mirrorToken.setFlippedIso(b);
-        if(flipStates.contains(FlipState.ISOMETRIC) && !b){
-            flipStates.remove(FlipState.ISOMETRIC);
-        } else if(!flipStates.contains(FlipState.ISOMETRIC) && b){
-            flipStates.add(FlipState.ISOMETRIC);
-        }
-        iFeelDirty();
+  public JSpinner getAnchorYSpinner() {
+    if (anchorYSpinner == null) anchorYSpinner = parent.getSpinner("anchorYSpinner");
+    return anchorYSpinner;
+  }
+
+  public JSpinner getRotationSpinner() {
+    if (rotationSpinner == null) rotationSpinner = parent.getSpinner("rotationSpinner");
+    return rotationSpinner;
+  }
+
+  public JSpinner getScaleSpinner() {
+    if (scaleSpinner == null) scaleSpinner = parent.getSpinner("scaleSpinner");
+    return scaleSpinner;
+  }
+
+  public JSpinner getZoomSpinner() {
+    if (zoomSpinner == null) zoomSpinner = parent.getSpinner("zoomSpinner");
+    return zoomSpinner;
+  }
+
+  /* Sliders */
+  public JSlider getAnchorXSlider() {
+    if (anchorXSlider == null) anchorXSlider = (JSlider) parent.getComponent("anchorXSlider");
+    return anchorXSlider;
+  }
+
+  public JSlider getAnchorYSlider() {
+    if (anchorYSlider == null) anchorYSlider = (JSlider) parent.getComponent("anchorYSlider");
+    return anchorYSlider;
+  }
+
+  public JSlider getRotationSlider() {
+    if (rotationSlider == null) rotationSlider = (JSlider) parent.getComponent("rotationSlider");
+    return rotationSlider;
+  }
+
+  public JSlider getScaleSlider() {
+    if (scaleSlider == null) scaleSlider = (JSlider) parent.getComponent("scaleSlider");
+    return scaleSlider;
+  }
+
+  public JSlider getZoomSlider() {
+    if (zoomSlider == null) zoomSlider = (JSlider) parent.getComponent("zoomSlider");
+    return zoomSlider;
+  }
+
+  /* Buttons */
+  public AbstractButton getScaleButton() {
+    if (scaleButton == null) scaleButton = parent.getButton("scaleButton");
+    return scaleButton;
+  }
+
+  /* Panel */
+  public TokenLayoutRenderPanel getRenderPanel() {
+    return renderPanel;
+  }
+
+  /* Linked controls */
+  SpinnerSliderPaired anchorXPair, anchorYPair, rotationPair, scalePair, zoomPair;
+
+  /* Token value getters pointing to the mirror token */
+  public double getTokenSizeScale() {
+    return mirrorToken.getSizeScale();
+  }
+
+  public double getTokenScaleX() {
+    return mirrorToken.getScaleX();
+  }
+
+  public double getTokenScaleY() {
+    return mirrorToken.getScaleY();
+  }
+
+  public double getTokenImageRotation() {
+    return mirrorToken.getImageRotation();
+  }
+
+  public int getTokenAnchorX() {
+    return mirrorToken.getAnchorX();
+  }
+
+  public int getTokenAnchorY() {
+    return mirrorToken.getAnchorY();
+  }
+
+  public boolean getTokenFlippedX() {
+    return mirrorToken.isFlippedX();
+  }
+
+  public boolean getTokenFlippedY() {
+    return mirrorToken.isFlippedY();
+  }
+
+  public boolean getTokenFlippedIso() {
+    return mirrorToken.isFlippedIso();
+  }
+
+  /* Token value setters pointing to the mirror token */
+  protected void setTokenScaleX(double scale) {
+    mirrorToken.setScaleX(scale);
+  }
+
+  protected void setTokenScaleY(double scale) {
+    mirrorToken.setScaleY(scale);
+  }
+
+  protected void setTokenSizeScale(double scale) {
+    mirrorToken.setSizeScale(scale);
+  }
+
+  protected void setTokenAnchorX(Number x) {
+    mirrorToken.setAnchorX(x.intValue());
+  }
+
+  protected void setTokenAnchorY(Number y) {
+    mirrorToken.setAnchorY(y.intValue());
+  }
+
+  protected void setTokenImageRotation(Number value) {
+    mirrorToken.setImageRotation(MathUtil.doublePrecision(value.doubleValue(), 4));
+  }
+
+  protected void setTokenFlipIso(Boolean b) {
+    mirrorToken.setFlippedIso(b);
+    if (flipStates.contains(FlipState.ISOMETRIC) && !b) {
+      flipStates.remove(FlipState.ISOMETRIC);
+    } else if (!flipStates.contains(FlipState.ISOMETRIC) && b) {
+      flipStates.add(FlipState.ISOMETRIC);
     }
-    protected void setTokenFlipX(Boolean b) {
-        mirrorToken.setFlippedX(b);
-        if(flipStates.contains(FlipState.HORIZONTAL) && !b){
-            flipStates.remove(FlipState.HORIZONTAL);
-        } else if(!flipStates.contains(FlipState.HORIZONTAL) && b){
-            flipStates.add(FlipState.HORIZONTAL);
-        }
-        iFeelDirty();
+    iFeelDirty();
+  }
+
+  protected void setTokenFlipX(Boolean b) {
+    mirrorToken.setFlippedX(b);
+    if (flipStates.contains(FlipState.HORIZONTAL) && !b) {
+      flipStates.remove(FlipState.HORIZONTAL);
+    } else if (!flipStates.contains(FlipState.HORIZONTAL) && b) {
+      flipStates.add(FlipState.HORIZONTAL);
     }
-    protected void setTokenFlipY(Boolean b) {
-        mirrorToken.setFlippedY(b);
-        if(flipStates.contains(FlipState.VERTICAL) && !b){
-            flipStates.remove(FlipState.VERTICAL);
-        } else if(!flipStates.contains(FlipState.VERTICAL) && b){
-            flipStates.add(FlipState.VERTICAL);
-        }
-        iFeelDirty();
+    iFeelDirty();
+  }
+
+  protected void setTokenFlipY(Boolean b) {
+    mirrorToken.setFlippedY(b);
+    if (flipStates.contains(FlipState.VERTICAL) && !b) {
+      flipStates.remove(FlipState.VERTICAL);
+    } else if (!flipStates.contains(FlipState.VERTICAL) && b) {
+      flipStates.add(FlipState.VERTICAL);
     }
-    //@formatter:on
-    //spotless:on
+    iFeelDirty();
+  }
 
   /**
    * There is one spinner/slider for three different scale settings. This sets the value for the
@@ -713,6 +809,7 @@ public class TokenLayoutPanelHelper {
   }
 
   ImageIcon[] scaleIcons = new ImageIcon[3];
+
   private void createButtonIcons() {
     String iconBase = "net/rptools/maptool/client/image/";
     scaleIcons[0] = new FlatSVGIcon(iconBase + "scale.svg", ICON_SIZE, ICON_SIZE);
