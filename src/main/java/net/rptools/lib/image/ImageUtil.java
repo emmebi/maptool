@@ -49,15 +49,8 @@ public class ImageUtil {
         return Arrays.asList(ImageIO.getReaderFileSuffixes()).contains(name);
       };
 
-  // TODO: perhaps look at reintroducing this later
-  // private static GraphicsConfiguration graphicsConfig =
-  // GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
   private static final Logger log = LogManager.getLogger();
 
-  // public static void setGraphicsConfiguration(GraphicsConfiguration config) {
-  // graphicsConfig = config;
-  // }
-  //
   private static final JPanel observer = new JPanel();
   private static final int[][] outlineNeighborMap = {
     {0, -1, 100}, // N
@@ -107,8 +100,7 @@ public class ImageUtil {
     int r = 255 - ((rgb >> 16) & 0xFF);
     int g = 255 - ((rgb >> 8) & 0xFF);
     int b = 255 - (rgb & 0xFF);
-    int negativeRGB = (r << 16) | (g << 8) | b;
-    return negativeRGB;
+     return (r << 16) | (g << 8) | b;
   }
 
   /**
@@ -148,7 +140,7 @@ public class ImageUtil {
       double sY = token.getScaleY();
       // scale to fit image inside footprint bounds using the dimension that needs the most scaling,
       // i.e. lowest ratio
-      double imageFootprintRatio = 1;
+      double imageFootprintRatio;
       if (token.getShape() == Token.TokenShape.FIGURE && grid.isIsometric()) {
         // uses double footprint height
         imageFootprintRatio = Math.min(fpW / imgW, fpH * 2 / imgH);
@@ -423,7 +415,7 @@ public class ImageUtil {
    * @return A modified image, or the original image if no processing performed.
    */
   public static BufferedImage flipTokenImage(BufferedImage image, Token token) {
-    int direction = 0 + (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
+    int direction = (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
     image = flipCartesian(image, direction);
     if (token.isFlippedIso()) {
       return IsometricGrid.isoImage(image);
@@ -550,8 +542,8 @@ public class ImageUtil {
   /**
    * Use width ratio unless height exceeds double footprint height
    *
-   * @param token
-   * @param footprintBounds
+   * @param token Token
+   * @param footprintBounds Rectangle
    * @return double
    */
   public static double getIsoFigureScaleFactor(Token token, Rectangle2D footprintBounds) {
@@ -626,7 +618,7 @@ public class ImageUtil {
         MathUtil.inTolerance(image.getHeight(), image.getWidth() / 2d, image.getHeight() * 0.05);
     if (image.getWidth() != image.getHeight()) {
       int maxDim = Math.max(image.getWidth(), image.getHeight());
-      int w = 1, h = 1;
+      int w, h = 1;
       if (toRhombus) {
         // make it square and centred
         w = h = maxDim;

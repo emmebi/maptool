@@ -45,11 +45,9 @@ public class TokenRenderer {
   private float opacity = 1f;
   private Area clip = null;
   private ZoneRenderer renderer;
-  private Zone zone;
-  private Grid grid;
+    private Grid grid;
   private double scale;
-  private boolean isSquare = false;
-  private boolean isoFigure = false;
+    private boolean isoFigure = false;
   private boolean canSpin = false;
   private BufferedImage renderImage;
   private boolean initialised = false;
@@ -68,10 +66,10 @@ public class TokenRenderer {
   public void setRenderer(ZoneRenderer zoneRenderer) {
     timer.start("TokenRenderer-init");
     renderer = zoneRenderer;
-    zone = renderer.getZone();
+      Zone zone = renderer.getZone();
     grid = zone.getGrid();
-    isSquare = GridFactory.getGridType(grid).equals(GridFactory.SQUARE);
-    scale = renderer.getScale();
+
+      scale = renderer.getScale();
     initialised = true;
     timer.stop("TokenRenderer-init");
   }
@@ -120,7 +118,7 @@ public class TokenRenderer {
             && !currentState.flippedIso
             && currentState.shape.equals(Token.TokenShape.FIGURE);
     canSpin = currentState.shape.equals(Token.TokenShape.TOP_DOWN);
-    boolean updateStoredImage = false;
+    boolean updateStoredImage;
     if (!tokenStateMap.containsKey(token)) {
       updateStoredImage = true;
     } else {
