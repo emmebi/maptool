@@ -100,7 +100,7 @@ public class ImageUtil {
     int r = 255 - ((rgb >> 16) & 0xFF);
     int g = 255 - ((rgb >> 8) & 0xFF);
     int b = 255 - (rgb & 0xFF);
-     return (r << 16) | (g << 8) | b;
+    return (r << 16) | (g << 8) | b;
   }
 
   /**

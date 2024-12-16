@@ -45,9 +45,9 @@ public class TokenRenderer {
   private float opacity = 1f;
   private Area clip = null;
   private ZoneRenderer renderer;
-    private Grid grid;
+  private Grid grid;
   private double scale;
-    private boolean isoFigure = false;
+  private boolean isoFigure = false;
   private boolean canSpin = false;
   private BufferedImage renderImage;
   private boolean initialised = false;
@@ -66,10 +66,10 @@ public class TokenRenderer {
   public void setRenderer(ZoneRenderer zoneRenderer) {
     timer.start("TokenRenderer-init");
     renderer = zoneRenderer;
-      Zone zone = renderer.getZone();
+    Zone zone = renderer.getZone();
     grid = zone.getGrid();
 
-      scale = renderer.getScale();
+    scale = renderer.getScale();
     initialised = true;
     timer.stop("TokenRenderer-init");
   }
