@@ -12,16 +12,12 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.model.topology;
+package net.rptools.maptool.client;
 
-import java.util.function.Consumer;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Envelope;
+import javax.annotation.Nonnull;
 
-public interface Topology {
-  VisionResult addSegments(
-      VisibilityType visibilityType,
-      Coordinate origin,
-      Envelope bounds,
-      Consumer<Coordinate[]> sink);
+public sealed interface RemoteServerConfig {
+  record Socket(@Nonnull String hostName, int port) implements RemoteServerConfig {}
+
+  record WebRTC(@Nonnull String serverName) implements RemoteServerConfig {}
 }
