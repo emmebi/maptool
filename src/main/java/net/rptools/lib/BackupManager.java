@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 
 public class BackupManager {
 
@@ -70,7 +71,7 @@ public class BackupManager {
     }
 
     // Save
-    FileUtil.copyFile(file, newFile);
+    FileUtils.copyFile(file, newFile, false);
   }
 
   /** List of existing backup files, with the oldest at the front */
