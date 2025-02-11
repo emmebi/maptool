@@ -55,6 +55,7 @@ import net.rptools.clientserver.simple.connection.DirectConnection;
 import net.rptools.lib.BackupManager;
 import net.rptools.lib.DebugStream;
 import net.rptools.lib.FileUtil;
+import net.rptools.lib.OsDetection;
 import net.rptools.lib.TaskBarFlasher;
 import net.rptools.lib.image.ThumbnailManager;
 import net.rptools.lib.net.RPTURLStreamHandlerFactory;
@@ -1522,7 +1523,7 @@ public class MapTool {
     String versionImplementation = version;
     String versionOverride = version;
 
-    if (AppUtil.MAC_OS_X) {
+    if (OsDetection.MAC_OS_X) {
       // On OSX the menu bar at the top of the screen can be enabled at any time, but the
       // title (ie. name of the application) has to be set before the GUI is initialized (by
       // creating a frame, loading a splash screen, etc). So we do it here.
@@ -1695,7 +1696,7 @@ public class MapTool {
       // allows the system to set up system defaults before we go and modify things.
       // That is, please don't move these lines around unless you test the result on windows
       // and mac
-      if (AppUtil.MAC_OS_X) {
+      if (OsDetection.MAC_OS_X) {
         menuBar = new AppMenuBar();
         OSXAdapter.macOSXicon();
       } else {

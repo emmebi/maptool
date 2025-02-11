@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 import javax.swing.Action;
 import javax.swing.JMenu;
-import net.rptools.maptool.client.AppUtil;
+import net.rptools.lib.OsDetection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -65,7 +65,7 @@ public class I18N {
   public static JMenu createMenu(String key) {
     JMenu menu = new JMenu(getText(key));
     int mnemonic = getMnemonic(key);
-    if (mnemonic != -1 && !AppUtil.MAC_OS_X) {
+    if (mnemonic != -1 && !OsDetection.MAC_OS_X) {
       menu.setMnemonic(mnemonic);
     }
     // Should we set the SHORT_DESCRIPTION and use it as a tooltip?
