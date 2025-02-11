@@ -1054,7 +1054,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
             for (CellPoint point : blockedMoves) {
               ZonePoint zp =
-                  point.midZonePoint(zoneCache.getZoneRenderer().getZone().getGrid(), position);
+                  zoneCache.getZoneRenderer().getZone().getGrid().midZonePoint(point, position);
               double r = (zp.x - 1) * 45;
               showBlockedMoves(zp, r, zoneCache.getSprite("block_move"), 1.0f);
             }

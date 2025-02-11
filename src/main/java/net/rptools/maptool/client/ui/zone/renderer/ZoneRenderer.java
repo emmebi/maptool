@@ -1243,10 +1243,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             var blockedMoves = entry.getValue();
 
             for (CellPoint point : blockedMoves) {
-              ZonePoint zp = point.midZonePoint(getZone().getGrid(), targetPoint);
-              double r = (zp.x - 1) * 45;
+              ZonePoint zp = getZone().getGrid().midZonePoint(point, targetPoint);
               showBlockedMoves(
-                  g, zp, r, RessourceManager.getImage(Images.ZONE_RENDERER_BLOCK_MOVE), 1.0f);
+                  g, zp, RessourceManager.getImage(Images.ZONE_RENDERER_BLOCK_MOVE), 1.0f);
             }
           }
         }
@@ -1577,8 +1576,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     this.repaintDebouncer.dispatch();
   }
 
-  public void showBlockedMoves(
-      Graphics2D g, ZonePoint point, double angle, BufferedImage image, float size) {
+  public void showBlockedMoves(Graphics2D g, ZonePoint point, BufferedImage image, float size) {
     // Resize image to size of 1/4 size of grid
     double resizeWidth = zone.getGrid().getCellWidth() / image.getWidth() * .25;
     double resizeHeight = zone.getGrid().getCellHeight() / image.getHeight() * .25;
