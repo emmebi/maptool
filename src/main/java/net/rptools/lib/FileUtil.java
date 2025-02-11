@@ -14,7 +14,6 @@
  */
 package net.rptools.lib;
 
-import com.thoughtworks.xstream.XStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -41,7 +40,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import net.rptools.maptool.util.PersistenceUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -76,11 +74,8 @@ public class FileUtil {
     return FileUtils.readFileToByteArray(file);
   }
 
-  public static Object objFromResource(String res) throws IOException {
-    XStream xs = PersistenceUtil.getConfiguredXStream();
-    try (InputStream is = FileUtil.class.getClassLoader().getResourceAsStream(res)) {
-      return xs.fromXML(new InputStreamReader(is, StandardCharsets.UTF_8));
-    }
+  public static InputStream getResourceAsStream(String res) {
+    return FileUtil.class.getClassLoader().getResourceAsStream(res);
   }
 
   public static byte[] loadResource(String resource) throws IOException {
