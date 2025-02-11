@@ -35,7 +35,6 @@ import net.rptools.maptool.util.StringUtil;
 import net.rptools.parser.ParserException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * This (data)class is used by all Macro Buttons, including campaign, global and token macro
@@ -948,7 +947,7 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
 
   // function to enable sorting of buttons; uses the group first, then sortby field
   // concatenated with the label field. Case Insensitive
-  public int compareTo(@NotNull MacroButtonProperties b2) throws ClassCastException {
+  public int compareTo(@Nonnull MacroButtonProperties b2) throws ClassCastException {
     if (b2 != this) {
       String b1group = getGroup();
       String b1sortby = getSortby();
