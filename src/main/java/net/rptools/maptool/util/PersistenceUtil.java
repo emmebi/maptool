@@ -15,6 +15,7 @@
 package net.rptools.maptool.util;
 
 import com.google.protobuf.util.JsonFormat;
+import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.ConversionException;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -48,9 +49,11 @@ import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.Scale;
+import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.zone.PlayerView;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
+import net.rptools.maptool.model.AStarCellPointConverter;
 import net.rptools.maptool.model.Asset;
 import net.rptools.maptool.model.Asset.Type;
 import net.rptools.maptool.model.AssetManager;
@@ -59,9 +62,11 @@ import net.rptools.maptool.model.CampaignProperties;
 import net.rptools.maptool.model.GUID;
 import net.rptools.maptool.model.LookupTable;
 import net.rptools.maptool.model.MacroButtonProperties;
+import net.rptools.maptool.model.ShapeType;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.campaign.CampaignManager;
+import net.rptools.maptool.model.converters.WallTopologyConverter;
 import net.rptools.maptool.model.gamedata.DataStoreManager;
 import net.rptools.maptool.model.gamedata.GameDataImporter;
 import net.rptools.maptool.model.gamedata.proto.DataStoreDto;
@@ -249,6 +254,23 @@ public class PersistenceUtil {
     public GUID currentZoneId;
     public Scale currentView;
     public String mapToolVersion;
+  }
+
+  /**
+   * Return an XStream which allows net.rptools.**, java.awt.**, sun.awt.** May be too permissive,
+   * but it Works For Me(tm)
+   *
+   * @return a configured XStream
+   */
+  public static XStream getConfiguredXStream() {
+    XStream xStream = new XStream();
+    XStream.setupDefaultSecurity(xStream);
+    xStream.allowTypesByWildcard(new String[] {"net.rptools.**", "java.awt.**", "sun.awt.**"});
+    xStream.registerConverter(new AStarCellPointConverter());
+    xStream.registerConverter(new WallTopologyConverter(xStream));
+    xStream.addImmutableType(ShapeType.class, true);
+    xStream.addImmutableType(BarTokenOverlay.Side.class, true);
+    return xStream;
   }
 
   /**
@@ -997,8 +1019,7 @@ public class PersistenceUtil {
     try {
       props =
           (CampaignProperties)
-              FileUtil.getConfiguredXStream()
-                  .fromXML(new InputStreamReader(in, StandardCharsets.UTF_8));
+              getConfiguredXStream().fromXML(new InputStreamReader(in, StandardCharsets.UTF_8));
     } catch (ConversionException ce) {
       MapTool.showError("PersistenceUtil.error.campaignPropertiesVersion", ce);
     }
@@ -1088,8 +1109,7 @@ public class PersistenceUtil {
     try {
       mbProps =
           asMacro(
-              FileUtil.getConfiguredXStream()
-                  .fromXML(new InputStreamReader(in, StandardCharsets.UTF_8)));
+              getConfiguredXStream().fromXML(new InputStreamReader(in, StandardCharsets.UTF_8)));
     } catch (ConversionException ce) {
       MapTool.showError("PersistenceUtil.error.macroVersion", ce);
     }
@@ -1181,8 +1201,7 @@ public class PersistenceUtil {
     try {
       macroButtonSet =
           asMacroSet(
-              FileUtil.getConfiguredXStream()
-                  .fromXML(new InputStreamReader(in, StandardCharsets.UTF_8)));
+              getConfiguredXStream().fromXML(new InputStreamReader(in, StandardCharsets.UTF_8)));
     } catch (ConversionException ce) {
       MapTool.showError("PersistenceUtil.error.macrosetVersion", ce);
     }
@@ -1238,8 +1257,7 @@ public class PersistenceUtil {
     try {
       table =
           (LookupTable)
-              FileUtil.getConfiguredXStream()
-                  .fromXML(new InputStreamReader(in, StandardCharsets.UTF_8));
+              getConfiguredXStream().fromXML(new InputStreamReader(in, StandardCharsets.UTF_8));
     } catch (ConversionException ce) {
       MapTool.showError("PersistenceUtil.error.tableVersion", ce);
     }
