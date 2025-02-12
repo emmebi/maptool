@@ -28,7 +28,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.rptools.lib.MathUtil;
 import net.rptools.maptool.client.AppConstants;
-import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.util.ImageManager;
@@ -102,7 +101,7 @@ public class ImageUtil {
   }
 
   public static BufferedImage getScaledTokenImage(
-      BufferedImage img, Token token, Grid grid, double zoom) {
+      BufferedImage img, Token token, Grid grid, double zoom, RenderQuality renderQuality) {
 
     double imgW = img.getWidth();
     double imgH = img.getHeight();
@@ -138,7 +137,7 @@ public class ImageUtil {
         token.setWidth(outputWidth);
         token.setHeight(outputHeight);
         try {
-          return ImageUtil.scaleBufferedImage(img, outputWidth, outputHeight);
+          return ImageUtil.scaleBufferedImage(img, outputWidth, outputHeight, renderQuality);
         } catch (Exception e) {
           log.warn(e.getLocalizedMessage(), e);
           return img;
@@ -148,7 +147,7 @@ public class ImageUtil {
       Rectangle b = token.getBounds(grid.getZone());
       try {
         return ImageUtil.scaleBufferedImage(
-            img, (int) Math.ceil(b.width * zoom), (int) Math.ceil(b.height * zoom));
+            img, (int) Math.ceil(b.width * zoom), (int) Math.ceil(b.height * zoom), renderQuality);
       } catch (Exception e) {
         log.warn(e.getLocalizedMessage(), e);
         return img;
@@ -167,7 +166,8 @@ public class ImageUtil {
     if (img == null) {
       return null;
     }
-    return createCompatibleImage(img, img.getWidth(null), img.getHeight(null));
+    return createCompatibleImage(
+        img, img.getWidth(null), img.getHeight(null), RenderQuality.PIXEL_ART_SCALING);
   }
 
   /**
@@ -177,9 +177,11 @@ public class ImageUtil {
    * @param img the image to copy
    * @param width width of the created image
    * @param height height of the created image
+   * @param renderQuality Scaling preferences
    * @return a {@link BufferedImage} with a copy of img
    */
-  public static BufferedImage createCompatibleImage(Image img, int width, int height) {
+  public static BufferedImage createCompatibleImage(
+      Image img, int width, int height, RenderQuality renderQuality) {
 
     width = Math.max(width, 1);
     height = Math.max(height, 1);
@@ -190,7 +192,7 @@ public class ImageUtil {
     Graphics2D g = null;
     try {
       g = compImg.createGraphics();
-      AppPreferences.renderQuality.get().setRenderingHints(g);
+      renderQuality.setRenderingHints(g);
       g.drawImage(img, 0, 0, width, height, null);
     } finally {
       if (g != null) {
@@ -535,7 +537,8 @@ public class ImageUtil {
     return image;
   }
 
-  public static BufferedImage flipIsometric(BufferedImage image, boolean toRhombus) {
+  public static BufferedImage flipIsometric(
+      BufferedImage image, boolean toRhombus, RenderQuality renderQuality) {
     BufferedImage workImage;
     boolean isSquished =
         MathUtil.inTolerance(image.getHeight(), image.getWidth() / 2d, image.getHeight() * 0.05);
@@ -568,9 +571,9 @@ public class ImageUtil {
     }
     if (toRhombus) {
       image = rotateImage(image, 45);
-      image = scaleBufferedImage(image, image.getWidth(), image.getHeight() / 2);
+      image = scaleBufferedImage(image, image.getWidth(), image.getHeight() / 2, renderQuality);
     } else {
-      image = scaleBufferedImage(image, image.getWidth(), image.getWidth());
+      image = scaleBufferedImage(image, image.getWidth(), image.getWidth(), renderQuality);
       image = rotateImage(image, -45);
     }
     return image;
@@ -582,11 +585,12 @@ public class ImageUtil {
    * @param image The BufferedImage to be scaled
    * @param width Desired width in px
    * @param height Desired height in px
+   * @param renderQuality Scaling preferences
    * @return The scaled BufferedImage
    */
-  public static BufferedImage scaleBufferedImage(BufferedImage image, int width, int height) {
-    ResampleOp resampleOp =
-        new ResampleOp(width, height, AppPreferences.renderQuality.get().getResampleOpFilter());
+  public static BufferedImage scaleBufferedImage(
+      BufferedImage image, int width, int height, RenderQuality renderQuality) {
+    ResampleOp resampleOp = new ResampleOp(width, height, renderQuality.getResampleOpFilter());
     return resampleOp.filter(image, null);
   }
 

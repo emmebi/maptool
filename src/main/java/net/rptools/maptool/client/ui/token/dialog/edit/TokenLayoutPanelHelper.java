@@ -30,6 +30,7 @@ import net.rptools.lib.MD5Key;
 import net.rptools.lib.MathUtil;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.AppConstants;
+import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.*;
 import net.rptools.maptool.client.ui.theme.Images;
@@ -725,7 +726,9 @@ class TokenLayoutPanelHelper {
                 BufferedImage.TYPE_4BYTE_ABGR_PRE);
       }
 
-      workImage = ImageUtil.getScaledTokenImage(tokenImage, mirrorToken, grid, zoomFactor);
+      workImage =
+          ImageUtil.getScaledTokenImage(
+              tokenImage, mirrorToken, grid, zoomFactor, AppPreferences.renderQuality.get());
       workImage = getFlippedImage(workImage);
     }
 
@@ -826,7 +829,7 @@ class TokenLayoutPanelHelper {
         bi = ImageUtil.flipCartesian(bi, direction);
       }
       if (AppConstants.FLIP_DIRECTION.isFlippedIso(direction)) {
-        bi = ImageUtil.flipIsometric(bi, true);
+        bi = ImageUtil.flipIsometric(bi, true, AppPreferences.renderQuality.get());
       }
       return bi;
     }

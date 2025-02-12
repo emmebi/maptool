@@ -2742,7 +2742,9 @@ public class AppActions {
         // Make smaller
         BufferedImage iconImage =
             new BufferedImage(QUICK_MAP_ICON_SIZE, QUICK_MAP_ICON_SIZE, Transparency.OPAQUE);
-        Image image = MapTool.getThumbnailManager().getThumbnail(imagePath);
+        Image image =
+            MapTool.getThumbnailManager()
+                .getThumbnail(imagePath, AppPreferences.renderQuality.get());
 
         Graphics2D g = iconImage.createGraphics();
         g.drawImage(image, 0, 0, QUICK_MAP_ICON_SIZE, QUICK_MAP_ICON_SIZE, null);

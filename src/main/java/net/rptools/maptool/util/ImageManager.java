@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
+import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.model.Asset;
@@ -306,7 +307,8 @@ public class ImageManager {
       } else if (scaleH <= 0) {
         scaleH = Math.max((int) ((double) scaleW / imageW * imageH), 1);
       }
-      image = ImageUtil.scaleBufferedImage(image, scaleW, scaleH);
+      image =
+          ImageUtil.scaleBufferedImage(image, scaleW, scaleH, AppPreferences.renderQuality.get());
     }
 
     return image;
