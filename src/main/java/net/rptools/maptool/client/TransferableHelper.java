@@ -258,7 +258,9 @@ public class TransferableHelper extends TransferHandler {
       if (o == null && transferable.isDataFlavorSupported(X_JAVA_IMAGE)) {
         log.info("Selected: {}", X_JAVA_IMAGE);
         BufferedImage image =
-            (BufferedImage) new ImageTransferableHandler().getTransferObject(transferable);
+            (BufferedImage)
+                new ImageTransferableHandler(AppPreferences.renderQuality::get)
+                    .getTransferObject(transferable);
         o = Asset.createImageAsset("unnamed", ImageUtil.imageToBytes(image));
       }
 
@@ -340,7 +342,10 @@ public class TransferableHelper extends TransferHandler {
       log.debug(
           "{} didn't work; trying ImageTransferableHandler().getTransferObject()",
           type); // $NON-NLS-1$
-      image = (BufferedImage) new ImageTransferableHandler().getTransferObject(transferable);
+      image =
+          (BufferedImage)
+              new ImageTransferableHandler(AppPreferences.renderQuality::get)
+                  .getTransferObject(transferable);
     }
     if (image != null) {
       String name = findName(url);
