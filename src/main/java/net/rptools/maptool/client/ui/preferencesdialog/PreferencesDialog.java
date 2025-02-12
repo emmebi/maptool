@@ -36,6 +36,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import net.rptools.lib.StringUtil;
+import net.rptools.lib.cipher.CipherUtil;
 import net.rptools.lib.image.RenderQuality;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
@@ -56,11 +58,8 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.GridFactory;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.util.StringUtil;
 import net.rptools.maptool.util.UserJvmOptions;
 import net.rptools.maptool.util.UserJvmOptions.JVM_OPTION;
-import net.rptools.maptool.util.cipher.CipherUtil;
-import net.rptools.maptool.util.cipher.PublicPrivateKeyStore;
 import net.rptools.maptool.util.preferences.Preference;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -1522,7 +1521,7 @@ public class PreferencesDialog extends AbeillePanel {
 
     regeneratePublicKey.addActionListener(
         e -> {
-          CompletableFuture<CipherUtil.Key> keys = new PublicPrivateKeyStore().regenerateKeys();
+          CompletableFuture<CipherUtil.Key> keys = MapTool.getKeyStore().regenerateKeys();
 
           keys.thenAccept(
               cu -> {
@@ -1698,7 +1697,7 @@ public class PreferencesDialog extends AbeillePanel {
     chatNotificationColor.setColor(AppPreferences.chatNotificationColor.get());
     chatNotificationShowBackground.setSelected(AppPreferences.chatNotificationBackground.get());
 
-    CompletableFuture<CipherUtil.Key> keys = new PublicPrivateKeyStore().getKeys();
+    CompletableFuture<CipherUtil.Key> keys = MapTool.getKeyStore().getKeys();
 
     keys.thenAccept(
         cu -> {

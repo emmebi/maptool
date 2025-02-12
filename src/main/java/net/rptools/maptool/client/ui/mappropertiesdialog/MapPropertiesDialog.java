@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import net.rptools.lib.AwtUtil;
+import net.rptools.lib.StringUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.PaintChooser;
@@ -49,7 +50,6 @@ import net.rptools.maptool.model.SquareGrid;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.drawing.DrawablePaint;
 import net.rptools.maptool.util.ImageManager;
-import net.rptools.maptool.util.StringUtil;
 
 public class MapPropertiesDialog extends JDialog {
   private static final int AUTO_REPEAT_THRESHOLD = 200;

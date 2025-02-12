@@ -12,19 +12,21 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.util;
+package net.rptools.lib.net;
 
-import java.util.EnumMap;
-import java.util.function.Function;
+import java.net.URL;
+import java.net.URLConnection;
 
-public class CollectionUtil {
-  public static <K extends Enum<K>, V> EnumMap<K, V> newFilledEnumMap(
-      Class<K> keyType, Function<K, V> instantiator) {
-    final var map = new EnumMap<K, V>(keyType);
-    for (final var key : keyType.getEnumConstants()) {
-      final var value = instantiator.apply(key);
-      map.put(key, value);
-    }
-    return map;
+/**
+ * Support "syrinscape-fantasy" URI in Swing components
+ *
+ * @author Jamz
+ */
+public class SyrinscapeConnection extends URLConnection {
+  public SyrinscapeConnection(URL url) {
+    super(url);
   }
+
+  @Override
+  public void connect() {}
 }

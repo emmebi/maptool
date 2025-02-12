@@ -56,9 +56,12 @@ import net.rptools.lib.BackupManager;
 import net.rptools.lib.DebugStream;
 import net.rptools.lib.FileUtil;
 import net.rptools.lib.OsDetection;
+import net.rptools.lib.StringUtil;
 import net.rptools.lib.TaskBarFlasher;
+import net.rptools.lib.cipher.PublicPrivateKeyStore;
 import net.rptools.lib.image.ThumbnailManager;
 import net.rptools.lib.net.RPTURLStreamHandlerFactory;
+import net.rptools.lib.net.SyrinscapeURLStreamHandler;
 import net.rptools.lib.sound.SoundManager;
 import net.rptools.maptool.client.MapToolConnection.HandshakeCompletionObserver;
 import net.rptools.maptool.client.events.ChatMessageAdded;
@@ -104,7 +107,6 @@ import net.rptools.maptool.model.zones.TokensAdded;
 import net.rptools.maptool.model.zones.TokensRemoved;
 import net.rptools.maptool.model.zones.ZoneAdded;
 import net.rptools.maptool.model.zones.ZoneRemoved;
-import net.rptools.maptool.protocol.syrinscape.SyrinscapeURLStreamHandler;
 import net.rptools.maptool.server.MapToolServer;
 import net.rptools.maptool.server.ServerCommand;
 import net.rptools.maptool.server.ServerConfig;
@@ -141,6 +143,7 @@ public class MapTool {
   public static final String SND_INVALID_OPERATION = "invalidOperation";
 
   private static String clientId = AppUtil.readClientId();
+  private static final PublicPrivateKeyStore keyStore;
 
   // Jamz: This sets the thumbnail size that is cached for imageThumbs
   // Set it to 500 (from 100) for now to support larger asset window previews
@@ -182,6 +185,12 @@ public class MapTool {
   @Nullable private static RemoteServerConfig remoteServerConfig = null;
 
   static {
+    keyStore =
+        new PublicPrivateKeyStore(
+            AppUtil.getAppHome("config").toPath().resolve("public.key").toFile(),
+            AppUtil.getAppHome("config").toPath().resolve("private.key").toFile());
+    ;
+
     try {
       var connections = DirectConnection.create("local");
       var playerDB = new PersonalServerPlayerDatabase(new LocalPlayer());
@@ -189,7 +198,9 @@ public class MapTool {
       var policy = new ServerPolicy();
 
       server = new MapToolServer(null, new Campaign(campaign), null, false, policy, playerDB);
-      client = new MapToolClient(server, campaign, playerDB.getPlayer(), connections.clientSide());
+      client =
+          new MapToolClient(
+              server, campaign, playerDB.getPlayer(), connections.clientSide(), keyStore);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new RuntimeException("Unable to create default personal server", e);
     }
@@ -1009,7 +1020,7 @@ public class MapTool {
 
     var connections = DirectConnection.create("local");
     server = new MapToolServer(id, new Campaign(campaign), config, useUPnP, policy, playerDatabase);
-    client = new MapToolClient(server, campaign, player, connections.clientSide());
+    client = new MapToolClient(server, campaign, player, connections.clientSide(), keyStore);
 
     if (!server.isPersonalServer()) {
       getFrame().getConnectionPanel().startHosting();
@@ -1162,6 +1173,10 @@ public class MapTool {
     return client;
   }
 
+  public static PublicPrivateKeyStore getKeyStore() {
+    return keyStore;
+  }
+
   public static LocalPlayer getPlayer() {
     return client.getPlayer();
   }
@@ -1208,7 +1223,7 @@ public class MapTool {
     var connection = ConnectionFactory.getInstance().createConnection(player.getName(), config);
 
     server = null;
-    client = new MapToolClient(player, connection);
+    client = new MapToolClient(player, connection, keyStore);
     setUpClient(client);
     client.getConnection().onCompleted(onCompleted);
 

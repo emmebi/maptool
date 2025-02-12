@@ -12,7 +12,7 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.util.cipher;
+package net.rptools.lib.cipher;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -399,7 +399,8 @@ public class CipherUtil {
     return keyPairGenerator.generateKeyPair();
   }
 
-  static void writeKeyPair(KeyPair keyPair, File publicFile, File privateFile) throws IOException {
+  public static void writeKeyPair(KeyPair keyPair, File publicFile, File privateFile)
+      throws IOException {
     publicFile.getParentFile().mkdirs();
     privateFile.getParentFile().mkdirs();
     try (FileOutputStream fos = new FileOutputStream(publicFile)) {

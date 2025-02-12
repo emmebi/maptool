@@ -12,7 +12,7 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.util.cipher;
+package net.rptools.lib.cipher;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,14 +24,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import javax.crypto.NoSuchPaddingException;
-import net.rptools.maptool.client.AppUtil;
 
 public class PublicPrivateKeyStore {
+  private final File publicKeyFile;
+  private final File privateKeyFile;
 
-  private static final File PUBLIC_KEY_FILE =
-      AppUtil.getAppHome("config").toPath().resolve("public.key").toFile();
-  private static final File PRIVATE_KEY_FILE =
-      AppUtil.getAppHome("config").toPath().resolve("private.key").toFile();
+  public PublicPrivateKeyStore(File publicKeyFile, File privateKeyFile) {
+    this.publicKeyFile = publicKeyFile;
+    this.privateKeyFile = privateKeyFile;
+  }
 
   /**
    * Returns the public and private keys for this client. If none exists it will attempt to create
@@ -44,12 +45,12 @@ public class PublicPrivateKeyStore {
     return CompletableFuture.supplyAsync(
         () -> {
           try {
-            if (!PUBLIC_KEY_FILE.exists() || !PRIVATE_KEY_FILE.exists()) {
+            if (!publicKeyFile.exists() || !publicKeyFile.exists()) {
               KeyPair keyPair = null;
               keyPair = CipherUtil.generateKeyPair();
-              CipherUtil.writeKeyPair(keyPair, PUBLIC_KEY_FILE, PRIVATE_KEY_FILE);
+              CipherUtil.writeKeyPair(keyPair, publicKeyFile, privateKeyFile);
             }
-            return CipherUtil.fromPublicPrivatePair(PUBLIC_KEY_FILE, PRIVATE_KEY_FILE);
+            return CipherUtil.fromPublicPrivatePair(publicKeyFile, privateKeyFile);
           } catch (NoSuchAlgorithmException
               | IOException
               | InvalidAlgorithmParameterException
@@ -72,9 +73,9 @@ public class PublicPrivateKeyStore {
         () -> {
           try {
             KeyPair keyPair = CipherUtil.generateKeyPair();
-            CipherUtil.writeKeyPair(keyPair, PUBLIC_KEY_FILE, PRIVATE_KEY_FILE);
+            CipherUtil.writeKeyPair(keyPair, publicKeyFile, privateKeyFile);
 
-            return CipherUtil.fromPublicPrivatePair(PUBLIC_KEY_FILE, PRIVATE_KEY_FILE);
+            return CipherUtil.fromPublicPrivatePair(publicKeyFile, privateKeyFile);
           } catch (IOException
               | NoSuchAlgorithmException
               | InvalidAlgorithmParameterException

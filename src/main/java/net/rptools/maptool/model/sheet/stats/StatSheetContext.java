@@ -26,8 +26,8 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.player.Player;
+import net.rptools.maptool.util.HTMLUtil;
 import net.rptools.maptool.util.ImageManager;
-import net.rptools.maptool.util.StringUtil;
 
 /** Class that extracts and provides the information needed to render a stat sheet. */
 public class StatSheetContext {
@@ -343,7 +343,7 @@ public class StatSheetContext {
    */
   public String getNotes() {
     if (notes != null) {
-      return StringUtil.htmlize(notes, notesType);
+      return HTMLUtil.htmlize(notes, notesType);
     } else {
       return null;
     }
@@ -356,7 +356,7 @@ public class StatSheetContext {
    */
   public String getGmNotes() {
     if (gmNotes != null) {
-      return StringUtil.htmlize(gmNotes, gmNotesType);
+      return HTMLUtil.htmlize(gmNotes, gmNotesType);
     } else {
       return null;
     }

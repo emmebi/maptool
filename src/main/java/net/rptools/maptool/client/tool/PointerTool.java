@@ -38,6 +38,7 @@ import javax.swing.*;
 import net.rptools.lib.AwtUtil;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.MD5Key;
+import net.rptools.lib.StringUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.events.TokenHoverEnter;
 import net.rptools.maptool.client.events.TokenHoverExit;
@@ -57,8 +58,8 @@ import net.rptools.maptool.model.Zone.VisionType;
 import net.rptools.maptool.model.player.Player.Role;
 import net.rptools.maptool.model.sheet.stats.StatSheetManager;
 import net.rptools.maptool.util.GraphicsUtil;
+import net.rptools.maptool.util.HTMLUtil;
 import net.rptools.maptool.util.ImageManager;
-import net.rptools.maptool.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -1653,8 +1654,8 @@ public class PointerTool extends DefaultTool {
   }
 
   private String createHoverNote(Token marker) {
-    var notes = StringUtil.htmlize(marker.getNotes(), marker.getNotesType());
-    var gmNotes = StringUtil.htmlize(marker.getGMNotes(), marker.getGmNotesType());
+    var notes = HTMLUtil.htmlize(marker.getNotes(), marker.getNotesType());
+    var gmNotes = HTMLUtil.htmlize(marker.getGMNotes(), marker.getGmNotesType());
 
     boolean showGMNotes = MapTool.getPlayer().isGM() && !StringUtil.isEmpty(gmNotes);
     boolean showNotes = !StringUtil.isEmpty(notes);
