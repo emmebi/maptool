@@ -21,8 +21,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
-import net.rptools.maptool.client.swing.SwingUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,7 +73,7 @@ public class ThumbnailManager {
       return image;
     }
     // Transform the image
-    SwingUtil.constrainTo(
+    AwtUtil.constrainTo(
         imgSize,
         Math.min(image.getWidth(null), thumbnailSize.width),
         Math.min(image.getHeight(null), thumbnailSize.height));

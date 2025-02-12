@@ -44,10 +44,10 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import javax.swing.*;
+import net.rptools.lib.AwtUtil;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.themes.*;
 import net.rptools.maptool.events.MapToolEventBus;
 import org.apache.logging.log4j.LogManager;
@@ -626,7 +626,7 @@ public class ThemeSupport {
       var imageIcon = new ImageIcon(imageURL, themeDetails.name);
       if (dimension != null && dimension.width > 0 && dimension.height > 0) {
         var imageSize = new Dimension(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-        SwingUtil.constrainTo(imageSize, dimension.width, dimension.height);
+        AwtUtil.constrainTo(imageSize, dimension.width, dimension.height);
 
         imageIcon.setImage(
             imageIcon

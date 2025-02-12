@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Set;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import net.rptools.lib.AwtUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.PaintChooser;
@@ -759,7 +760,7 @@ public class MapPropertiesDialog extends JDialog {
       if (mapAsset != null) {
         BufferedImage image = ImageManager.getImageAndWait(mapAsset.getMD5Key());
         Dimension imgSize = new Dimension(image.getWidth(), image.getHeight());
-        SwingUtil.constrainTo(imgSize, size.width - 10 * 4, size.height - 10 * 4);
+        AwtUtil.constrainTo(imgSize, size.width - 10 * 4, size.height - 10 * 4);
 
         int x = (size.width - imgSize.width) / 2;
         int y = (size.height - imgSize.height) / 2;

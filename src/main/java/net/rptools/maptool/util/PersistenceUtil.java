@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
+import net.rptools.lib.AwtUtil;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.FileUtil;
 import net.rptools.lib.MD5Key;
@@ -47,7 +48,6 @@ import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.Scale;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.zone.PlayerView;
@@ -507,7 +507,7 @@ public class PersistenceUtil {
     if (screen == null) return;
 
     Dimension imgSize = new Dimension(screen.getWidth(null), screen.getHeight(null));
-    SwingUtil.constrainTo(imgSize, 200, 200);
+    AwtUtil.constrainTo(imgSize, 200, 200);
 
     BufferedImage thumb =
         new BufferedImage(imgSize.width, imgSize.height, BufferedImage.TYPE_INT_BGR);
@@ -661,7 +661,7 @@ public class PersistenceUtil {
     }
 
     Dimension sz = new Dimension(image.getWidth(), image.getHeight());
-    SwingUtil.constrainTo(sz, 50);
+    AwtUtil.constrainTo(sz, 50);
 
     BufferedImage thumb = new BufferedImage(sz.width, sz.height, BufferedImage.TRANSLUCENT);
     Graphics2D g = thumb.createGraphics();

@@ -18,12 +18,12 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
-import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.util.ImageManager;
@@ -238,7 +238,7 @@ public class StatSheetContext {
       var image = ImageManager.getImage(token.getImageAssetId());
       dim = new Dimension(image.getWidth(), image.getHeight());
     }
-    SwingUtil.constrainTo(dim, AppPreferences.portraitSize.get());
+    AwtUtil.constrainTo(dim, AppPreferences.portraitSize.get());
     portraitWidth = dim.width;
     portraitHeight = dim.height;
 
