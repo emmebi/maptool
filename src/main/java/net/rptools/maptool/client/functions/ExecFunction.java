@@ -20,12 +20,12 @@ import java.util.*;
 import java.util.List;
 import net.rptools.lib.StringUtil;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.MapToolExpressionParser;
 import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.client.functions.json.JsonArrayFunctions;
 import net.rptools.maptool.client.macro.MacroLocationFactory;
 import net.rptools.maptool.language.I18N;
+import net.rptools.maptool.util.ExpressionParserFactory;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
@@ -208,7 +208,7 @@ public class ExecFunction extends AbstractFunction {
    * @param execArgs the arguments to the function
    */
   private static void runExecFunction(String functionName, List<Object> execArgs) {
-    Parser parser = new MapToolExpressionParser().getParser();
+    Parser parser = new ExpressionParserFactory().createMT().getParser();
     Function function = parser.getFunction(functionName);
     var loc = macroLocationFactory.createExecFunctionLocation(functionName);
     MapTool.getParser().enterTrustedContext(functionName, loc);

@@ -25,9 +25,12 @@ import net.rptools.parser.function.AbstractFunction;
 /** Function to roll dice using the advanced dice roller. */
 public class AdvancedDiceRolls extends AbstractFunction {
 
+  private final GenesysDiceRolls genesysDiceRolls;
+
   /** Constructor. */
-  public AdvancedDiceRolls() {
+  public AdvancedDiceRolls(GenesysDiceRolls genesysDiceRolls) {
     super(2, 2, false, "advancedRoll");
+    this.genesysDiceRolls = genesysDiceRolls;
   }
 
   @Override
@@ -39,8 +42,8 @@ public class AdvancedDiceRolls extends AbstractFunction {
 
     try {
       return switch (diceName) {
-        case "sw" -> new GenesysDiceRolls().roll(DiceType.StarWars, diceExpression, resolver);
-        case "gs" -> new GenesysDiceRolls().roll(DiceType.Genesys, diceExpression, resolver);
+        case "sw" -> genesysDiceRolls.roll(DiceType.StarWars, diceExpression, resolver);
+        case "gs" -> genesysDiceRolls.roll(DiceType.Genesys, diceExpression, resolver);
         default ->
             throw new ParserException(I18N.getText("advanced.roll.unknownDiceType", diceName));
       };
