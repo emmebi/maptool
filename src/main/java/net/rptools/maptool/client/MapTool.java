@@ -686,8 +686,6 @@ public class MapTool {
     chatAutoSave = new ChatAutoSave();
     chatAutoSave.setTimeout(AppPreferences.chatAutoSaveTimeInMinutes.get());
     AppPreferences.chatAutoSaveTimeInMinutes.onChange(chatAutoSave::setTimeout);
-
-    new ServerHeartBeatThread().start();
   }
 
   public static NoteFrame getProfilingNoteFrame() {
@@ -1391,30 +1389,6 @@ public class MapTool {
 
   public static String getClientId() {
     return clientId;
-  }
-
-  private static class ServerHeartBeatThread extends Thread {
-
-    public ServerHeartBeatThread() {
-      super("MapTool.ServerHeartBeatThread");
-    }
-
-    @Override
-    public void run() {
-
-      // This should always run, so we should be able to safely
-      // loop forever
-      while (true) {
-        try {
-          Thread.sleep(20000);
-        } catch (InterruptedException e) {
-          log.warn("Heartbeat thread interrupted", e);
-        }
-
-        ServerCommand command = client.getServerCommand();
-        command.heartbeat(getPlayer().getName());
-      }
-    }
   }
 
   /**
