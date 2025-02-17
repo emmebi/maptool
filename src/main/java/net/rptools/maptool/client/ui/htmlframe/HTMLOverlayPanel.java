@@ -252,12 +252,18 @@ public class HTMLOverlayPanel extends JFXPanel {
               // Blank removes the overlay
               removeOverlay(overlayManager);
               return;
-            } else if (zOrder != overlayManager.getZOrder()) {
-              // Resorts by removing and adding back the overlay
-              overlays.remove(overlayManager);
-              overlayManager.setZOrder(zOrder);
-              overlays.add(overlayManager);
+            } else {
+              if (zOrder != overlayManager.getZOrder()) {
+                // Resorts by removing and adding back the overlay
+                overlays.remove(overlayManager);
+                overlayManager.setZOrder(zOrder);
+                overlays.add(overlayManager);
+              }
+              if (locked != overlayManager.getLocked()) {
+                overlayManager.setLocked(locked);
+              }
             }
+
           } else {
             overlayManager = new HTMLOverlayManager(name, zOrder, locked);
             overlayManager.setupWebView(new WebView());
