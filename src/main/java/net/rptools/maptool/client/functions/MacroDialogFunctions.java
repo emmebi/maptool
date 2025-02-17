@@ -78,7 +78,7 @@ public class MacroDialogFunctions extends AbstractFunction {
       Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException {
     // Macros can not interact with internal frames/dialogs/overlays
-    if (parameters.size() > 0 && HTMLFrameFactory.isInternalOnly(parameters.get(0).toString())) {
+    if (parameters.size() > 0 && (HTMLFrameFactory.isInternalOnly(parameters.get(0).toString())) || parameters.get(0).toString().startsWith(AppConstants.INTERNAL_FRAME_PREFIX)) {
       throw new ParserException(
           I18N.getText("msg.error.frame.reservedName", parameters.get(0).toString()));
     }
@@ -113,12 +113,9 @@ public class MacroDialogFunctions extends AbstractFunction {
     if (functionName.equalsIgnoreCase("closeOverlay")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 1, 1);
       String name = parameters.get(0).toString();
-      if(!name.startsWith(AppConstants.INTERNAL_FRAME_PREFIX)) {
-        removeOverlay(name);
-        return "";
-      } else {
-        MapTool.showError(I18N.getText("msg.error.frame.reservedName", name));
-      }
+      removeOverlay(name);
+      return "";
+
     }
     if (functionName.equalsIgnoreCase("setOverlayVisible")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 2, 2);
@@ -322,18 +319,14 @@ public class MacroDialogFunctions extends AbstractFunction {
 
     // Execute the script
     boolean executed;
-    if(!name.startsWith(AppConstants.INTERNAL_FRAME_PREFIX)) {
-      if (type.equals("frame") || type.equals("frame5")) {
-        executed = HTMLFrame.runScript(name, script);
-      } else if (type.equals("dialog") || type.equals("dialog5")) {
-        executed = HTMLDialog.runScript(name, script);
-      } else if (type.equals("overlay")) {
-        executed = MapTool.getFrame().getOverlayPanel().runScript(name, script);
-      } else {
-        throw new ParserException(I18N.getText("msg.error.dialog.js.type", fName, type));
-      }
+    if (type.equals("frame") || type.equals("frame5")) {
+      executed = HTMLFrame.runScript(name, script);
+    } else if (type.equals("dialog") || type.equals("dialog5")) {
+      executed = HTMLDialog.runScript(name, script);
+    } else if (type.equals("overlay")) {
+      executed = MapTool.getFrame().getOverlayPanel().runScript(name, script);
     } else {
-      executed = false;
+      throw new ParserException(I18N.getText("msg.error.dialog.js.type", fName, type));
     }
     if (!executed) {
       throw new ParserException(I18N.getText("msg.error.dialog.js.name", fName, type, name));
