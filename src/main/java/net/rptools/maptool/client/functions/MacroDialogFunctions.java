@@ -76,7 +76,7 @@ public class MacroDialogFunctions extends AbstractFunction {
       Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException {
     // Macros can not interact with internal frames/dialogs/overlays
-    if (parameters.size() > 0 && (HTMLFrameFactory.isInternalOnly(parameters.get(0).toString())) || parameters.get(0).toString().startsWith(AppConstants.INTERNAL_FRAME_PREFIX)) {
+    if (parameters.size() > 0 && (HTMLFrameFactory.isInternalOnly(parameters.get(0).toString()) || parameters.get(0).toString().startsWith(AppConstants.INTERNAL_FRAME_PREFIX))) {
       throw new ParserException(
           I18N.getText("msg.error.frame.reservedName", parameters.get(0).toString()));
     }
