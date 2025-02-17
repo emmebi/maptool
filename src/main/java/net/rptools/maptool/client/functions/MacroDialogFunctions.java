@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
-
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.htmlframe.*;
