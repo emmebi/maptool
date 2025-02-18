@@ -1033,11 +1033,14 @@ public class MapTool {
     connections.serverSide().open();
     server.addLocalConnection(connections.serverSide(), player);
     // Update the client, including running onCampaignLoad.
-    setCampaign(
-        client.getCampaign(),
-        Optional.ofNullable(clientFrame.getCurrentZoneRenderer())
-            .map(zr -> zr.getZone().getId())
-            .orElse(null));
+    EventQueue.invokeLater(
+        () -> {
+          setCampaign(
+              client.getCampaign(),
+              Optional.ofNullable(clientFrame.getCurrentZoneRenderer())
+                  .map(zr -> zr.getZone().getId())
+                  .orElse(null));
+        });
   }
 
   public static ThumbnailManager getThumbnailManager() {
