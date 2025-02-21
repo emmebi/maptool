@@ -264,9 +264,7 @@ public class HTMLOverlayPanel extends JFXPanel {
                 overlayManager.setZOrder(zOrder);
                 overlays.add(overlayManager);
               }
-              if (locked != overlayManager.getLocked()) {
-                overlayManager.setLocked(locked);
-              }
+              overlayManager.setLocked(locked);
             }
 
           } else {
