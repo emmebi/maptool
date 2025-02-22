@@ -241,11 +241,7 @@ public class MacroDialogFunctions extends AbstractFunction {
    * @param name the name of the overlay, or "*" if removing all overlays.
    */
   private void removeOverlay(String name) {
-    if (name.equals("*")) {
-      MapTool.getFrame().getOverlayPanel().removeAllOverlays();
-    } else {
-      MapTool.getFrame().getOverlayPanel().removeOverlay(name);
-    }
+     MapTool.getFrame().getOverlayPanel().removeOverlay(name);
   }
 
   /**
