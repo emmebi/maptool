@@ -32,6 +32,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebView;
 import javax.swing.*;
+import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.events.OverlayVisibilityChanged;
 import net.rptools.maptool.client.swing.SwingUtil;
@@ -214,10 +215,12 @@ public class HTMLOverlayPanel extends JFXPanel {
     if (overlay != null) {
       if (overlay.getName() == "*") {
         for (HTMLOverlayManager aOverlay : overlays) {
-          AppMenuBar.removeFromOverlayMenu(aOverlay.getName());
-          aOverlay.flush();
+          if (!overlay.getName().startsWith(AppConstants.INTERNAL_FRAME_PREFIX)) {
+            AppMenuBar.removeFromOverlayMenu(aOverlay.getName());
+            aOverlay.flush();
+          }
         }
-      } else {
+      } else if (!overlay.getName().startsWith(AppConstants.INTERNAL_FRAME_PREFIX)) {
         root.getChildren().remove(overlay.getWebView());
         overlays.remove(overlay);
         AppMenuBar.removeFromOverlayMenu(overlay.getName());
