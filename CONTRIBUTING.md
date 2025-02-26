@@ -102,15 +102,14 @@ Explain your request
 
 We can never have enough testing. If you would like to help test new features or bug fixes,
 please download the latest development build and report any issues you find. You can also join our
-discord server to discuss testing and assign yourself the Testing role.
-
-![Discord](https://img.shields.io/discord/296230822262865920?label=Discord)
+[discord](discord.gg/dZy7HeYYVY) server to discuss testing and assign yourself the Testing role.
 
 ### Translation
 
 MapTool uses [crowdin](https://crowdin.com/project/maptool) for translations. If you would like
 to help translate MapTool into your language, please visit the crowdin project page and create an
-account. You can then request to join the MapTool translation team.
+account. You can then request to join the MapTool translation team. There is also an area on our
+[discord](discord.gg/dZy7HeYYVY) to discuss translations.
 
 ### Asset Creation
 
@@ -123,7 +122,8 @@ Improving documentation is always welcome. If you would like to help improve the
 you can create an account on the [RPTools Wiki](https://wiki.rptools.info/index.php/Main_Page)
 and start editing, or you can create a pull request with the changes you would like to see in the
 documentation on the [MapTool GitHub Repository](https://github.com/RPTools/maptool), or the
-[MapTool GitHub Wiki](https://github.com/RPTools/maptool/wiki).
+[MapTool GitHub Wiki](https://github.com/RPTools/maptool/wiki). There is also an area on
+our [discord](discord.gg/dZy7HeYYVY) server to discuss documentation.
 
 ### Asset Creation
 
@@ -134,29 +134,18 @@ assets to MapTool, please log into discord and ask about how to contribute asset
 
 * Java Development Kit (JDK) from Eclipse Temurin (formerly AdoptOpenJDK)
 * An IDE (IntelliJ IDEA recommended)
+* [How To Setup User Interface (UI) Tools for MapTool](docs/How_To_Setup_User_Interface_Tools_for_MapTool.md) (
+  This is optional as it is only
+  required if you want to make modifications to the user interface.)
 
 For detailed setup instructions, please visit
 our [Contributor Setup Guide](https://github.com/RPTools/maptool/wiki/Contributor-Setup-Instructions-For-MapTool).
 
-The setup process includes:
-
-1. Installing the JDK
-2. Setting up your IDE
-3. Configuring the development environment
-4. Building and running MapTool
-
 #### Code Style and Guidelines
 
-We follow the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) with
-some additional project-specific rules:
+Please read the [Code Style and Guidelines][coding-style-guides] for MapTool before contributing.
 
-1. Use distinct parameter names from member field names to avoid `this` disambiguation. If the
-   method is small and simple then this rule can be ignored (.e.g.,
-   `setFoo(foo) { this.foo = foo; }`).
-2. Use `I18N.getText(propertyKey)` instead of hard-coded strings
-3. Use `static final String` for appropriate hard-coded strings (e.g., embedded resources)
-4. Report user-facing errors using `MapTool.showError(propertyKey)`
-5. Use language-defined static variables (e.g., `File.separator`, `AppActions.menuShortcut`)
+We follow the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) with
 
 #### Code Formatting
 
@@ -195,32 +184,12 @@ Unsure where to begin contributing code to MapTool? You can start by looking thr
 MapTool can be developed locally, for instructions on how to do this
 see [Contributor Setup Instructions For MapTool][contributor-setup-for-maptool]
 
-#### Pull Requests
-
-Please follow these steps to have your contribution considered by the maintainers:
-
-1. Fill out the relevant details in the pull request template.
-2. Follow the [styleguides](#styleguides)
-3. After you submit your pull request, verify that
-   all [status checks](https://help.github.com/articles/about-status-checks/) are passing
-
-<details><summary>What if the status checks are failing?</summary>If a status check is failing, and you believe that the failure is unrelated to your change, please leave a comment on the pull request explaining why you believe the failure is unrelated. A maintainer will re-run the status check for you.</details>
-
-While the prerequisites above must be satisfied prior to having your pull request reviewed, the
-reviewer(s) may ask you to complete additional design work, tests, or other changes before your pull
-request can be ultimately accepted.
-
-#### Coding Styleguids
-
-Please follow the [Coding Styleguides][coding-style-guides] to ensure that the codebase is
-consistent which makes it easier to read and maintain for everyone.
-
 ## Asking Questions
 
 If you have questions not answered in these guidelines, need further help getting started, or need
 help working on an issue then you can
 
-* [Ask on the RPTools Discord Sever](https://discord.gg/gevEtpC)
+* [Ask on the RPTools Discord Sever](discord.gg/dZy7HeYYVY)
 * [Submit a GitHib Issue as a question](https://github.com/RPTools/maptool/issues/new?assignees=&labels=question&template=submit-a-question.md&title=)
 
 [bug-issue]:https://github.com/RPTools/maptool/labels/bug

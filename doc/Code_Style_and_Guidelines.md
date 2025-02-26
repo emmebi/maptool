@@ -23,9 +23,6 @@ in your pull request being rejected.
 6. Use the language-defined static variables instead of hard-coded strings when possible. Examples
    include `File.separator` instead of **"/"** and `AppActions.menuShortcut` instead of **"ctrl"**.
 
-There are surely others that you (the contributors) may want added and that we (the dev team)
-determine to be acceptable. Please speak up. :)
-
 ## Formatting Source Files
 
 ### Formatting with Spotless

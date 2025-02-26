@@ -1,14 +1,16 @@
-![GitHub commit check runs](https://img.shields.io/github/check-runs/RPTools/maptool/develop?style=flat&label=Development%20Checks&link=https%3A%2F%2Fgithub.com%2FRPTools%2Fmaptool%2Factions%2Fworkflows%2Fverify-build.yml)
+![GitHub branch check runs](https://img.shields.io/github/check-runs/RPTools/MapTool/develop?label=Development%20Checks)
 [![Crowdin](https://badges.crowdin.net/maptool/localized.svg)](https://crowdin.com/project/maptool)
 ![GitHub License](https://img.shields.io/github/license/RPTools/maptool)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/RPTools/maptool/latest/total)
 
 ![GitHub Issues or Pull Requests by label](https://img.shields.io/github/issues/RPTools/maptool/feature?label=Features&link=!%5BGitHub%20Issues%20or%20Pull%20Requests%20by%20label%5D(https%3A%2F%2Fimg.shields.io%2Fgithub%2Fissues%2FRPTools%2Fmaptool%2Ffeature%3Flabel%3DFeature%2520Requests%26link%3Dhttps%253A%252F%252Fgithub.com%252FRPTools%252Fmaptool%252Fissues%253Fq%253Dsort%25253Aupdated-desc%252520is%25253Aissue%252520is%25253Aopen%252520label%25253Afeature))
 ![GitHub Issues or Pull Requests by label](https://img.shields.io/github/issues/RPTools/maptool/bug?label=Bugs&link=!%5BGitHub%20Issues%20or%20Pull%20Requests%20by%20label%5D(https%3A%2F%2Fimg.shields.io%2Fgithub%2Fissues%2FRPTools%2Fmaptool%2Ffeature%3Flabel%3DFeature%2520Requests%26link%3Dhttps%253A%252F%252Fgithub.com%252FRPTools%252Fmaptool%252Fissues%253Fq%253Dsort%25253Aupdated-desc%252520is%25253Aissue%252520is%25253Aopen%252520label%25253Afeature))
-![Discord](https://img.shields.io/discord/296230822262865920?label=MapTool%20Discord)
 
 ![GitHub Release](https://img.shields.io/github/v/release/RPTools/MapTool?label=Stable%20Release)
 ![GitHub Release](https://img.shields.io/github/v/release/RPTools/maptool?include_prereleases&filter=*rc-*&label=Release%20Candidate)
+
+[![Discord](./doc/discord_100.webp)](discord.gg/dZy7HeYYVY)
+![Discord](https://img.shields.io/discord/296230822262865920?label=MapTool%20Discord)
 
 # MapTool ![GitHub Repo stars](https://img.shields.io/github/stars/RPTools/MapTool)
 
@@ -16,7 +18,12 @@ Welcome to the MapTool repository! This is the official repository for the MapTo
 
 ## So what is MapTool?
 
-MapTool is intended for use in supporting table-top role playing games, such as D&D.
+MapTool is intended for use in supporting table-top role playing games, such as D&D, PathFinder,
+GURPS, Call of Cthulhu, Star Wars, Shadowrun, and many others. It is a mature and full-featured
+Virtual
+Tabletop (VTT) application that allows users to create, manage, and play their favorite pen and
+paper
+either in person or remotely.
 
 Included are not only powerful tools for the creation of detailed maps, but also a chat function,
 detailed token management (allowing you to track properties of the units placed on the map and
@@ -57,11 +64,9 @@ from
 the following locations
 
 * [MapTool website](https://www.rptools.net/toolbox/download-rptools-products/#/).
-* [GitHub releases](https://github.com/RPTools/maptool/releases/latest).
-
-Pre-release versions are available from
-
-* [GitHub releases page](https://github.com/RPTools/maptool/releases).
+* [GitHub: Latest Stable releases](https://github.com/RPTools/maptool/releases/latest).
+* [GitHub: All Non-Pre-Releases](https://github.com/RPTools/maptool/releases?q=prerelease%3Afalse&expanded=false).
+* [GitHub: Pre-Releases](https://github.com/RPTools/maptool/releases?q=prerelease%3Atrue&expanded=false).
 
 There are several tutorials on the [MapTool wiki](https://wiki.rptools.info/index.php/Main_Page).
 on
@@ -71,21 +76,17 @@ MapTool.
 
 ## For Developers
 
-### Requirements
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file for information on setting up your development
+environment and contributing to MapTool.
 
-- MapTool currently requires Java 21 and uses the Eclipse Temurin (formerly AdoptOpenJDK)
-  distribution. The installers for MapTool include an embedded JRE that will install along with
-  MapTool.
-- Building MapTool requires Java Development Kit (JDK)
-  21, see [How To Install JDK](doc/How_To_Install_JDK.md)
-- The project uses JavaFX 22 for its user interface
+### Requirements
 
 ### Resources
 
 - **Website:** https://rptools.net/
 - **Forums:**  https://forums.rptools.net
 - **Wiki:**    https://wiki.rptools.info/index.php/Main_Page
-- **Discord:** https://discord.gg/gevEtpC
+- **Discord:** https://discord.gg/dZy7HeYYVY
 - **Reddit:**  https://www.reddit.com/r/MapTool/
 - **Crowdin:** https://crowdin.com/project/maptool
 
@@ -97,24 +98,6 @@ contribute. For detailed information
 about how
 you can contribute to MapTool, please see our [Contributing Guide](CONTRIBUTING.md).
 
-## For Developers
-
-### Requirements
-
-- MapTool currently requires Java 21 and uses the Eclipse Temurin (formerly AdoptOpenJDK)
-  distribution. The installers for MapTool include an embedded JRE that will install along with
-  MapTool.
-- Building MapTool requires Java Development Kit (JDK)
-  21, see [How To Install JDK](doc/How_To_Install_JDK.md)
-- The project uses JavaFX 22 for its user interface
-
-Configuration Steps Prior to Building MapTool
----------------------------------------------
-
-See [the Contributor Setup page](https://github.com/RPTools/maptool/wiki/Contributor-Setup-Instructions-For-MapTool)
-for instructions on building MapTool and contributing to the project.
-
-
 Recommended IDE
 ----------------
 We currently recommend [IntelliJ IDEA](https://www.jetbrains.com/idea/) as our editor of choice
@@ -122,20 +105,3 @@ although Eclipse and other IDE's should work just fine as well. For IntelliJ IDE
 project folder and it will detect it as a Gradle project and you should be ready to go with minimal
 effort.
 
-
-Code Commits and Pull Requests
---------------------------------
-We follow GitFlow process for the most part so please work all issues off of our `develop` branch.
-If you code changes are substantial, me may repoint the pull request to it's own feature branch for
-testing and further development.
-
-We prefer all pull requests to be preceded and reference an Issue before we accept and merge. If
-there is not currently an open issue, please create one and leave a comment if you plan to work on
-the issue. When you commit your code, please reference the issue, e.g. `fixes #1234` in addition to
-any other comments.
-
-
-Optional
---------
-
-- [How To Setup User Interface (UI) Tools for MapTool](doc/How_To_Setup_UI_Tools.md)
