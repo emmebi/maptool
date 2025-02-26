@@ -1,4 +1,4 @@
-![GitHub branch check runs](https://img.shields.io/github/check-runs/RPTools/MapTool/develop?label=Development%20Checks)
+![GitHub commit check runs](https://img.shields.io/github/check-runs/RPTools/maptool/develop?style=flat&label=Development%20Checks&link=https%3A%2F%2Fgithub.com%2FRPTools%2Fmaptool%2Factions%2Fworkflows%2Fverify-build.yml)
 [![Crowdin](https://badges.crowdin.net/maptool/localized.svg)](https://crowdin.com/project/maptool)
 ![GitHub License](https://img.shields.io/github/license/RPTools/maptool)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/RPTools/maptool/latest/total)
