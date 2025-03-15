@@ -329,8 +329,6 @@ public class RessourceManager {
           put(Icons.COLORPICKER_SNAP_ON, ROD_ICONS + "shape_handles.svg");
           put(Icons.EDIT_TOKEN_COLOR_PICKER, ROD_ICONS + "misc/Colour Selection (eye dropper).svg");
           put(Icons.EDIT_TOKEN_HEROLAB, ROD_ICONS + "hero-lab-icon.svg");
-          // FIXME: both icons are the same. Maybe we could change the color of svgs according to
-          // the theme?
           put(Icons.EDIT_TOKEN_REFRESH_OFF, ROD_ICONS + "refresh_arrows.svg");
           put(Icons.EDIT_TOKEN_REFRESH_ON, ROD_ICONS + "refresh_arrows.svg");
           put(Icons.GRID_HEX_HORIZONTAL, ROD_ICONS + "gridHorizontalHex.svg");
@@ -572,9 +570,7 @@ public class RessourceManager {
   }
 
   public static void main(String[] args) {
-    // checkMissingFiles();
     checkMissingIcons(classicIcons, rodIcons);
-    // for (var img : Set.of(images.values())) System.out.println(img);
   }
 
   private static void checkMissingIcons(
