@@ -37,13 +37,16 @@ import net.rptools.maptool.model.Light;
 import net.rptools.maptool.model.LightSource;
 import net.rptools.maptool.model.ShapeType;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class LightSyntax {
+public class AuraSyntax {
 
   private static final int DEFAULT_LUMENS = 100;
+  private static final Logger log = LogManager.getLogger(AuraSyntax.class);
 
-  public Map<GUID, LightSource> parseLights(String text, Iterable<LightSource> original) {
-    final var lightSourceMap = new HashMap<GUID, LightSource>();
+  public Map<GUID, LightSource> parseAuras(String text, Iterable<LightSource> original) {
+    final var aurasMap = new HashMap<GUID, LightSource>();
     final var reader = new LineNumberReader(new BufferedReader(new StringReader(text)));
     List<String> errlog = new LinkedList<>();
 
@@ -52,34 +55,34 @@ public class LightSyntax {
       while ((line = reader.readLine()) != null) {
         line = line.trim();
 
-        var source = parseLightLine(line, reader.getLineNumber(), original, errlog);
+        var source = parseAuraLine(line, reader.getLineNumber(), original, errlog);
         if (source != null) {
-          lightSourceMap.put(source.getId(), source);
+          aurasMap.put(source.getId(), source);
         }
       }
     } catch (IOException ioe) {
-      MapTool.showError("msg.error.mtprops.light.ioexception", ioe);
+      MapTool.showError("msg.error.mtprops.aura.ioexception", ioe);
     }
 
     if (!errlog.isEmpty()) {
       MapTool.showFeedback(errlog.toArray());
       errlog.clear();
       throw new IllegalArgumentException(
-          "msg.error.mtprops.light.definition"); // Don't save lights...
+          "msg.error.mtprops.aura.definition"); // Don't save lights...
     }
 
-    return lightSourceMap;
+    return aurasMap;
   }
 
-  public Map<String, Map<GUID, LightSource>> parseCategorizedLights(
-      String text, final Map<String, Map<GUID, LightSource>> originalLightSourcesMap) {
-    final var lightMap = new TreeMap<String, Map<GUID, LightSource>>();
+  public Map<String, Map<GUID, LightSource>> parseCategorizedAuras(
+      String text, final Map<String, Map<GUID, LightSource>> originalAuraMap) {
+    final var auraMap = new TreeMap<String, Map<GUID, LightSource>>();
     final var reader = new LineNumberReader(new BufferedReader(new StringReader(text)));
     List<String> errlog = new LinkedList<>();
 
     try {
-      Collection<LightSource> currentGroupOriginalLightSources = Collections.emptyList();
-      Map<GUID, LightSource> lightSourceMap = null;
+      Collection<LightSource> currentGroupOriginalAuras = Collections.emptyList();
+      Map<GUID, LightSource> auraGroupMap = null;
 
       String line;
       while ((line = reader.readLine()) != null) {
@@ -87,67 +90,66 @@ public class LightSyntax {
 
         // Blank lines
         if (line.isEmpty()) {
-          lightSourceMap = null;
+          auraGroupMap = null;
           continue;
         }
         // New group
-        if (lightSourceMap == null) {
+        if (auraGroupMap == null) {
           final var currentGroupName = line;
-          currentGroupOriginalLightSources =
-              originalLightSourcesMap
-                  .getOrDefault(currentGroupName, Collections.emptyMap())
-                  .values();
-          lightSourceMap = new HashMap<>();
-          lightMap.put(currentGroupName, lightSourceMap);
+          currentGroupOriginalAuras =
+              originalAuraMap.getOrDefault(currentGroupName, Collections.emptyMap()).values();
+          auraGroupMap = new HashMap<>();
+          auraMap.put(currentGroupName, auraGroupMap);
           continue;
         }
 
-        var source =
-            parseLightLine(line, reader.getLineNumber(), currentGroupOriginalLightSources, errlog);
+        var source = parseAuraLine(line, reader.getLineNumber(), currentGroupOriginalAuras, errlog);
         if (source != null) {
-          lightSourceMap.put(source.getId(), source);
+          auraGroupMap.put(source.getId(), source);
         }
       }
-      lightMap.values().removeIf(Map::isEmpty);
+      auraMap.values().removeIf(Map::isEmpty);
     } catch (IOException ioe) {
-      MapTool.showError("msg.error.mtprops.light.ioexception", ioe);
+      MapTool.showError("msg.error.mtprops.aura.ioexception", ioe);
     }
 
     if (!errlog.isEmpty()) {
       MapTool.showFeedback(errlog.toArray());
       errlog.clear();
       throw new IllegalArgumentException(
-          "msg.error.mtprops.light.definition"); // Don't save lights...
+          "msg.error.mtprops.aura.definition"); // Don't save auras...
     }
 
-    return lightMap;
+    return auraMap;
   }
 
-  public String stringifyLights(Iterable<LightSource> lights) {
+  public String stringifyAuras(Iterable<LightSource> auras) {
     StringBuilder builder = new StringBuilder();
-    writeLightLines(builder, lights);
+    writeAuraLines(builder, auras);
     return builder.toString();
   }
 
-  public String stringifyCategorizedLights(Map<String, Map<GUID, LightSource>> lightSources) {
+  public String stringifyCategorizedAuras(Map<String, Map<GUID, LightSource>> auras) {
     StringBuilder builder = new StringBuilder();
-    for (Map.Entry<String, Map<GUID, LightSource>> entry : lightSources.entrySet()) {
+    for (Map.Entry<String, Map<GUID, LightSource>> entry : auras.entrySet()) {
       builder.append(entry.getKey());
       builder.append("\n----\n");
 
-      writeLightLines(builder, entry.getValue().values());
+      writeAuraLines(builder, entry.getValue().values());
       builder.append('\n');
     }
     return builder.toString();
   }
 
-  private void writeLightLines(StringBuilder builder, Iterable<LightSource> lights) {
-    for (LightSource lightSource : lights) {
+  private void writeAuraLines(StringBuilder builder, Iterable<LightSource> auras) {
+    for (LightSource lightSource : auras) {
       builder.append(lightSource.getName()).append(":");
 
-      if (lightSource.getType() != LightSource.Type.NORMAL) {
-        builder.append(' ').append(lightSource.getType().name().toLowerCase());
+      if (lightSource.getType() != LightSource.Type.AURA) {
+        log.error("A non-aura light was provided for aura stringification. Skipping.");
+        continue;
       }
+
       if (lightSource.isScaleWithToken()) {
         builder.append(" scale");
       }
@@ -220,21 +222,12 @@ public class LightSyntax {
           Color color = (Color) light.getPaint().getPaint();
           builder.append(toHex(color));
         }
-        if (lightSource.getType() == LightSource.Type.NORMAL) {
-          final var lumens = light.getLumens();
-          if (lumens != DEFAULT_LUMENS) {
-            if (lumens >= 0) {
-              builder.append('+');
-            }
-            builder.append(Integer.toString(lumens, 10));
-          }
-        }
       }
       builder.append('\n');
     }
   }
 
-  private LightSource parseLightLine(
+  private LightSource parseAuraLine(
       String line, int lineNumber, Iterable<LightSource> originalInCategory, List<String> errlog) {
     // Blank lines, comments
     if (line.isEmpty() || line.charAt(0) == '-') {
@@ -247,10 +240,9 @@ public class LightSyntax {
       return null;
     }
 
-    // region Light source properties.
+    // region Aura properties.
     String name = line.substring(0, split).trim();
     GUID id = new GUID();
-    LightSource.Type type = LightSource.Type.NORMAL;
     boolean scaleWithToken = false;
     boolean ignoresVBL = false;
     List<Light> lights = new ArrayList<>();
@@ -299,21 +291,13 @@ public class LightSyntax {
         // Expected when not defining a shape
       }
 
-      // Type designation ?
-      try {
-        type = LightSource.Type.valueOf(arg.toUpperCase());
-        continue;
-      } catch (IllegalArgumentException iae) {
-        // Expected when not defining a shape
-      }
-
       // Facing offset designation
       if (arg.toUpperCase().startsWith("OFFSET=")) {
         try {
           offset = Integer.parseInt(arg.substring(7));
           continue;
         } catch (NullPointerException noe) {
-          errlog.add(I18N.getText("msg.error.mtprops.light.offset", lineNumber, arg));
+          errlog.add(I18N.getText("msg.error.mtprops.aura.offset", lineNumber, arg));
         }
       }
 
@@ -328,7 +312,7 @@ public class LightSyntax {
             arc = StringUtil.parseDecimal(value);
             shape = ShapeType.CONE; // If the user specifies an arc, force the shape to CONE
           } catch (ParseException pe) {
-            errlog.add(I18N.getText("msg.error.mtprops.light.arc", lineNumber, value));
+            errlog.add(I18N.getText("msg.error.mtprops.aura.arc", lineNumber, value));
           }
         }
         if ("width".equalsIgnoreCase(key)) {
@@ -336,7 +320,7 @@ public class LightSyntax {
             width = StringUtil.parseDecimal(value);
             shape = ShapeType.BEAM; // If the user specifies a width, force the shape to BEAM
           } catch (ParseException pe) {
-            errlog.add(I18N.getText("msg.error.mtprops.light.width", lineNumber, value));
+            errlog.add(I18N.getText("msg.error.mtprops.aura.width", lineNumber, value));
           }
         }
 
@@ -361,18 +345,12 @@ public class LightSyntax {
         if (lumensString != null) {
           perRangeLumens = Integer.parseInt(lumensString, 10);
           if (perRangeLumens == 0) {
-            errlog.add(I18N.getText("msg.error.mtprops.light.zerolumens", lineNumber));
+            errlog.add(I18N.getText("msg.error.mtprops.aura.zerolumens", lineNumber));
             perRangeLumens = DEFAULT_LUMENS;
           }
         }
       }
 
-      boolean isAura = type == LightSource.Type.AURA;
-      if (!isAura && (gmOnly || ownerOnly)) {
-        errlog.add(I18N.getText("msg.error.mtprops.light.gmOrOwner", lineNumber));
-        gmOnly = false;
-        ownerOnly = false;
-      }
       ownerOnly = !gmOnly && ownerOnly;
       try {
         Light t =
@@ -388,21 +366,22 @@ public class LightSyntax {
                 ownerOnly);
         lights.add(t);
       } catch (ParseException pe) {
-        errlog.add(I18N.getText("msg.error.mtprops.light.distance", lineNumber, distance));
+        errlog.add(I18N.getText("msg.error.mtprops.aura.distance", lineNumber, distance));
       }
     }
 
-    // Keep ID the same if modifying existing light. This avoids tokens losing their lights when
+    // Keep ID the same if modifying existing auras. This avoids tokens losing their auras when
     // the light definition is modified.
     for (LightSource ls : originalInCategory) {
-      if (ls.getType() == LightSource.Type.NORMAL && name.equalsIgnoreCase(ls.getName())) {
+      if (ls.getType() == LightSource.Type.AURA && name.equalsIgnoreCase(ls.getName())) {
         assert ls.getId() != null;
         id = ls.getId();
         break;
       }
     }
 
-    return LightSource.createRegular(name, id, type, scaleWithToken, ignoresVBL, lights);
+    return LightSource.createRegular(
+        name, id, LightSource.Type.AURA, scaleWithToken, ignoresVBL, lights);
   }
 
   private String toHex(Color color) {
