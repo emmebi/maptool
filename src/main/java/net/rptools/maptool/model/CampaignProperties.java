@@ -123,7 +123,11 @@ public class CampaignProperties {
     lookupTableMap.putAll(properties.lookupTableMap);
     defaultSightType = properties.defaultSightType;
     sightTypeMap.putAll(properties.sightTypeMap);
-    lightSourcesMap.putAll(properties.lightSourcesMap);
+
+    // Play it safe. Don't keep the provided implementations but copy them.
+    for (var entry : properties.lightSourcesMap.entrySet()) {
+      lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+    }
 
     for (BooleanTokenOverlay overlay : properties.tokenStates.values()) {
       overlay = (BooleanTokenOverlay) overlay.clone();
@@ -157,7 +161,11 @@ public class CampaignProperties {
         remoteRepositoryList.add(repo);
       }
     }
-    properties.lightSourcesMap.putAll(lightSourcesMap);
+
+    // Play it safe. Don't keep the provided implementations but copy them.
+    for (var entry : lightSourcesMap.entrySet()) {
+      properties.lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+    }
     properties.lookupTableMap.putAll(lookupTableMap);
     properties.sightTypeMap.putAll(sightTypeMap);
     properties.tokenStates.putAll(tokenStates);
@@ -227,12 +235,19 @@ public class CampaignProperties {
   }
 
   public Map<String, Map<GUID, LightSource>> getLightSourcesMap() {
-    return lightSourcesMap;
+    var copy = new TreeMap<String, Map<GUID, LightSource>>();
+    for (var entry : lightSourcesMap.entrySet()) {
+      copy.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+    }
+    return copy;
   }
 
   public void setLightSourcesMap(Map<String, Map<GUID, LightSource>> map) {
     lightSourcesMap.clear();
-    lightSourcesMap.putAll(map);
+    // Play it safe. Don't keep the provided implementations but copy them.
+    for (var entry : map.entrySet()) {
+      lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+    }
   }
 
   public Map<String, LookupTable> getLookupTableMap() {
@@ -470,9 +485,17 @@ public class CampaignProperties {
     if (remoteRepositoryList == null) {
       remoteRepositoryList = new ArrayList<>();
     }
-    if (lightSourcesMap == null) {
-      lightSourcesMap = new TreeMap<>();
+
+    // Make sure we aren't using any strange map implementations we aren't counting on.
+    // Also that we actually have light sources.
+    var oldLightSourcesMap = lightSourcesMap;
+    lightSourcesMap = new TreeMap<>();
+    if (oldLightSourcesMap != null) {
+      for (var entry : oldLightSourcesMap.entrySet()) {
+        lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+      }
     }
+
     if (lookupTableMap == null) {
       lookupTableMap = new HashMap<>();
     }
@@ -541,7 +564,7 @@ public class CampaignProperties {
     dto.getLightSourcesMap()
         .forEach(
             (k, v) -> {
-              var map = new HashMap<GUID, LightSource>();
+              var map = new LinkedHashMap<GUID, LightSource>();
               v.getLightSourcesList()
                   .forEach(
                       l -> {

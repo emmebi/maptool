@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -256,7 +257,7 @@ public class CampaignPropertiesDialog extends JDialog {
               case NORMAL -> lightSources;
               case AURA -> auras;
             };
-        targetMap.computeIfAbsent(category, c -> new HashMap<>()).put(guid, source);
+        targetMap.computeIfAbsent(category, c -> new LinkedHashMap<>()).put(guid, source);
       }
     }
 
@@ -309,12 +310,11 @@ public class CampaignPropertiesDialog extends JDialog {
         var guid = sourceEntry.getKey();
         var source = sourceEntry.getValue();
 
-        newLights.computeIfAbsent(category, c -> new HashMap<>()).put(guid, source);
+        newLights.computeIfAbsent(category, c -> new LinkedHashMap<>()).put(guid, source);
       }
     }
 
-    campaign.getLightSourcesMap().clear();
-    campaign.getLightSourcesMap().putAll(newLights);
+    campaign.setLightSourcesMap(newLights);
 
     List<SightType> sightMap = commitSightMap(view.getSightPanel().getText());
     campaign.setSightTypes(sightMap);
