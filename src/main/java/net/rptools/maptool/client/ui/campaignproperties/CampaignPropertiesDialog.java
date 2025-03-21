@@ -585,6 +585,7 @@ public class CampaignPropertiesDialog extends JDialog {
     /* example text */
     helpKeys.addAll(I18N.getMatchingKeys(Pattern.compile("^sight.example.")));
     helpKeys.addAll(I18N.getMatchingKeys(Pattern.compile("^light.example.")));
+    helpKeys.addAll(I18N.getMatchingKeys(Pattern.compile("^auras.example.")));
 
     /* Generate parameter map from list */
     for (String key : helpKeys) {
@@ -621,8 +622,11 @@ public class CampaignPropertiesDialog extends JDialog {
         "optionDescriptionPersonalSightComponentColor",
         I18N.getText("sightLight.optionDescription.personalSight.component.color", "#rrggbb"));
     parameters.put(
-        "optionDescriptionRestriction",
-        I18N.getText("sightLight.optionDescription.restriction", "gm", "owner"));
+        "optionDescriptionAuraRestriction",
+        I18N.getText(
+            "sightLight.optionDescription.auraRestriction",
+            "<code>gm</code>",
+            "<code>owner</code>"));
 
     /* everything else */
     helpKeys = I18N.getMatchingKeys("sightLight");
@@ -656,12 +660,20 @@ public class CampaignPropertiesDialog extends JDialog {
             """;
     String structureListLight =
         """
-            <li>${structureListItemMultiple}<sup>1</sup></li>
+            <li>${structureListItemMultipleLights}<sup>1</sup></li>
             <li>${structureListItemGroupName}</li>
             <li>${structureListItemGroupedNames}</li>
             <li>${structureListItemGroups}</li>
             <li>${structureListItemSorting}</li>
             """;
+    String structureListAuras =
+        """
+                <li>${structureListItemMultipleAuras}<sup>1</sup></li>
+                <li>${structureListItemGroupName}</li>
+                <li>${structureListItemGroupedNames}</li>
+                <li>${structureListItemGroups}</li>
+                <li>${structureListItemSorting}</li>
+                """;
     String structureListClose = "</ul>";
     String syntaxHeading = "<u><font size=5>${subheadingDefinitionSyntax}</font></u><br><br>";
     String syntaxSight =
@@ -675,9 +687,17 @@ public class CampaignPropertiesDialog extends JDialog {
             <code>
             <font size=4>${syntaxLabelGroupName}<br>
             -------<br>
-            [ ${syntaxLabelName} ] : [ ${optionLabelAura} [ ${optionLabelRestriction} ]] [ ${optionLabelIgnoresVBL} ] [ ${optionLabelShape} [ ${optionLabelArc} ${optionLabelWidth} ${optionLabelOffset} ]] [ ${optionLabelScale} ] [ ${optionLabelRange}|${optionLabelColor}|${optionLabelLumens} ]...<sup>1</sup></font><br>
+            [ ${syntaxLabelName} ] : [ ${optionLabelIgnoresVBL} ] [ ${optionLabelShape} [ ${optionLabelArc} ${optionLabelWidth} ${optionLabelOffset} ]] [ ${optionLabelScale} ] [ ${optionLabelRange}|${optionLabelColor}|${optionLabelLumens} ]...<sup>1</sup></font><br>
             </code>
             """;
+    String syntaxAuras =
+        """
+                <code>
+                <font size=4>${syntaxLabelGroupName}<br>
+                -------<br>
+                [ ${syntaxLabelName} ] : [ ${optionLabelRestriction} ] [ ${optionLabelIgnoresVBL} ] [ ${optionLabelShape} [ ${optionLabelArc} ${optionLabelWidth} ${optionLabelOffset} ]] [ ${optionLabelScale} ] [ ${optionLabelRange}|${optionLabelColor} ]...<sup>1</sup></font><br>
+                </code>
+                """;
     /*
      * Tabular options presentation
      * Columns are; Option Name, Option Type, Description, Default Value, Example
@@ -727,25 +747,11 @@ public class CampaignPropertiesDialog extends JDialog {
     String optionsTableLightRows =
         """
             <tr>
-              <th>${optionLabelAura}</th>
-              <td${alignCellCenter}>${optionTypeKeyword}</td>
-              <td>${optionDescriptionAura}</td>
-              <td${alignCellCenter}>${wordUnused}</td>
-              <td${alignCellCenter}>aura</td>
-            </tr>
-            <tr>
               <th>${optionLabelIgnoresVBL}</th>
               <td${alignCellCenter}>${optionTypeKeyword}</td>
               <td>${optionDescriptionIgnoresVBL}</td>
               <td${alignCellCenter}>${wordUnused}</td>
               <td${alignCellCenter}>ignores-vbl</td>
-            </tr>
-            <tr>
-              <th>${optionLabelRestriction}</th>
-              <td${alignCellCenter}>${optionTypeKeyword}</td>
-              <td>${optionDescriptionRestriction}</td>
-              <td${alignCellCenter}>${wordUnused}</td>
-              <td${alignCellCenter}>owner</td>
             </tr>
             <tr>
               <th>${optionLabelRange}</th>
@@ -768,7 +774,66 @@ public class CampaignPropertiesDialog extends JDialog {
               <td></td>
               <td${alignCellCenter}>30</td>
             </tr>
+            <tr>
+              <th></th>
+              <th>${optionLabelColor}</th>
+              <td><i>[${wordOptional}]</i>&nbsp;${optionDescriptionPersonalSightComponentColor}</td>
+              <td></td>
+              <td${alignCellCenter}>#afafaa</td>
+            </tr>
+            <tr>
+              <th></th>
+              <th>${optionLabelLumens}</th>
+              <td><i>[${wordOptional}]</i>&nbsp;${optionDescriptionPersonalSightComponentLumens}<sup>4</sup></td>
+              <td${alignCellCenter}>+100</td>
+              <td${alignCellCenter}>+100</td>
+            </tr>
             """;
+    String optionsTableAurasRows =
+        """
+                <tr>
+                  <th>${optionLabelIgnoresVBL}</th>
+                  <td${alignCellCenter}>${optionTypeKeyword}</td>
+                  <td>${optionDescriptionIgnoresVBL}</td>
+                  <td${alignCellCenter}>${wordUnused}</td>
+                  <td${alignCellCenter}>ignores-vbl</td>
+                </tr>
+                <tr>
+                  <th>${optionLabelRestriction}</th>
+                  <td${alignCellCenter}>${optionTypeKeyword}</td>
+                  <td>${optionDescriptionAuraRestriction}</td>
+                  <td${alignCellCenter}>${wordUnused}</td>
+                  <td${alignCellCenter}>owner</td>
+                </tr>
+                <tr>
+                  <th>${optionLabelRange}</th>
+                  <td${alignCellCenter}>${optionTypeSpecial}(${wordString})</td>
+                  <td>${optionDescriptionLightComponents} ${phraseMultipleEntriesAllowed}<sup>3</sup></td>
+                  <td${alignCellCenter}>${wordUnused}</td>
+                  <td${alignCellCenter}>30#afafaa</td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th>${columnHeadingOptionComponent}</th>
+                  <th>${wordSyntax}&nbsp;&#10233;&nbsp; 00|#rrggbb|&nbsp;&nbsp;(${optionLabelRange}|${optionLabelColor})</th>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th>${optionLabelRange}</th>
+                  <td>${optionDescriptionRange}</td>
+                  <td></td>
+                  <td${alignCellCenter}>30</td>
+                </tr>
+                <tr>
+                  <th></th>
+                  <th>${optionLabelColor}</th>
+                  <td><i>[${wordOptional}]</i>&nbsp;${optionDescriptionPersonalSightComponentColor}</td>
+                  <td></td>
+                  <td${alignCellCenter}>#afafaa</td>
+                </tr>
+                """;
     String optionsTableSightRows =
         """
             <tr>
@@ -813,9 +878,6 @@ public class CampaignPropertiesDialog extends JDialog {
               <td></td>
               <td${alignCellCenter}>r30</td>
             </tr>
-            """;
-    String optionsTableEnd =
-        """
             <tr>
               <th></th>
               <th>${optionLabelColor}</th>
@@ -830,6 +892,9 @@ public class CampaignPropertiesDialog extends JDialog {
               <td${alignCellCenter}>+100</td>
               <td${alignCellCenter}>+100</td>
             </tr>
+            """;
+    String optionsTableEnd =
+        """
             </table>
             """;
     String footnotesSight =
@@ -849,6 +914,14 @@ public class CampaignPropertiesDialog extends JDialog {
             <li>${footnoteLumensLine1}<br>${footnoteLumensLine2}</li>
             </ol>
             """;
+    String footnotesAuras =
+        """
+                <ol>
+                <li>${footnoteMultipleLights}</li>
+                <li>${footnoteMultipleShapes1} ${footnoteMultipleShapes2}</li>
+                <li>${footnoteMultipleRangeColour}</li>
+                </ol>
+                """;
     String examplesHeading =
         """
             <hr>
@@ -865,35 +938,40 @@ public class CampaignPropertiesDialog extends JDialog {
     String examplesLight =
         """
             <font size=4>${lightExampleGroupName}<br>
+            ----<br>
+            - ${sightExampleComment}<br>
             ${lightExampleNameLantern} :  circle 4#ffffaa cone arc=300 7.5#666600 circle 10#000000<sup>1</sup><br>
             ${lightExampleNameStreetLight} :  cone arc=350 1 10.05#aaaaaa arc=230 10 22.05#444444 arc=220 22 30#000000<br>
-            ${lightExampleNameForwardArcAura} : aura owner cone arc=90 25#00ff00<br></code><br>
-            <br>
-            <font size=4>${lightExampleAurasGroupName}<br>
-            ---- ${sightExampleComment}<br>
-            <code>&nbsp;1. ${lightExampleNameAuraGmRedSquare} : aura square GM 2.5#ff0000</code><br>
-            <code>&nbsp;2. ${lightExampleNameAuraGmRed} : aura GM 7.5#ff0000</code><br>
-            <code>&nbsp;3. ${lightExampleNameAuraOwner}: aura owner 7.5#00ff00</code><br>
-            <code>&nbsp;4. ${lightExampleNameAuraAllPlayers} : aura 7.5#0000ff</code><br>
-            <code>&nbsp;5. ${lightExampleNameAuraSideFields}: aura cone arc=90 12.5#6666ff offset=90  12.5#aadd00 offset=-90  12.5#aadd00 offset=180  12.5#bb00aa</code><br>
-            <code>&nbsp;6. ${lightExampleNameAuraDonutHole}: aura circle 20 40#ffff00</code><br>
-            <code>&nbsp;7. ${lightExampleNameAuraDonutCone}: aura cone arc=30 10 20#ffff00</code><br>
-            <code>&nbsp;8. ${lightExampleNameAuraRangeCircles} 30/60/90: aura circle 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000</code><br>
-            <code>&nbsp;9. ${lightExampleNameAuraRangeArcs} 30/60/90: aura cone arc=135 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000</code><br>
-            <code>10. ${lightExampleNameAuraLineOfSight}: aura beam width=0.4 150#ffff00</code><br>
-            <br>
-            <code>&nbsp;1. </code>${lightExampleTextAuraGmRedSquare}<br>
-            <code>&nbsp;2. </code>${lightExampleTextAuraGmRed}<br>
-            <code>&nbsp;3. </code>${lightExampleTextAuraOwner}<br>
-            <code>&nbsp;4. </code>${lightExampleTextAuraAllPlayers}<br>
-            <code>&nbsp;5. </code>${lightExampleTextAuraSideFields}<br>
-            <code>&nbsp;6. </code>${lightExampleTextAuraDonutHole}<br>
-            <code>&nbsp;7. </code>${lightExampleTextAuraDonutCone}<br>
-            <code>&nbsp;8. </code>${lightExampleTextAuraRangeCircles}<br>
-            <code>&nbsp;9. </code>${lightExampleTextAuraRangeArcs}<br>
-            <code>10. </code>${lightExampleTextAuraLineOfSight}<br>
             </font>
             """;
+    String examplesAuras =
+        """
+                <font size=4>${lightExampleAurasGroupName}<br>
+                ----<br>
+                - ${sightExampleComment}<br>
+                <code>&nbsp;1. ${aurasExampleNameGmRedSquare} : aura square GM 2.5#ff0000</code><br>
+                <code>&nbsp;2. ${aurasExampleNameGmRed} : aura GM 7.5#ff0000</code><br>
+                <code>&nbsp;3. ${aurasExampleNameOwner}: aura owner 7.5#00ff00</code><br>
+                <code>&nbsp;4. ${aurasExampleNameAllPlayers} : aura 7.5#0000ff</code><br>
+                <code>&nbsp;5. ${aurasExampleNameSideFields}: aura cone arc=90 12.5#6666ff offset=90  12.5#aadd00 offset=-90  12.5#aadd00 offset=180  12.5#bb00aa</code><br>
+                <code>&nbsp;6. ${aurasExampleNameDonutHole}: aura circle 20 40#ffff00</code><br>
+                <code>&nbsp;7. ${aurasExampleNameDonutCone}: aura cone arc=30 10 20#ffff00</code><br>
+                <code>&nbsp;8. ${aurasExampleNameRangeCircles} 30/60/90: aura circle 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000</code><br>
+                <code>&nbsp;9. ${aurasExampleNameRangeArcs} 30/60/90: aura cone arc=135 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000</code><br>
+                <code>10. ${aurasExampleNameLineOfSight}: aura beam width=0.4 150#ffff00</code><br>
+                <br>
+                <code>&nbsp;1. </code>${aurasExampleTextGmRedSquare}<br>
+                <code>&nbsp;2. </code>${aurasExampleTextGmRed}<br>
+                <code>&nbsp;3. </code>${aurasExampleTextOwner}<br>
+                <code>&nbsp;4. </code>${aurasExampleTextAllPlayers}<br>
+                <code>&nbsp;5. </code>${aurasExampleTextSideFields}<br>
+                <code>&nbsp;6. </code>${aurasExampleTextDonutHole}<br>
+                <code>&nbsp;7. </code>${aurasExampleTextDonutCone}<br>
+                <code>&nbsp;8. </code>${aurasExampleTextRangeCircles}<br>
+                <code>&nbsp;9. </code>${aurasExampleTextRangeArcs}<br>
+                <code>10. </code>${aurasExampleTextLineOfSight}<br>
+                </font>
+                """;
     String htmlLight =
         "<html><body>"
             + wikiLink
@@ -909,7 +987,22 @@ public class CampaignPropertiesDialog extends JDialog {
             + examplesHeading
             + examplesLight
             + "</body></html>";
-    String htmlAuras = htmlLight;
+    String htmlAuras =
+        "<html><body>"
+            + wikiLink
+            + structureListStart
+            + structureListAuras
+            + structureListClose
+            + syntaxHeading
+            + syntaxAuras
+            + optionsTableStart
+            + optionsTableAurasRows
+            + optionsTableEnd
+            + footnotesAuras
+            + examplesHeading
+            + examplesAuras
+            + "</body></html>";
+    ;
     String htmlSight =
         "<html><body>"
             + wikiLink
