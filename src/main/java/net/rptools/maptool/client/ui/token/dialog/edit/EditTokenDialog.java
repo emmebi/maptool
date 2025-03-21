@@ -84,6 +84,7 @@ import net.rptools.maptool.model.sheet.stats.StatSheet;
 import net.rptools.maptool.model.sheet.stats.StatSheetLocation;
 import net.rptools.maptool.model.sheet.stats.StatSheetManager;
 import net.rptools.maptool.model.sheet.stats.StatSheetProperties;
+import net.rptools.maptool.util.AuraSyntax;
 import net.rptools.maptool.util.ExtractHeroLab;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.maptool.util.ImageManager;
@@ -96,6 +97,8 @@ import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
+
+// TODO terrainModifiersIgnored should be a JComboBox, not a JList.
 
 /** This dialog is used to display all of the token states and notes to the user. */
 public class EditTokenDialog extends AbeillePanel<Token> {
@@ -175,6 +178,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     setUniqueLightSourcesEnabled(MapTool.getPlayer().isGM());
   }
 
+  public void initUniqueAurasTextPane() {
+    setUniqueAurasEnabled(MapTool.getPlayer().isGM());
+  }
+
   public void initJtsMethodComboBox() {
     getJtsMethodComboBox().setModel(new DefaultComboBoxModel<>(JTS_SimplifyMethodType.values()));
   }
@@ -224,6 +231,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     getComponent("@GMName").setEnabled(MapTool.getPlayer().isGM());
 
     setUniqueLightSourcesEnabled(MapTool.getPlayer().isGM());
+    setUniqueAurasEnabled(MapTool.getPlayer().isGM());
 
     dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -392,8 +400,20 @@ public class EditTokenDialog extends AbeillePanel<Token> {
                 .mapToInt(Integer::valueOf)
                 .toArray());
 
-    getUniqueLightSourcesTextPane()
-        .setText(new LightSyntax().stringifyLights(token.getUniqueLightSources()));
+    var uniqueLightsSources = token.getUniqueLightSources();
+    var uniqueLights = new ArrayList<LightSource>();
+    var uniqueAuras = new ArrayList<LightSource>();
+    for (var lightSource : uniqueLightsSources) {
+      var list =
+          switch (lightSource.getType()) {
+            case NORMAL -> uniqueLights;
+            case AURA -> uniqueAuras;
+          };
+      list.add(lightSource);
+    }
+
+    getUniqueLightSourcesTextPane().setText(new LightSyntax().stringifyLights(uniqueLights));
+    getUniqueAurasTextPane().setText(new AuraSyntax().stringifyAuras(uniqueAuras));
 
     /* Jamz: Init the Topology tab... */
     JTabbedPane tabbedPane = getTabbedPane();
@@ -544,7 +564,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   public void initTypeCombo() {
-    getTypeCombo().setModel(new DefaultComboBoxModel<>(Token.Type.values()));
+    getTypeCombo().setModel(new DefaultComboBoxModel<>(Type.values()));
   }
 
   public void initLibTokenTable() {
@@ -729,6 +749,19 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     return (JTextPane) getComponent("uniqueLightSources");
   }
 
+  public void setUniqueAurasEnabled(boolean enabled) {
+    getUniqueAurasTextPane().setEnabled(enabled);
+    getUniqueAurasPanel().setEnabled(enabled);
+  }
+
+  public JTextPane getUniqueAurasTextPane() {
+    return (JTextPane) getComponent("uniqueAuras");
+  }
+
+  public JPanel getUniqueAurasPanel() {
+    return (JPanel) getComponent("uniqueAurasPanel");
+  }
+
   public JLabel getLibTokenURIErrorLabel() {
     return (JLabel) getComponent("Label.LibURIError");
   }
@@ -766,7 +799,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     /* TYPE */
     /* Only update this if it actually changed */
     if (getTypeCombo().getSelectedItem() != token.getType()) {
-      token.setType((Token.Type) getTypeCombo().getSelectedItem());
+      token.setType((Type) getTypeCombo().getSelectedItem());
     }
 
     /* NOTES */
@@ -803,11 +836,18 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setTerrainModifiersIgnored(
         new HashSet<>(getTerrainModifiersIgnoredList().getSelectedValuesList()));
 
-    var uniqueLightSources =
+    var existingUniqueLightSources = token.getUniqueLightSources();
+    var uniqueLightSources = new ArrayList<LightSource>();
+    var uniqueLights =
         new LightSyntax()
-            .parseLights(getUniqueLightSourcesTextPane().getText(), token.getUniqueLightSources());
+            .parseLights(getUniqueLightSourcesTextPane().getText(), existingUniqueLightSources);
+    var uniqueAuras =
+        new AuraSyntax().parseAuras(getUniqueAurasTextPane().getText(), existingUniqueLightSources);
+    uniqueLightSources.addAll(uniqueLights.values());
+    uniqueLightSources.addAll(uniqueAuras.values());
+
     token.removeAllUniqueLightsources();
-    for (var lightSource : uniqueLightSources.values()) {
+    for (var lightSource : uniqueLightSources) {
       token.addUniqueLightSource(lightSource);
     }
 
@@ -2154,7 +2194,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   /* MODELS */
   private class TokenPropertyTableModel
-      extends AbstractPropertyTableModel<EditTokenDialog.TokenPropertyTableModel.EditTokenProperty>
+      extends AbstractPropertyTableModel<TokenPropertyTableModel.EditTokenProperty>
       implements NavigableModel {
 
     private static final long serialVersionUID = 2822797264738675580L;
