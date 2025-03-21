@@ -143,12 +143,12 @@ public class AuraSyntax {
 
   private void writeAuraLines(StringBuilder builder, Iterable<LightSource> auras) {
     for (LightSource lightSource : auras) {
-      builder.append(lightSource.getName()).append(":");
-
       if (lightSource.getType() != LightSource.Type.AURA) {
         log.error("A non-aura light was provided for aura stringification. Skipping.");
         continue;
       }
+
+      builder.append(lightSource.getName()).append(":");
 
       if (lightSource.isScaleWithToken()) {
         builder.append(" scale");
@@ -166,10 +166,8 @@ public class AuraSyntax {
       for (Light light : lightSource.getLightList()) {
         final var parameters = new HashMap<>();
 
-        if (lightSource.getType() == LightSource.Type.AURA) {
-          parameters.put("GM", light.isGM());
-          parameters.put("OWNER", light.isOwnerOnly());
-        }
+        parameters.put("GM", light.isGM());
+        parameters.put("OWNER", light.isOwnerOnly());
         parameters.put("IGNORES-VBL", lightSource.isIgnoresVBL());
 
         parameters.put("", light.getShape().name().toLowerCase());
@@ -328,26 +326,17 @@ public class AuraSyntax {
       }
 
       Color color = null;
-      int perRangeLumens = DEFAULT_LUMENS;
       distance = arg;
 
-      final var rangeRegex = Pattern.compile("([^#+-]*)(#[0-9a-fA-F]+)?([+-]\\d*)?");
+      final var rangeRegex = Pattern.compile("([^#+-]*)(#[0-9a-fA-F]+)?");
       final var matcher = rangeRegex.matcher(arg);
       if (matcher.find()) {
         distance = matcher.group(1);
         final var colorString = matcher.group(2);
-        final var lumensString = matcher.group(3);
         // Note that Color.decode() _wants_ the leading "#", otherwise it might not treat the
         // value as a hex code.
         if (colorString != null) {
           color = Color.decode(colorString);
-        }
-        if (lumensString != null) {
-          perRangeLumens = Integer.parseInt(lumensString, 10);
-          if (perRangeLumens == 0) {
-            errlog.add(I18N.getText("msg.error.mtprops.aura.zerolumens", lineNumber));
-            perRangeLumens = DEFAULT_LUMENS;
-          }
         }
       }
 
@@ -361,7 +350,7 @@ public class AuraSyntax {
                 width,
                 arc,
                 color == null ? null : new DrawableColorPaint(color),
-                perRangeLumens,
+                DEFAULT_LUMENS,
                 gmOnly,
                 ownerOnly);
         lights.add(t);
