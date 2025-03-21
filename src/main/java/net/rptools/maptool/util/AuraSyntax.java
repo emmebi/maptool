@@ -153,6 +153,9 @@ public class AuraSyntax {
       if (lightSource.isScaleWithToken()) {
         builder.append(" scale");
       }
+      if (lightSource.isIgnoresVBL()) {
+        builder.append(" ignores-vbl");
+      }
 
       final var lastParameters = new LinkedHashMap<String, Object>();
       lastParameters.put("", null);
@@ -161,14 +164,12 @@ public class AuraSyntax {
       lastParameters.put("offset", 0.);
       lastParameters.put("GM", false);
       lastParameters.put("OWNER", false);
-      lastParameters.put("IGNORES-VBL", false);
 
       for (Light light : lightSource.getLightList()) {
         final var parameters = new HashMap<>();
 
         parameters.put("GM", light.isGM());
         parameters.put("OWNER", light.isOwnerOnly());
-        parameters.put("IGNORES-VBL", lightSource.isIgnoresVBL());
 
         parameters.put("", light.getShape().name().toLowerCase());
         switch (light.getShape()) {

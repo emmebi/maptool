@@ -156,18 +156,18 @@ public class LightSyntax {
       if (lightSource.isScaleWithToken()) {
         builder.append(" scale");
       }
+      if (lightSource.isIgnoresVBL()) {
+        builder.append(" ignores-vbl");
+      }
 
       final var lastParameters = new LinkedHashMap<String, Object>();
       lastParameters.put("", null);
       lastParameters.put("width", 0.);
       lastParameters.put("arc", 0.);
       lastParameters.put("offset", 0.);
-      lastParameters.put("IGNORES-VBL", false);
 
       for (Light light : lightSource.getLightList()) {
         final var parameters = new HashMap<>();
-
-        parameters.put("IGNORES-VBL", lightSource.isIgnoresVBL());
 
         parameters.put("", light.getShape().name().toLowerCase());
         switch (light.getShape()) {
