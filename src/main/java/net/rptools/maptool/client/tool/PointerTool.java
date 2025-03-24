@@ -1932,10 +1932,8 @@ public class PointerTool extends DefaultTool {
       // Make sure it's a valid move
       boolean isValid =
           (renderer.getZone().getGrid().getSize() >= 9)
-              ? validateMove(
-                  tokenBeingDragged, renderer.getSelectedTokenSet(), newAnchorPoint, dirx, diry)
-              : validateMove_legacy(
-                  tokenBeingDragged, renderer.getSelectedTokenSet(), newAnchorPoint);
+              ? validateMove(renderer.getSelectedTokenSet(), newAnchorPoint, dirx, diry)
+              : validateMove_legacy(renderer.getSelectedTokenSet(), newAnchorPoint);
       if (!isValid) {
         return;
       }
@@ -2001,7 +1999,7 @@ public class PointerTool extends DefaultTool {
     }
 
     private boolean validateMove(
-        Token leadToken, Set<GUID> tokenSet, ZonePoint point, int dirx, int diry) {
+        Set<GUID> tokenSet, ZonePoint leadTokenNewAnchor, int dirx, int diry) {
       if (MapTool.getPlayer().isGM()) {
         return true;
       }
@@ -2014,8 +2012,8 @@ public class PointerTool extends DefaultTool {
         boolean useTokenExposedArea =
             MapTool.getServerPolicy().isUseIndividualFOW()
                 && zone.getVisionType() != VisionType.OFF;
-        int deltaX = point.x - leadToken.getX();
-        int deltaY = point.y - leadToken.getY();
+        int deltaX = leadTokenNewAnchor.x - this.dragAnchor.x;
+        int deltaY = leadTokenNewAnchor.y - this.dragAnchor.y;
         Grid grid = zone.getGrid();
         // Loop through all tokens. As soon as one of them is blocked, stop processing and
         // return
@@ -2054,7 +2052,7 @@ public class PointerTool extends DefaultTool {
       return !isBlocked;
     }
 
-    private boolean validateMove_legacy(Token leadToken, Set<GUID> tokenSet, ZonePoint point) {
+    private boolean validateMove_legacy(Set<GUID> tokenSet, ZonePoint leadTokenNewAnchor) {
       Zone zone = renderer.getZone();
       if (MapTool.getPlayer().isGM()) {
         return true;
@@ -2068,8 +2066,8 @@ public class PointerTool extends DefaultTool {
         }
         isVisible = false;
         int fudgeSize = Math.max(Math.min((zone.getGrid().getSize() - 2) / 3 - 1, 8), 0);
-        int deltaX = point.x - leadToken.getX();
-        int deltaY = point.y - leadToken.getY();
+        int deltaX = leadTokenNewAnchor.x - this.dragAnchor.x;
+        int deltaY = leadTokenNewAnchor.y - this.dragAnchor.y;
         Rectangle bounds = new Rectangle();
         for (GUID tokenGUID : tokenSet) {
           Token token = zone.getToken(tokenGUID);
