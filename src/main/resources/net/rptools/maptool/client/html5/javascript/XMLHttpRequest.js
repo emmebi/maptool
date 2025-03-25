@@ -111,6 +111,15 @@ class XMLHttpRequest {
 
 
 async function fetch(target, optionObject) {
+	console.log(`fetch called with ${target} and ${optionObject}`);
+	for (let key in optionObject) {
+		console.log(`optionObject[${key}] = ${optionObject[key]}`);
+		if (key == 'headers') {
+			for (let key2 in optionObject[key]) {
+				console.log(`optionObject[${key}][${key2}] = ${optionObject[key][key2]}`);
+			}
+		}
+	}
     let request;
     if (target instanceof Request) {
 	request = target;
@@ -125,6 +134,7 @@ async function fetch(target, optionObject) {
     }
 
     let x = new XMLHttpRequest();
+		console.log(`about to open request with ${request.method} and ${request.url}`);
     x.open(request.method, request.url);
     for (let header of request.headers) {
 	x.setRequestHeader(header[0], header[1])
