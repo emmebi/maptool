@@ -200,5 +200,7 @@ public final class ExposeTool<StateT> extends AbstractDrawingLikeTool {
         submit(result.shape());
       }
     }
+
+    super.mouseReleased(e);
   }
 }
