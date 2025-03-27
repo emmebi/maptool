@@ -279,5 +279,7 @@ public final class DrawingTool<StateT> extends AbstractDrawingLikeTool {
         submit(result.shape());
       }
     }
+
+    super.mouseReleased(e);
   }
 }
