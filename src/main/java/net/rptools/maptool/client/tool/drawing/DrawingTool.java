@@ -270,6 +270,8 @@ public final class DrawingTool<StateT> extends AbstractDrawingLikeTool {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    super.mouseReleased(e);
+
     if (strategy.isFreehand() && SwingUtilities.isLeftMouseButton(e)) {
       currentPoint = getPoint(e);
       centerOnOrigin = e.isAltDown();
@@ -279,7 +281,5 @@ public final class DrawingTool<StateT> extends AbstractDrawingLikeTool {
         submit(result.shape());
       }
     }
-
-    super.mouseReleased(e);
   }
 }

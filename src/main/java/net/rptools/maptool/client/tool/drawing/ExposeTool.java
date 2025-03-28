@@ -179,6 +179,8 @@ public final class ExposeTool<StateT> extends AbstractDrawingLikeTool {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    super.mouseReleased(e);
+
     if (strategy.isFreehand() && SwingUtilities.isLeftMouseButton(e)) {
       currentPoint = getPoint(e);
       centerOnOrigin = e.isAltDown();
@@ -188,7 +190,5 @@ public final class ExposeTool<StateT> extends AbstractDrawingLikeTool {
         submit(result.shape());
       }
     }
-
-    super.mouseReleased(e);
   }
 }
