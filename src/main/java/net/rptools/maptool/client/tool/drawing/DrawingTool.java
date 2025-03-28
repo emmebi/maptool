@@ -219,12 +219,15 @@ public final class DrawingTool<StateT> extends AbstractDrawingLikeTool {
     if (state == null) {
       // We're not doing anything, so delegate to default behaviour.
       super.mouseDragged(e);
-    } else if (strategy.isFreehand()) {
-      // Extend the line.
+    } else {
+      cancelMapDrag();
       setIsEraser(isEraser(e));
       currentPoint = getPoint(e);
-      centerOnOrigin = e.isAltDown(); // Pointless, but it doesn't hurt for consistency.
-      strategy.pushPoint(state, currentPoint);
+      centerOnOrigin = e.isAltDown();
+      if (strategy.isFreehand()) {
+        // Extend the line.
+        strategy.pushPoint(state, currentPoint);
+      }
       renderer.repaint();
     }
   }
@@ -265,7 +268,10 @@ public final class DrawingTool<StateT> extends AbstractDrawingLikeTool {
       renderer.repaint();
     }
 
-    super.mousePressed(e);
+    if (state == null) {
+      // We're not doing anything, so delegate to default behaviour.
+      super.mousePressed(e);
+    }
   }
 
   @Override
