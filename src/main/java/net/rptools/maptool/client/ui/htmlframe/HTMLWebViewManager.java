@@ -26,6 +26,7 @@ import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -318,8 +319,7 @@ public class HTMLWebViewManager {
     isFlushed = true;
   }
 
-  public void updateContents(final String html, boolean scrollReset) {
-    log.debug("setting text in WebView: {}", html);
+  public void updateContents(String html, boolean scrollReset) {
     this.scrollReset = scrollReset;
     // If the WebView has been flushed, the scrolling has already been stored
     if (!scrollReset && !isFlushed) {
@@ -327,7 +327,11 @@ public class HTMLWebViewManager {
       scrollY = getVScrollValue();
     }
     isFlushed = false;
-    webEngine.loadContent(SCRIPT_BLOCK_EXT + SCRIPT_BRIDGE + HTMLPanelInterface.fixHTML(html));
+
+    String fixedHtml = SCRIPT_BLOCK_EXT + SCRIPT_BRIDGE + HTMLPanelInterface.fixHTML(html);
+    String encodedHtml =
+        Base64.getEncoder().encodeToString(fixedHtml.getBytes(StandardCharsets.UTF_8));
+    webEngine.load("data:text/html;base64," + encodedHtml);
   }
 
   /**
