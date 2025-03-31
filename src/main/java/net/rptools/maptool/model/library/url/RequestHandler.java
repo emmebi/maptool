@@ -118,8 +118,7 @@ public class RequestHandler {
       URI uri,
       String body,
       HashMap<String, String> requestHeaders,
-      HashMap<String, String> responseHeaders
-  ) {
+      HashMap<String, String> responseHeaders) {
     CompletableFuture<String> c = new CompletableFuture<String>();
 
     try {
@@ -140,12 +139,11 @@ public class RequestHandler {
                     if ("lib".equalsIgnoreCase(uri.getScheme())) {
                       macroName = uri.toString();
                     } else {
-                      macroName =uri.getSchemeSpecificPart();
+                      macroName = uri.getSchemeSpecificPart();
                     }
 
                     resolver.setVariable("macro.requestHeaders", gson.toJsonTree(requestHeaders));
-                    resolver.setVariable(
-                        "macro.responseHeaders", gson.toJsonTree(responseHeaders));
+                    resolver.setVariable("macro.responseHeaders", gson.toJsonTree(responseHeaders));
                     String line = MapTool.getParser().runMacro(resolver, null, macroName, body);
                     return line;
                   })
@@ -158,8 +156,7 @@ public class RequestHandler {
                       if (headerObj instanceof JsonObject headerJson) {
                         returnedHeaders =
                             gson.fromJson(
-                                headerJson,
-                                new TypeToken<HashMap<String, String>>() {}.getType());
+                                headerJson, new TypeToken<HashMap<String, String>>() {}.getType());
                       } else {
                         String headerString = headerObj.toString();
                         returnedHeaders =

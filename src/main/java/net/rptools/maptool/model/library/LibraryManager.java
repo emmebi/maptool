@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolMacroContext;
+import net.rptools.maptool.client.macro.MacroLocation;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.library.addon.AddOnLibrary;
 import net.rptools.maptool.model.library.addon.AddOnLibraryData;
@@ -260,10 +261,14 @@ public class LibraryManager {
       String namespace, MapToolMacroContext context) {
     String ns = namespace;
     if ("@this".equalsIgnoreCase(namespace)) {
-      if (context == null || context.getSource() == null || context.getSource().isEmpty()) {
+      var source = context.getSource();
+      if (context == null
+          || source == null
+          || source.getSource() != MacroLocation.MacroSource.libToken) {
         return Optional.empty();
       }
-      ns = context.getSource().replaceFirst("(?i)^lib:", "");
+
+      ns = source.getLocation();
     }
     return getLibrary(ns);
   }
