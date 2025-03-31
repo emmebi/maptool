@@ -90,7 +90,8 @@ public class MapToolLineParser {
   private List<Integer> newRolls = new LinkedList<>();
 
   /** Factory class for createing macro locations. */
-  private MacroLocationFactory macroLocationFactory = new MacroLocationFactory();
+  private static final MacroLocationFactory macroLocationFactory =
+      MacroLocationFactory.getInstance();
 
   private enum Output { // Mutually exclusive output formats
     NONE,

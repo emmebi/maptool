@@ -28,7 +28,7 @@ public class MacroLocation {
   @Nonnull private final String location;
   @Nullable private final URI uri;
 
-  private static MacroLocationFactory factory = new MacroLocationFactory();
+  private static final MacroLocationFactory factory = MacroLocationFactory.getInstance();
 
   MacroLocation(
       @Nonnull String name,
@@ -49,7 +49,7 @@ public class MacroLocation {
     campaign("campaign", true),
     global("global", true),
     libToken("libToken", true),
-    uri("uri", false), // TODO: CDW Should this be true?
+    uri("uri", true),
     execFunction("execFunction", false),
     sentryIoLogging("sentryIoLogging", false),
     tooltip("tooltip", true),
@@ -137,11 +137,13 @@ public class MacroLocation {
     if (qMacroNameLower.contains("@this")) {
       var name = qMacroName.substring(0, qMacroName.indexOf("@"));
       var cfrom = calledFrom;
-      if (cfrom == null && token != null) {
-        cfrom = factory.createTokenLocation(name, token);
-      }
-      if (cfrom == null || !cfrom.getSource().allowsAtThis()) {
-        return factory.createUnknownLocation(qMacroName);
+      if (cfrom == null || cfrom.getSource() == MacroSource.tooltip) { // tooltip is special
+        if (token != null) {
+          cfrom = factory.createTokenLocation(name, token);
+        }
+        if (cfrom == null || !cfrom.getSource().allowsAtThis()) {
+          return factory.createUnknownLocation(qMacroName);
+        }
       }
       return new MacroLocation(name, cfrom.getSource(), cfrom.getLocation(), null);
     }

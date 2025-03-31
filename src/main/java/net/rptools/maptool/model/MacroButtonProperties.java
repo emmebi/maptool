@@ -49,7 +49,8 @@ public class MacroButtonProperties implements Comparable<MacroButtonProperties> 
   private static final Logger log = LogManager.getLogger(MacroButtonProperties.class);
 
   /** Factory for creating macro locations. */
-  private MacroLocationFactory macroLocationFactory = MacroLocationFactory.getInstance();
+  private static final MacroLocationFactory macroLocationFactory =
+      MacroLocationFactory.getInstance();
 
   // Jamz: Why a String and not UUID? Because stupid Hessian can't serialize UUID, ug.
   private @Nonnull String macroUUID = UUID.randomUUID().toString();

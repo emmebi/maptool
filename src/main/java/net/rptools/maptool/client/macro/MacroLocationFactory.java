@@ -24,7 +24,9 @@ import net.rptools.maptool.model.Token;
 // TODO: CDW needs comments
 public class MacroLocationFactory {
 
-  private static final MacroLocationFactory instance = new MacroLocationFactory();
+  private MacroLocationFactory() {}
+
+  private static MacroLocationFactory instance = new MacroLocationFactory();
 
   public static MacroLocationFactory getInstance() {
     return instance;
@@ -56,7 +58,7 @@ public class MacroLocationFactory {
   }
 
   public MacroLocation createLibTokenLocation(@Nonnull String name, @Nonnull String libTokenName) {
-    return new MacroLocation(name, MacroSource.libToken, libTokenName, null);
+    return new MacroLocation(name, MacroSource.libToken, libTokenName.substring(4), null);
   }
 
   public MacroLocation createGmLocation(@Nonnull String name) {
@@ -76,11 +78,18 @@ public class MacroLocationFactory {
         null);
   }
 
-  public MacroLocation createUriLocation(@Nonnull String name, @Nonnull String uri) {
+  public MacroLocation createUriLocation(@Nonnull String name, @Nullable URI calledFrom) {
     try {
-      return new MacroLocation(name, MacroSource.uri, uri, new URI(uri));
+      var uri = new URI(name);
+      if (uri.getScheme() == null) {
+        if (calledFrom == null) {
+          return createUnknownLocation(name);
+        }
+        uri = calledFrom.resolve(uri);
+      }
+      return new MacroLocation(uri.getPath(), MacroSource.uri, uri.getHost(), uri);
     } catch (URISyntaxException e) {
-      return createUnknownLocation(uri);
+      return createUnknownLocation(name);
     }
   }
 
