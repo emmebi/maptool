@@ -236,7 +236,8 @@ public class MacroLinkFunction extends AbstractFunction {
   public String createMacroText(String macroName, String who, String target, String args) {
     if (macroName.toLowerCase().endsWith("@this")) {
       macroName =
-          macroName.substring(0, macroName.length() - 4) + MapTool.getParser().getMacroSource();
+          macroName.substring(0, macroName.length() - 4)
+              + MapTool.getParser().getMacroSource().getLocation();
     }
     return "macro://" + macroName + "/" + who + "/" + target + "?" + encode(args);
   }

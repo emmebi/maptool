@@ -1177,8 +1177,13 @@ public class MapToolLineParser {
       throws ParserException {
 
     MapToolMacroContext macroContext;
+    MacroLocation currentContext = null;
 
-    MacroLocation mloc = MacroLocation.parseMacroName(qMacroName, getMacroSource(), tokenInContext);
+    if (!contextStackEmpty()) {
+      currentContext = getMacroSource();
+    }
+
+    MacroLocation mloc = MacroLocation.parseMacroName(qMacroName, currentContext, tokenInContext);
 
     // For convenience to macro authors, no error on a blank macro name
     if (mloc.getName().equalsIgnoreCase("")) {
