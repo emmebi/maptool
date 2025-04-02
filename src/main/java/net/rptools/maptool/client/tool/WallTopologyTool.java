@@ -21,14 +21,20 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import net.rptools.maptool.client.AppStyle;
 import net.rptools.maptool.client.MapTool;
@@ -73,6 +79,21 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
   @Override
   public boolean isAvailable() {
     return MapTool.getPlayer().isGM();
+  }
+
+  @Override
+  protected void installKeystrokes(Map<KeyStroke, Action> actionMap) {
+    super.installKeystrokes(actionMap);
+
+    actionMap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
+        new AbstractAction() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            mode.delete();
+            renderer.repaint();
+          }
+        });
   }
 
   @Override
@@ -292,6 +313,13 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     boolean cancel();
 
     /**
+     * Called when the delete key is pressed.
+     *
+     * <p>Implementations should use this to remove the current selection.
+     */
+    void delete();
+
+    /**
      * Handles a mouse move.
      *
      * <p><strong>Note:</strong> if the mouse is dragged, {@link #mouseDragged(Point2D, Snap,
@@ -366,6 +394,9 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     }
 
     @Override
+    public void delete() {}
+
+    @Override
     public void mouseMoved(Point2D point, Snap snapMode, MouseEvent event) {}
 
     @Override
@@ -410,6 +441,9 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     public boolean cancel() {
       return false;
     }
+
+    @Override
+    public void delete() {}
 
     @Override
     public void mouseMoved(Point2D point, Snap snapMode, MouseEvent event) {}
@@ -629,6 +663,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
    *
    * <ol>
    *   <li>Canceling exits the {@code WallTopologyTool}, transitioning to {@link PointerTool}.
+   *   <li>Delete key deletes the selected wall.
    *   <li>Left-clicking a wall selects that wall and unselects other walls.
    *   <li>Double-clicking a wall or vertex deletes that element.
    *   <li>Left-clicking empty space starts a new wall and transitions to {@link
@@ -657,6 +692,11 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     @Override
     public void activate() {
       currentElement = rig.getNearbyElement(tool.getCurrentPosition()).orElse(null);
+    }
+
+    @Override
+    public void delete() {
+      tool.getSelectedWall().ifPresent(selected -> selected.delete());
     }
 
     @Override
