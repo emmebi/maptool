@@ -576,7 +576,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
                 case WallTopologyRig.MovableVertex movableVertex -> movableVertex;
                 case WallTopologyRig.MovableWall movableWall -> rig.splitAt(movableWall, point);
               };
-          var newWall = rig.addConnectedWall(fromVertex.getSource(), fromVertex.getPosition());
+          var newWall = rig.addConnectedWall(fromVertex);
           tool.setWallPropertiesFromConfigPanel(newWall.getSource());
           tool.setSelectedWall(newWall.getSource());
           tool.changeToolMode(new DragVertexToolMode(tool, rig, newWall.getTo(), point, false));
@@ -702,10 +702,8 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
     @Override
     public void activate() {
-      var wall = this.movable.getSource();
-      this.rig.bringToFront(wall);
-      this.rig.bringToFront(wall);
-      tool.setSelectedWall(wall);
+      this.rig.bringToFront(this.movable);
+      tool.setSelectedWall(this.movable.getSource());
     }
 
     @Override
@@ -756,7 +754,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
     @Override
     public void activate() {
-      this.rig.bringToFront(this.movable.getSource());
+      this.rig.bringToFront(this.movable);
     }
 
     private void findConnectToHandle(MouseEvent event) {
@@ -811,7 +809,8 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
         var snapped = snapMode.snap(point);
         tryMerge();
 
-        var newWall = this.rig.addConnectedWall(movable.getSource(), snapped);
+        var newWall = this.rig.addConnectedWall(movable);
+        newWall.getTo().moveTo(snapped);
         var newHandle = newWall.getTo();
 
         // Maintain the original offset regardless of what the actual cursor position is now.
@@ -863,16 +862,12 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
           /* Do nothing */
         }
         case WallTopologyRig.MovableVertex movableVertex -> {
-          var newHandle = rig.mergeVertices(movableVertex, movable);
-          // Current handle's vertex may have just been eliminated. Use the returned one instead.
-          this.setCurrentHandle(newHandle, newHandle.getPosition());
+          rig.mergeVertices(movableVertex, movable);
         }
         case WallTopologyRig.MovableWall movableWall -> {
           // Split the wall, then merge with the new vertex.
           var splitVertex = rig.splitAt(movableWall, movable.getPosition());
-          var newVertex = rig.mergeVertices(splitVertex, movable);
-          // Vertex may have just been eliminated. Use the returned one instead.
-          this.setCurrentHandle(newVertex, newVertex.getPosition());
+          rig.mergeVertices(splitVertex, movable);
         }
       }
     }
