@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import net.rptools.lib.GeometryUtil;
 import net.rptools.maptool.model.GUID;
 import net.rptools.maptool.model.topology.Vertex;
@@ -222,6 +223,15 @@ public final class WallTopologyRig implements Rig<WallTopologyRig.Element<?>> {
     return new WallTopology(walls);
   }
 
+  public Optional<MovableVertex> getOrCreateMergeCandidate(
+      Point2D position, @Nullable Element<?> connectTo) {
+    return switch (connectTo) {
+      case null -> Optional.empty();
+      case MovableVertex movableVertex -> Optional.of(movableVertex);
+      case MovableWall movableWall -> Optional.of(splitAt(movableWall, position));
+    };
+  }
+
   /**
    * Merge {@code one} with {@code two}.
    *
@@ -247,7 +257,7 @@ public final class WallTopologyRig implements Rig<WallTopologyRig.Element<?>> {
    * @param reference A point close to the wall.
    * @return The point on {@code wall} nearest to {@code reference}.
    */
-  public Point2D getSplitPoint(Movable<Wall> wall, Point2D reference) {
+  private Point2D getSplitPoint(Movable<Wall> wall, Point2D reference) {
     var coordinate = GeometryUtil.point2DToCoordinate(reference);
     var segment = walls.asLineSegment(wall.getSource());
     var fraction = segment.segmentFraction(coordinate);
