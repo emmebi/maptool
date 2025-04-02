@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.rptools.lib.GeometryUtil;
+import net.rptools.maptool.model.GUID;
 import net.rptools.maptool.model.topology.Vertex;
 import net.rptools.maptool.model.topology.Wall;
 import net.rptools.maptool.model.topology.WallTopology;
