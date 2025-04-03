@@ -190,4 +190,22 @@ public class MacroLocation {
   public static MacroLocationFactory getFactory() {
     return factory;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{name='");
+    sb.append(name);
+    sb.append(", location='");
+    sb.append(location);
+    sb.append(", source='");
+    sb.append(source);
+    if (uri != null) {
+      sb.append(", uri='");
+      sb.append(uri);
+    }
+    sb.append("'}");
+
+    return sb.toString();
+  }
 }
