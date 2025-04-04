@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.util.FunctionUtil;
 import net.rptools.parser.Parser;
@@ -51,6 +53,7 @@ public class StringFunctions extends AbstractFunction {
         "indexOf",
         "lastIndexOf",
         "trim",
+        "strfmt",
         "strformat",
         "matches",
         "string",
@@ -228,12 +231,16 @@ public class StringFunctions extends AbstractFunction {
       if (functionName.equalsIgnoreCase("trim")) {
         return parameters.get(0).toString().trim();
       }
+      if (functionName.equalsIgnoreCase("strfmt")) {
+        int size = parameters.size();
+        return format(parameters.get(0).toString(), resolver, parameters.subList(1, size));
+      }
       if (functionName.equalsIgnoreCase("strformat")) {
         int size = parameters.size();
         if (size > 1) {
-          return format(parameters.get(0).toString(), resolver, parameters.subList(1, size));
+          return compatFormat(parameters.get(0).toString(), resolver, parameters.subList(1, size));
         } else {
-          return format(parameters.get(0).toString(), resolver, null);
+          return compatFormat(parameters.get(0).toString(), resolver, null);
         }
       }
       if (functionName.equalsIgnoreCase("matches")) {
@@ -418,9 +425,29 @@ public class StringFunctions extends AbstractFunction {
     }
   }
 
+  private Object[] bigDecimalsToBigIntegers(List<Object> args) {
+    Object[] argArray = args.toArray();
+
+    // Change all integers in BigDecimal to BigIntegers so formating specifiers work correctly.
+    for (int i = 0; i < argArray.length; i++) {
+      if (argArray[i] instanceof BigDecimal) {
+        BigDecimal bd = (BigDecimal) argArray[i];
+        if (bd.scale() < 1) {
+          argArray[i] = bd.toBigInteger();
+        }
+      }
+    }
+
+    return argArray;
+  }
+
   /**
-   * Formats a string using the String.format() rules, as well as replacing any values in %{} with
-   * the contents of the variable.
+   * Replace any values in %{} with the contents of the variable and then if there are any
+   * positional parameters format the result with String.format() rules.
+   *
+   * <p>This gives counter-intuitive results of %% and %n not being processed when there are no
+   * positional parameters and the values inside the %{} interpolations are also processed with
+   * String.format, but has to be retained for compatibility with macros using strformat.
    *
    * @param string The string to format.
    * @param resolver The variable resolver used to resolve variables within %{}.
@@ -428,7 +455,8 @@ public class StringFunctions extends AbstractFunction {
    * @return the formated string.
    * @throws ParserException when an error occurs.
    */
-  public String format(String string, VariableResolver resolver, List<Object> args)
+  public String compatFormat(
+      @Nonnull String string, @Nonnull VariableResolver resolver, @Nullable List<Object> args)
       throws ParserException {
     StringBuffer sb = new StringBuffer();
     // First replace all variables
@@ -446,20 +474,44 @@ public class StringFunctions extends AbstractFunction {
       return sb.toString();
     }
 
-    Object[] argArray = args.toArray();
+    try {
+      return String.format(sb.toString(), bigDecimalsToBigIntegers(args));
+    } catch (IllegalFormatConversionException e) {
+      throw new ParserException(e.getMessage());
+    }
+  }
 
-    // Change all integers in BigDecimal to BigIntegers so formating specifiers work correctly.
-    for (int i = 0; i < argArray.length; i++) {
-      if (argArray[i] instanceof BigDecimal) {
-        BigDecimal bd = (BigDecimal) argArray[i];
-        if (bd.scale() < 1) {
-          argArray[i] = bd.toBigInteger();
-        }
+  /**
+   * Process the format string with String.format rules, extended with substituting variable names
+   * within %{} for the value of the variable.
+   *
+   * <p>This behaves like the format specifiers are processed in a single pass instead of
+   * interpreting the variable substitutions as String.format values if there are positionals.
+   *
+   * @param string The string to format.
+   * @param resolver The variable resolver used to resolve variables within %{}.
+   * @param args The arguments for formating options.
+   * @return the formated string.
+   * @throws ParserException when an error occurs.
+   */
+  public String format(
+      @Nonnull String string, @Nonnull VariableResolver resolver, @Nonnull List<Object> args)
+      throws ParserException {
+    StringBuffer sb = new StringBuffer();
+    // First replace all variable substitutions with their %-escaped contents so that they can be
+    // safely passed to String.format.
+    Matcher m = strFormatVariable.matcher(string);
+    while (m.find()) {
+      try {
+        m.appendReplacement(sb, resolver.getVariable(m.group(1)).toString().replace("%", "%%"));
+      } catch (NullPointerException npe) {
+        // Added catch block so that NPE leaves original format intact in the output string
       }
     }
+    m.appendTail(sb);
 
     try {
-      return String.format(sb.toString(), argArray);
+      return String.format(sb.toString(), bigDecimalsToBigIntegers(args));
     } catch (IllegalFormatConversionException e) {
       throw new ParserException(e.getMessage());
     }
