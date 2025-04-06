@@ -295,7 +295,7 @@ public class Token implements Cloneable {
   private transient Color visionOverlayColor;
 
   // Jamz: allow token alpha channel modification
-  private @Nonnull Float opacity = 1.0f;
+  private @Nonnull Float tokenOpacity = 1.0f;
 
   private String speechName = "";
 
@@ -325,9 +325,9 @@ public class Token implements Cloneable {
   private Set<TerrainModifierOperation> terrainModifiersIgnored =
       new HashSet<>(Collections.singletonList(TerrainModifierOperation.NONE));
 
-  private boolean flippedX;
-  private boolean flippedY;
-  private Boolean flippedIso = false;
+  private boolean isFlippedX;
+  private boolean isFlippedY;
+  private Boolean isFlippedIso = false;
 
   private MD5Key charsheetImage;
   private MD5Key portraitImage;
@@ -449,9 +449,9 @@ public class Token implements Cloneable {
     anchorX = token.anchorX;
     anchorY = token.anchorY;
     facing = token.facing;
-    flippedX = token.flippedX;
-    flippedY = token.flippedY;
-    flippedIso = token.flippedIso;
+    isFlippedX = token.isFlippedX;
+    isFlippedY = token.isFlippedY;
+    isFlippedIso = token.isFlippedIso;
     imageRotation = token.imageRotation;
     scaleX = token.scaleX;
     scaleY = token.scaleY;
@@ -503,7 +503,7 @@ public class Token implements Cloneable {
     exposedAreaGUID = token.exposedAreaGUID;
 
     heroLabData = token.heroLabData;
-    opacity = token.opacity;
+    tokenOpacity = token.tokenOpacity;
     terrainModifier = token.terrainModifier;
     terrainModifierOperation = token.terrainModifierOperation;
     terrainModifiersIgnored.addAll(token.terrainModifiersIgnored);
@@ -589,7 +589,7 @@ public class Token implements Cloneable {
   }
 
   public void setWidth(int width) {
-    if (isFlippedIso()) {
+    if (getIsFlippedIso()) {
       isoWidth = width;
     } else {
       this.width = width;
@@ -597,7 +597,7 @@ public class Token implements Cloneable {
   }
 
   public void setHeight(int height) {
-    if (isFlippedIso()) {
+    if (getIsFlippedIso()) {
       isoHeight = height;
     } else {
       this.height = height;
@@ -605,7 +605,7 @@ public class Token implements Cloneable {
   }
 
   public int getWidth() {
-    if (isFlippedIso() && isoWidth != 0) {
+    if (getIsFlippedIso() && isoWidth != 0) {
       return isoWidth;
     } else {
       return width;
@@ -613,7 +613,7 @@ public class Token implements Cloneable {
   }
 
   public int getHeight() {
-    if (isFlippedIso() && isoHeight != 0) {
+    if (getIsFlippedIso() && isoHeight != 0) {
       return isoHeight;
     } else {
       return height;
@@ -696,8 +696,8 @@ public class Token implements Cloneable {
   /**
    * @return The token opacity, in the range [0.0f, 1.0f].
    */
-  public float getOpacity() {
-    return opacity;
+  public float getTokenOpacity() {
+    return tokenOpacity;
   }
 
   /**
@@ -705,7 +705,7 @@ public class Token implements Cloneable {
    *
    * @param alpha the float of the opacity.
    */
-  public void setOpacity(float alpha) {
+  public void setTokenOpacity(float alpha) {
     if (alpha > 1.0f) {
       alpha = 1.0f;
     }
@@ -713,7 +713,7 @@ public class Token implements Cloneable {
       alpha = 0.0f;
     }
 
-    opacity = alpha;
+    tokenOpacity = alpha;
   }
 
   /**
@@ -1463,17 +1463,17 @@ public class Token implements Cloneable {
     atArea.concatenate(AffineTransform.getScaleInstance(scalerX, scalerY));
 
     // Lets account for flipped images...
-    if (flippedX) {
+    if (isFlippedX) {
       atArea.concatenate(AffineTransform.getScaleInstance(-1.0, 1.0));
       atArea.concatenate(AffineTransform.getTranslateInstance(-getWidth(), 0));
     }
 
-    if (flippedY) {
+    if (isFlippedY) {
       atArea.concatenate(AffineTransform.getScaleInstance(1.0, -1.0));
       atArea.concatenate(AffineTransform.getTranslateInstance(0, -getHeight()));
     }
 
-    if (isFlippedIso()) {
+    if (getIsFlippedIso()) {
       return new Area(atArea.createTransformedShape(IsometricGrid.isoArea(areaToTransform)));
     }
 
@@ -2142,31 +2142,31 @@ public class Token implements Cloneable {
     this.anchorY = yAnchor;
   }
 
-  public boolean isFlippedIso() {
-    if (flippedIso != null) {
-      return flippedIso;
+  public boolean getIsFlippedIso() {
+    if (isFlippedIso != null) {
+      return isFlippedIso;
     }
     return false;
   }
 
-  public void setFlippedIso(boolean flippedIso) {
-    this.flippedIso = flippedIso;
+  public void setIsFlippedIso(boolean isFlippedIso) {
+    this.isFlippedIso = isFlippedIso;
   }
 
   public boolean isFlippedX() {
-    return flippedX;
+    return isFlippedX;
   }
 
   public void setFlippedX(boolean flippedX) {
-    this.flippedX = flippedX;
+    this.isFlippedX = flippedX;
   }
 
   public boolean isFlippedY() {
-    return flippedY;
+    return isFlippedY;
   }
 
   public void setFlippedY(boolean flippedY) {
-    this.flippedY = flippedY;
+    this.isFlippedY = flippedY;
   }
 
   public double getImageRotation() {
@@ -2592,8 +2592,8 @@ public class Token implements Cloneable {
     if (speechMap == null) {
       speechMap = new HashMap<>();
     }
-    if (flippedIso == null) {
-      flippedIso = false;
+    if (isFlippedIso == null) {
+      isFlippedIso = false;
     }
     if (hasImageTable == null) {
       hasImageTable = false;
@@ -2632,10 +2632,10 @@ public class Token implements Cloneable {
     }
 
     // Pre 1.13
-    if (opacity == null) {
-      opacity = 1.f;
+    if (tokenOpacity == null) {
+      tokenOpacity = 1.f;
     }
-    opacity = Math.max(0.f, Math.min(opacity, 1.f));
+    tokenOpacity = Math.max(0.f, Math.min(tokenOpacity, 1.f));
 
     return this;
   }
@@ -2844,7 +2844,7 @@ public class Token implements Cloneable {
         setIsAlwaysVisible(parameters.get(0).getBoolValue());
         break;
       case setOpacity:
-        setOpacity(Float.parseFloat(parameters.get(0).getStringValue()));
+        setTokenOpacity(Float.parseFloat(parameters.get(0).getStringValue()));
         break;
       case setTerrainModifier:
         setTerrainModifier(parameters.get(0).getDoubleValue());
@@ -2941,7 +2941,7 @@ public class Token implements Cloneable {
         setFlippedY(!isFlippedY());
         break;
       case flipIso:
-        setFlippedIso(!isFlippedIso());
+        setIsFlippedIso(!getIsFlippedIso());
         break;
     }
     if (lightChanged) {
@@ -2988,9 +2988,9 @@ public class Token implements Cloneable {
     token.scaleX = dto.getScaleX();
     token.scaleY = dto.getScaleY();
     token.sizeScale = dto.getSizeScale();
-    token.flippedX = dto.getFlippedX();
-    token.flippedY = dto.getFlippedY();
-    token.flippedIso = dto.getFlippedIso();
+    token.isFlippedX = dto.getFlippedX();
+    token.isFlippedY = dto.getFlippedY();
+    token.isFlippedIso = dto.getFlippedIso();
     token.facing = dto.hasFacing() ? dto.getFacing().getValue() : null;
 
     dto.getSizeMapMap().forEach((k, v) -> token.sizeMap.put(k, GUID.valueOf(v)));
@@ -3015,7 +3015,7 @@ public class Token implements Cloneable {
     token.haloColorValue = dto.hasHaloColor() ? dto.getHaloColor().getValue() : null;
     token.visionOverlayColorValue =
         dto.hasVisionOverlayColor() ? dto.getVisionOverlayColor().getValue() : null;
-    token.opacity = dto.getTokenOpacity();
+    token.tokenOpacity = dto.getTokenOpacity();
     token.speechName = dto.getSpeechName();
     token.terrainModifier = dto.getTerrainModifier();
     token.terrainModifierOperation =
@@ -3143,7 +3143,7 @@ public class Token implements Cloneable {
     if (visionOverlayColorValue != null) {
       dto.setVisionOverlayColor(Int32Value.of(visionOverlayColorValue));
     }
-    dto.setTokenOpacity(opacity);
+    dto.setTokenOpacity(tokenOpacity);
     dto.setSpeechName(speechName);
     dto.setTerrainModifier(terrainModifier);
     dto.setTerrainModifierOperation(
@@ -3152,9 +3152,9 @@ public class Token implements Cloneable {
         terrainModifiersIgnored.stream()
             .map(m -> TerrainModifierOperationDto.valueOf(m.name()))
             .collect(Collectors.toList()));
-    dto.setFlippedX(flippedX);
-    dto.setFlippedY(flippedY);
-    dto.setFlippedIso(flippedIso);
+    dto.setFlippedX(isFlippedX);
+    dto.setFlippedY(isFlippedY);
+    dto.setFlippedIso(isFlippedIso);
     if (charsheetImage != null) {
       dto.setCharsheetImage(StringValue.of(charsheetImage.toString()));
     }

@@ -22,26 +22,6 @@ public class MathUtil {
   private static final Logger log = LogManager.getLogger(MathUtil.class);
 
   /**
-   * Faster version of absolute for integers
-   *
-   * @param val
-   * @return absolute value of val
-   */
-  public static int abs(int val) {
-    return (val >> 31 ^ val) - (val >> 31);
-  }
-
-  /**
-   * Faster version of absolute
-   *
-   * @param val
-   * @return absolute value of val
-   */
-  public static <T extends Number> T abs(T val) {
-    return (T) (val.floatValue() < 0 ? -1 * val.doubleValue() : val);
-  }
-
-  /**
    * Returns a truncated double with the specified number of decimal places
    *
    * @param value to be truncated
@@ -49,25 +29,12 @@ public class MathUtil {
    * @return truncated double value
    */
   public static double doublePrecision(double value, int decimalPlaces) {
-    double d = Double.parseDouble(String.format("%." + decimalPlaces + "f", value));
-    log.debug("value: " + value + ", decimalPlaces: " + decimalPlaces + " -> " + d);
-    return d;
-  }
-
-  public static boolean isDouble(Object o) {
-    return o.getClass().isAssignableFrom(Double.class);
-  }
-
-  public static boolean isFloat(Object o) {
-    return o.getClass().isAssignableFrom(Float.class);
+    double divisor = Math.pow(10, -decimalPlaces);
+    return divisor * Math.round(value / divisor);
   }
 
   public static boolean isInt(Object o) {
     return o.getClass().isAssignableFrom(Integer.class);
-  }
-
-  public static boolean isNumber(Object o) {
-    return o.getClass().isAssignableFrom(Number.class);
   }
 
   /**
@@ -92,59 +59,9 @@ public class MathUtil {
    * @param out_min the minimum value for the target range
    * @param out_max the maximum value for the target range
    * @return the equivalent value of valueToMap in the target range
-   * @param <T>
    */
-  public static <T extends Number> T mapToRange(
-      T valueToMap, T in_min, T in_max, T out_min, T out_max) {
-    Number mapValue = (Number) valueToMap;
-    Number inMin = (Number) in_min;
-    Number inMax = (Number) in_max;
-    Number outMin = (Number) out_min;
-    Number outMax = (Number) out_max;
-    Number result;
-    if (isFloat(valueToMap)) {
-      result =
-          (Number)
-              ((mapValue.floatValue() - inMin.floatValue())
-                      * (outMax.floatValue() - outMin.floatValue())
-                      / (inMax.floatValue() - inMin.floatValue())
-                  + outMin.floatValue());
-    } else {
-      result =
-          (Number)
-              ((mapValue.doubleValue() - inMin.doubleValue())
-                      * (outMax.doubleValue() - outMin.doubleValue())
-                      / (inMax.doubleValue() - inMin.doubleValue())
-                  + outMin.doubleValue());
-    }
-    return (T) result;
-  }
-
-  /**
-   * Constrains an integer between an upper and lower limit
-   *
-   * @param value
-   * @param lowBound
-   * @param highBound
-   * @return
-   */
-  public static int constrainInt(int value, int lowBound, int highBound) {
-    return Math.max(lowBound, Math.min(highBound, value));
-  }
-
-  /**
-   * Constrains a Number between an upper and lower limit
-   *
-   * @param value
-   * @param lowBound
-   * @param highBound
-   * @return
-   * @param <T>
-   */
-  public static <T extends Number> T constrainNumber(T value, T lowBound, T highBound) {
-    return (T)
-        (Number)
-            Math.max(
-                lowBound.doubleValue(), Math.min(highBound.doubleValue(), value.doubleValue()));
+  public static double mapToRange(
+      double valueToMap, double in_min, double in_max, double out_min, double out_max) {
+    return ((valueToMap - in_min) * (out_max - out_min) / (in_max - in_min)) + out_min;
   }
 }

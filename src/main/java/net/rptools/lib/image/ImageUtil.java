@@ -156,7 +156,7 @@ public class ImageUtil {
         try {
           return ImageUtil.scaleBufferedImage(img, outputWidth, outputHeight);
         } catch (Exception e) {
-          log.debug(e.getLocalizedMessage(), e);
+          log.warn(e.getLocalizedMessage(), e);
           return img;
         }
       }
@@ -166,7 +166,7 @@ public class ImageUtil {
         return ImageUtil.scaleBufferedImage(
             img, (int) Math.ceil(b.width * zoom), (int) Math.ceil(b.height * zoom));
       } catch (Exception e) {
-        log.debug(e.getLocalizedMessage(), e);
+        log.warn(e.getLocalizedMessage(), e);
         return img;
       }
     }
@@ -408,23 +408,6 @@ public class ImageUtil {
   }
 
   /**
-   * Returns the provided image flipped according to the token's flip-states
-   *
-   * @param image The image to be processed
-   * @param token The token containing the flip-states
-   * @return A modified image, or the original image if no processing performed.
-   */
-  public static BufferedImage flipTokenImage(BufferedImage image, Token token) {
-    int direction = (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
-    image = flipCartesian(image, direction);
-    if (token.isFlippedIso()) {
-      return IsometricGrid.isoImage(image);
-    } else {
-      return image;
-    }
-  }
-
-  /**
    * Flip the image and return a new image
    *
    * @param image the image to flip
@@ -531,7 +514,7 @@ public class ImageUtil {
   }
 
   public static double getIsoFigureHeightOffset(Token token, Rectangle2D footprintBounds) {
-    if (token.getShape().equals(Token.TokenShape.FIGURE) && !token.isFlippedIso()) {
+    if (token.getShape().equals(Token.TokenShape.FIGURE) && !token.getIsFlippedIso()) {
       double imageFitRatio = getIsoFigureScaleFactor(token, footprintBounds);
       double th = token.getHeight() * imageFitRatio;
       return footprintBounds.getHeight() - th;
@@ -564,7 +547,7 @@ public class ImageUtil {
 
     int flipDirection = (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
     image = flipCartesian(image, flipDirection);
-    if (token.isFlippedIso() && zr.getZone().getGrid().isIsometric()) {
+    if (token.getIsFlippedIso() && zr.getZone().getGrid().isIsometric()) {
       image = flipIsometric(image, true);
     }
 
