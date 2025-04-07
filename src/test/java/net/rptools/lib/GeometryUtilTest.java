@@ -14,6 +14,8 @@
  */
 package net.rptools.lib;
 
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
+
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
@@ -21,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Named;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,8 +40,8 @@ public class GeometryUtilTest {
   @ParameterizedTest
   @DisplayName(
       "Verify that meaningful topology is returned when converting AWT Area to JTS Geometry")
-  @MethodSource("areaProvider2")
-  void testConversionFromAreaToGeometry2(Area area, List<Polygon> expectedPolygons) {
+  @MethodSource("areaProvider")
+  void testConversionFromAreaToGeometry(Area area, List<Polygon> expectedPolygons) {
     var expectedGeometry =
         geometryFactory.createMultiPolygon(expectedPolygons.toArray(Polygon[]::new));
 
@@ -53,7 +54,7 @@ public class GeometryUtilTest {
     assert expectedGeometry.equalsTopo(multiPolygon) : "Polygons must have the correct topology";
   }
 
-  private static Iterable<Arguments> areaProvider2() {
+  private static Iterable<Arguments> areaProvider() {
     final var argumentsList = new ArrayList<Arguments>();
 
     // region Connected boxes
@@ -90,7 +91,7 @@ public class GeometryUtilTest {
                 new Coordinate(500, -300),
               });
 
-      argumentsList.add(Arguments.of(Named.of("Connected boxes", area), List.of(polygon)));
+      argumentsList.add(argumentSet("Connected boxes", area, List.of(polygon)));
     }
     // endregion
 
@@ -130,8 +131,7 @@ public class GeometryUtilTest {
           };
 
       argumentsList.add(
-          Arguments.of(
-              Named.of("Simple ring with highly precise backstep", area), List.of(polygons)));
+          argumentSet("Simple ring with highly precise backstep", area, List.of(polygons)));
     }
     // endregion
 
@@ -164,8 +164,7 @@ public class GeometryUtilTest {
           };
 
       argumentsList.add(
-          Arguments.of(
-              Named.of("Geometry with a collapsible tiny polygon.", area), List.of(polygons)));
+          argumentSet("Geometry with a collapsible tiny polygon.", area, List.of(polygons)));
     }
     // endregion
 
@@ -240,10 +239,9 @@ public class GeometryUtilTest {
           };
 
       argumentsList.add(
-          Arguments.of(
-              Named.of(
-                  "Ocean contained in island's bounding box but not actually a child of that island.",
-                  area),
+          argumentSet(
+              "Ocean contained in island's bounding box but not actually a child of that island.",
+              area,
               List.of(polygons)));
     }
     // endregion
@@ -279,8 +277,7 @@ public class GeometryUtilTest {
           };
 
       argumentsList.add(
-          Arguments.of(
-              Named.of("Self-intersection must be handled reasonably", area), List.of(polygons)));
+          argumentSet("Self-intersection must be handled reasonably", area, List.of(polygons)));
     }
     // endregion
 
@@ -315,8 +312,9 @@ public class GeometryUtilTest {
           };
 
       argumentsList.add(
-          Arguments.of(
-              Named.of("Tiny self-intersection must not affect topological structure", area),
+          argumentSet(
+              "Tiny self-intersection must not affect topological structure",
+              area,
               List.of(polygons)));
     }
     // endregion
@@ -392,8 +390,7 @@ public class GeometryUtilTest {
                 }),
           };
 
-      argumentsList.add(
-          Arguments.of(Named.of("Cut and paste back connected areas", area), List.of(polygons)));
+      argumentsList.add(argumentSet("Cut and paste back connected areas", area, List.of(polygons)));
     }
     // endregion
 
@@ -488,7 +485,7 @@ public class GeometryUtilTest {
                 new Coordinate(383.37867981847495, 129.5),
               });
 
-      argumentsList.add(Arguments.of(Named.of("Tiny crack in area", area), List.of(polygon)));
+      argumentsList.add(argumentSet("Tiny crack in area", area, List.of(polygon)));
     }
     // endregion
 
@@ -601,8 +598,7 @@ public class GeometryUtilTest {
                 }),
           };
 
-      argumentsList.add(
-          Arguments.of(Named.of("Polygon vertices touching edges", area), List.of(polygons)));
+      argumentsList.add(argumentSet("Polygon vertices touching edges", area, List.of(polygons)));
     }
     // endregion
 
@@ -736,7 +732,7 @@ public class GeometryUtilTest {
                 new Coordinate(4999.0, 6201.0),
               });
 
-      argumentsList.add(Arguments.of(Named.of("Butt joint accuracy", area), List.of(polygon)));
+      argumentsList.add(argumentSet("Butt joint accuracy", area, List.of(polygon)));
     }
     // endregion
 
