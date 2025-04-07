@@ -57,6 +57,7 @@ import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.token.dialog.create.NewTokenDialog;
 import net.rptools.maptool.client.ui.zone.*;
+import net.rptools.maptool.client.ui.zone.gdx.GdxRenderer;
 import net.rptools.maptool.client.walker.ZoneWalker;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.language.I18N;
@@ -155,6 +156,20 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private final VisionOverlayRenderer visionOverlayRenderer;
   private final DebugRenderer debugRenderer;
 
+  public String getLoadingProgress() {
+    return loadingProgress;
+  }
+
+  public Token getTokenUnderMouse() {
+    return tokenUnderMouse;
+  }
+
+  public Map<Token, Set<Token>> getTokenStackMap() {
+    return tokenStackMap;
+  }
+
+  private boolean skipDrawing;
+
   /**
    * Constructor for the ZoneRenderer from a zone.
    *
@@ -243,6 +258,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     } else {
       showPathList.remove(token);
     }
+  }
+
+  public List<Token> getShowPathList() {
+    return showPathList;
   }
 
   /**
@@ -344,6 +363,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     set.update(latestPoint);
     repaintDebouncer.dispatch(); // Jamz: may cause flicker when using AI
+  }
+
+  public Map<GUID, SelectionSet> getSelectionSetMap() {
+    return selectionSetMap;
   }
 
   public void toggleMoveSelectionSetWaypoint(GUID keyToken, ZonePoint location) {
@@ -543,6 +566,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   protected void setViewOffset(int x, int y) {
     zoneScale.setOffset(x, y);
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void centerOn(ZonePoint point) {
@@ -584,6 +608,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     tokenStackMap = null;
 
     zoneView.flush(token);
+    GdxRenderer.getInstance().flushFog();
   }
 
   /**
@@ -622,6 +647,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   public void flushFog() {
     visibleScreenArea = null;
     repaintDebouncer.dispatch();
+    GdxRenderer.getInstance().flushFog();
   }
 
   /**
@@ -642,7 +668,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   public void moveViewBy(int dx, int dy) {
-
     setViewOffset(getViewOffsetX() + dx, getViewOffsetY() + dy);
   }
 
@@ -661,16 +686,19 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   public void zoomReset(int x, int y) {
     zoneScale.zoomReset(x, y);
     MapTool.getFrame().getZoomStatusBar().update();
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void zoomIn(int x, int y) {
     zoneScale.zoomIn(x, y);
     MapTool.getFrame().getZoomStatusBar().update();
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void zoomOut(int x, int y) {
     zoneScale.zoomOut(x, y);
     MapTool.getFrame().getZoomStatusBar().update();
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void setView(int x, int y, double scale) {
@@ -679,6 +707,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     zoneScale.setScale(scale);
     MapTool.getFrame().getZoomStatusBar().update();
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void enforceView(int x, int y, double scale, int gmWidth, int gmHeight) {
@@ -699,6 +728,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     setScale(scale);
     centerOn(new ZonePoint(x, y));
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void restoreView() {
@@ -707,6 +737,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     centerOn(previousZonePoint);
     setScale(previousScale);
+    GdxRenderer.getInstance().setScale(zoneScale);
   }
 
   public void forcePlayersView() {
@@ -733,6 +764,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           timer.setThreshold(10);
 
           timer.start("paintComponent");
+          skipDrawing = MapTool.getFrame().getGdxPanel().isVisible();
 
           Graphics2D g2d = (Graphics2D) g;
 
@@ -752,27 +784,31 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             PlayerView pl = getPlayerView();
             timer.stop("paintComponent:createView");
 
-            renderZone(bufferG2d, pl);
-
+            if (!skipDrawing) {
+              renderZone(bufferG2d, pl);
+            }
             int noteVPos = 20;
             bufferG2d.setFont(AppStyle.labelFont);
             if (MapTool.getFrame().areFullScreenToolsShown()) {
               noteVPos += 40;
             }
             if (!AppPreferences.mapVisibilityWarning.get()
-                && (!zone.isVisible() && pl.isGMView())) {
+                && (!zone.isVisible() && pl.isGMView())
+                && !skipDrawing) {
               GraphicsUtil.drawBoxedString(
                   bufferG2d, I18N.getText("zone.map_not_visible"), getSize().width / 2, noteVPos);
               noteVPos += 20;
             }
-            if (AppState.isShowAsPlayer()) {
+            if (AppState.isShowAsPlayer() && !skipDrawing) {
               GraphicsUtil.drawBoxedString(
                   bufferG2d, I18N.getText("zone.player_view"), getSize().width / 2, noteVPos);
             }
 
             timer.start("paintComponent:renderBuffer");
             bufferG2d.dispose();
-            g2d.drawImage(buffer, null, 0, 0);
+            if (!skipDrawing) {
+              g2d.drawImage(buffer, null, 0, 0);
+            }
             timer.stop("paintComponent:renderBuffer");
           }
 
@@ -843,7 +879,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     disabledLayers.add(layer);
   }
 
-  private boolean shouldRenderLayer(Layer layer, PlayerView view) {
+  public boolean shouldRenderLayer(Layer layer, PlayerView view) {
     return !disabledLayers.contains(layer) && (layer.isVisibleToPlayers() || view.isGMView());
   }
 
@@ -888,16 +924,20 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     // Are we still waiting to show the zone ?
     if (isLoading()) {
-      g2d.setColor(Color.black);
-      g2d.fillRect(0, 0, viewRect.width, viewRect.height);
-      GraphicsUtil.drawBoxedString(g2d, loadingProgress, viewRect.width / 2, viewRect.height / 2);
+      if (!skipDrawing) {
+        g2d.setColor(Color.black);
+        g2d.fillRect(0, 0, viewRect.width, viewRect.height);
+        GraphicsUtil.drawBoxedString(g2d, loadingProgress, viewRect.width / 2, viewRect.height / 2);
+      }
       return;
     }
     if (MapTool.getCampaign().isBeingSerialized()) {
-      g2d.setColor(Color.black);
-      g2d.fillRect(0, 0, viewRect.width, viewRect.height);
-      GraphicsUtil.drawBoxedString(
-          g2d, "    Please Wait    ", viewRect.width / 2, viewRect.height / 2);
+      if (!skipDrawing) {
+        g2d.setColor(Color.black);
+        g2d.fillRect(0, 0, viewRect.width, viewRect.height);
+        GraphicsUtil.drawBoxedString(
+            g2d, "    Please Wait    ", viewRect.width / 2, viewRect.height / 2);
+      }
       return;
     }
     if (zone == null) {
@@ -932,7 +972,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.stop("calcs-1");
 
     // Rendering pipeline
-    if (zone.drawBoard()) {
+    if (zone.drawBoard() && !skipDrawing) {
       timer.start("board");
       renderBoard(g2d, view);
       timer.stop("board");
@@ -1100,7 +1140,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.start("lightSourceIconOverlay.paintOverlay");
     if (shouldRenderLayer(Zone.Layer.TOKEN, view)
         && view.isGMView()
-        && AppState.isShowLightSources()) {
+        && AppState.isShowLightSources()
+        && !skipDrawing) {
       lightSourceIconOverlay.paintOverlay(this, g2d);
     }
     timer.stop("lightSourceIconOverlay.paintOverlay");
@@ -1113,6 +1154,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   private void renderRenderables(Graphics2D g) {
+    if (skipDrawing) return;
     for (ItemRenderer renderer : itemRenderList) {
       renderer.render(g);
     }
@@ -1197,6 +1239,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   protected void renderDrawableOverlay(
       Graphics g, DrawableRenderer renderer, PlayerView view, List<DrawnElement> drawnElements) {
+    if (skipDrawing) return;
+
     Rectangle viewport =
         new Rectangle(
             zoneScale.getOffsetX(), zoneScale.getOffsetY(), getSize().width, getSize().height);
@@ -1260,7 +1304,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     g.drawImage(backbuffer, 0, 0, this);
   }
 
-  private Set<SelectionSet> getOwnedMovementSet(PlayerView view) {
+  public Set<SelectionSet> getOwnedMovementSet(PlayerView view) {
     Set<SelectionSet> movementSet = new HashSet<SelectionSet>();
     for (SelectionSet selection : selectionSetMap.values()) {
       if (selection.getPlayerId().equals(MapTool.getPlayer().getName())) {
@@ -1270,7 +1314,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return movementSet;
   }
 
-  private Set<SelectionSet> getUnOwnedMovementSet(PlayerView view) {
+  public Set<SelectionSet> getUnOwnedMovementSet(PlayerView view) {
     Set<SelectionSet> movementSet = new HashSet<SelectionSet>();
     for (SelectionSet selection : selectionSetMap.values()) {
       if (!selection.getPlayerId().equals(MapTool.getPlayer().getName())) {
@@ -1281,7 +1325,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   protected void showBlockedMoves(Graphics2D g, PlayerView view, Set<SelectionSet> movementSet) {
-    if (selectionSetMap.isEmpty()) {
+    if (selectionSetMap.isEmpty() || skipDrawing) {
       return;
     }
     g = (Graphics2D) g.create();
@@ -2218,6 +2262,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
       timer.stop("renderTokens:OnscreenCheck");
 
+      if (skipDrawing) continue;
+
       // create a per token Graphics object - normally clipped, unless always visible
       Area tokenCellArea = zone.getGrid().getTokenCellArea(tokenBounds);
       Graphics2D tokenG;
@@ -2751,7 +2797,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @param isGMView whether it is the view of a GM
    * @return true if the token is need of clipping, false otherwise
    */
-  private boolean isTokenInNeedOfClipping(Token token, Area tokenCellArea, boolean isGMView) {
+  public boolean isTokenInNeedOfClipping(Token token, Area tokenCellArea, boolean isGMView) {
 
     // can view everything or zone is not using vision = no clipping needed
     if (isGMView || !zoneView.isUsingVision()) {
