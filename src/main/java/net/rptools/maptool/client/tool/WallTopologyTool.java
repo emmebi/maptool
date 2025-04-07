@@ -793,6 +793,13 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     }
 
     @Override
+    public void mouseReleased(Point2D point, Snap snapMode, MouseEvent event) {
+      if (SwingUtilities.isLeftMouseButton(event)) {
+        potentialDragElement = null;
+      }
+    }
+
+    @Override
     public Paint getHandleFill(Handle<Vertex> handle) {
       if (currentElement != null && currentElement.isForSameElement(handle)) {
         return Color.green;
