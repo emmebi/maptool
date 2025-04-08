@@ -352,7 +352,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     getShapeCombo().setSelectedItem(token.getShape());
     setSizeCombo(token);
     getSnapToGrid().setSelected(token.isSnapToGrid());
-    getFlippedIso().setSelected(token.isFlippedIso());
+    getFlippedIso().setSelected(token.getIsFlippedIso());
     getFlippedX().setSelected(token.isFlippedX());
     getFlippedY().setSelected(token.isFlippedY());
 
@@ -377,7 +377,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     getTokenLayoutPanel().setToken(token);
     getImageTableCombo().setSelectedItem(token.getImageTableName());
     getTokenOpacitySlider()
-        .setValue(new BigDecimal(token.getOpacity()).multiply(new BigDecimal(100)).intValue());
+        .setValue(new BigDecimal(token.getTokenOpacity()).multiply(new BigDecimal(100)).intValue());
     getTerrainModifier().setText(Double.toString(token.getTerrainModifier()));
     getTerrainModifierOperationComboBox().setSelectedItem(token.getTerrainModifierOperation());
 
@@ -786,7 +786,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setPropertyType((String) getPropertyTypeCombo().getSelectedItem());
     token.setSightType((String) getSightTypeCombo().getSelectedItem());
     token.setImageTableName((String) getImageTableCombo().getSelectedItem());
-    token.setOpacity(
+    token.setTokenOpacity(
         new BigDecimal(getTokenOpacitySlider().getValue())
             .divide(new BigDecimal(100))
             .floatValue());

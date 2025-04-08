@@ -259,7 +259,7 @@ public class TokenLayoutPanelHelper {
   }
 
   public boolean getTokenFlippedIso() {
-    return mirrorToken.isFlippedIso();
+    return mirrorToken.getIsFlippedIso();
   }
 
   /* Token value setters pointing to the mirror token */
@@ -288,7 +288,7 @@ public class TokenLayoutPanelHelper {
   }
 
   protected void setTokenFlipIso(Boolean b) {
-    mirrorToken.setFlippedIso(b);
+    mirrorToken.setIsFlippedIso(b);
     if (flipStates.contains(FlipState.ISOMETRIC) && !b) {
       flipStates.remove(FlipState.ISOMETRIC);
     } else if (!flipStates.contains(FlipState.ISOMETRIC) && b) {
@@ -361,13 +361,14 @@ public class TokenLayoutPanelHelper {
       i ->
           i <= 0
               ? MathUtil.mapToRange(((Number) i).doubleValue(), -200.0, 0.0, 0.0, 1.0)
-              : MathUtil.mapToRange(((Number) i).doubleValue(), 0.0, 200.0, 1.0, 3.0).doubleValue();
+              : MathUtil.mapToRange(((Number) i).doubleValue(), 0.0, 200.0, 1.0, 3.0);
 
   Function<Number, Integer> percentSpinnerToSlider =
       d ->
-          d.doubleValue() <= 1
-              ? MathUtil.mapToRange(d.doubleValue(), 0.0, 1.0, -200, 0).intValue()
-              : MathUtil.mapToRange(d.doubleValue(), 1.0, 3.0, 0, 200).intValue();
+          (int)
+              (d.doubleValue() <= 1
+                  ? MathUtil.mapToRange(d.doubleValue(), 0.0, 1.0, -200, 0)
+                  : MathUtil.mapToRange(d.doubleValue(), 1.0, 3.0, 0, 200));
 
   private void storeFlipDirections() {
     if (getTokenFlippedIso()) {
@@ -449,7 +450,7 @@ public class TokenLayoutPanelHelper {
     tok.setImageRotation(getTokenImageRotation());
     tok.setFlippedX(flipStates.contains(FlipState.HORIZONTAL));
     tok.setFlippedY(flipStates.contains(FlipState.VERTICAL));
-    tok.setFlippedIso(flipStates.contains(FlipState.ISOMETRIC));
+    tok.setIsFlippedIso(flipStates.contains(FlipState.ISOMETRIC));
   }
 
   public void setToken(Token token, boolean useDefaults) {
@@ -483,7 +484,9 @@ public class TokenLayoutPanelHelper {
     }
 
     isIsoFigure =
-        isoGrid && mirrorToken.getShape() == Token.TokenShape.FIGURE && !mirrorToken.isFlippedIso();
+        isoGrid
+            && mirrorToken.getShape() == Token.TokenShape.FIGURE
+            && !mirrorToken.getIsFlippedIso();
 
     tokenImage = ImageManager.getImage(mirrorToken.getImageAssetId());
     setFootprint(mirrorToken.getFootprint(grid));
@@ -870,7 +873,7 @@ public class TokenLayoutPanelHelper {
 
       if (zoomFactor != getRenderPanel().getZoomFactor()) {
         zoomFactor = getRenderPanel().getZoomFactor();
-        constrainedZoom = MathUtil.constrainNumber(zoomFactor, 1, 1.6d).floatValue();
+        constrainedZoom = (float) Math.clamp(zoomFactor, 1, 1.6d);
         setStrokeArrays();
       }
 
@@ -902,12 +905,13 @@ public class TokenLayoutPanelHelper {
         float useWidth;
         if (mapValues) {
           useWidth =
-              MathUtil.mapToRange(
-                  model.getLineWidth(),
-                  thinnest,
-                  thickest,
-                  thinnest * constrainedZoom,
-                  thickest * constrainedZoom);
+              (float)
+                  MathUtil.mapToRange(
+                      model.getLineWidth(),
+                      thinnest,
+                      thickest,
+                      thinnest * constrainedZoom,
+                      thickest * constrainedZoom);
           solidStrokes[i] = new BasicStroke(useWidth, model.getEndCap(), model.getLineJoin());
           dashedStrokes[i] =
               new BasicStroke(

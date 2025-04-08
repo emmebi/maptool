@@ -299,8 +299,8 @@ public class TokenLayoutRenderPanel extends JPanel {
             int dx = e.getX() - dragStartX;
             int dy = e.getY() - dragStartY;
             if (evtTarget == MouseTarget.IMAGE_OFFSET) {
-              int offX = MathUtil.constrainInt(helper.getTokenAnchorX() + dx, -maxXoff, maxXoff);
-              int offY = MathUtil.constrainInt(helper.getTokenAnchorY() + dy, -maxYoff, maxYoff);
+              int offX = Math.clamp(helper.getTokenAnchorX() + dx, -maxXoff, maxXoff);
+              int offY = Math.clamp(helper.getTokenAnchorY() + dy, -maxYoff, maxYoff);
               helper.anchorXPair.setValue(offX);
               helper.anchorYPair.setValue(offY);
 

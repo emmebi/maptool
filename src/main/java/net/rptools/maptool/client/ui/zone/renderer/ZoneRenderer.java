@@ -1449,7 +1449,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           wig.dispose();
         }
         // on the iso plane
-        if (token.isFlippedIso()) {
+        if (token.getIsFlippedIso()) {
           if (flipIsoImageMap.get(token) == null) {
             workImage = IsometricGrid.isoImage(workImage);
           } else {
@@ -2253,7 +2253,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.stop("tokenlist-5");
 
       timer.start("tokenlist-5a");
-      if (token.isFlippedIso()) {
+      if (token.getIsFlippedIso()) {
         if (flipIsoImageMap.get(token) == null) {
           workImage = IsometricGrid.isoImage(workImage);
           flipIsoImageMap.put(token, workImage);
@@ -2332,7 +2332,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       haloRenderer.renderHalo(tokenG, token, location);
 
       // Calculate alpha Transparency from token and use opacity for indicating that token is moving
-      float opacity = token.getOpacity();
+      float opacity = token.getTokenOpacity();
       if (isTokenMoving(token)) opacity = opacity / 2.0f;
       Map<String, Object> renderInfo = new HashMap<>();
       renderInfo.put(TokenRenderer.OPACITY, opacity);

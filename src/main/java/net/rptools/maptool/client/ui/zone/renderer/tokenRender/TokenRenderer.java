@@ -173,7 +173,7 @@ public class TokenRenderer {
         token.getScaleX(),
         token.getScaleY(),
         token.getSizeScale(),
-        token.isFlippedIso(),
+        token.getIsFlippedIso(),
         token.isFlippedX(),
         token.isFlippedY(),
         token.getShape(),

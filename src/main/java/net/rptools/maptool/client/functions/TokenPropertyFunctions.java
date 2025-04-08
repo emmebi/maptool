@@ -113,7 +113,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
         "getNotes",
         "setNotes",
         "getTokenLayoutProps",
-        "setTokenLayoutProps",
+        "setLayoutProps",
         "setExtendedTokenLayoutProps",
         "setTokenSnapToGrid",
         "getAllowsURIAccess",
@@ -713,7 +713,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     if (functionName.equalsIgnoreCase("isFlippedIso")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
-      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -922,7 +922,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
       MapTool.serverCommand().updateTokenProperty(token, Token.Update.flipIso);
-      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -933,12 +933,12 @@ public class TokenPropertyFunctions extends AbstractFunction {
       String delim = parameters.size() > 0 ? parameters.get(0).toString() : ";";
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
 
-      String scale = String.valueOf(token.getSizeScale());
-      String xOffset = String.valueOf(token.getAnchorX());
-      String yOffset = String.valueOf(token.getAnchorY());
-      String rotation = String.valueOf(token.getImageRotation());
-      String scaleX = String.valueOf(token.getScaleX());
-      String scaleY = String.valueOf(token.getScaleY());
+      double scale = token.getSizeScale();
+      int xOffset = token.getAnchorX();
+      int yOffset = token.getAnchorY();
+      double rotation = token.getImageRotation();
+      double scaleX = token.getScaleX();
+      double scaleY = token.getScaleY();
       String footprintScaleValue =
           String.valueOf(
               token.getFootprint(token.getZoneRenderer().getZone().getGrid()).getScale());
@@ -955,13 +955,13 @@ public class TokenPropertyFunctions extends AbstractFunction {
         return jarr;
       } else {
         StringBuilder sb = new StringBuilder();
-        sb.append("scale=" + scale + delim);
-        sb.append("xOffset=" + xOffset + delim);
-        sb.append("yOffset=" + yOffset + delim);
-        sb.append("rotation=" + rotation + delim);
-        sb.append("scaleX=" + scaleX + delim);
-        sb.append("scaleY=" + scaleY + delim);
-        sb.append("footprintScale=" + footprintScaleValue);
+        sb.append("scale=").append(scale).append(delim);
+        sb.append("xOffset=").append(xOffset).append(delim);
+        sb.append("yOffset=").append(yOffset).append(delim);
+        sb.append("rotation=").append(rotation).append(delim);
+        sb.append("scaleX=").append(scaleX).append(delim);
+        sb.append("scaleY=").append(scaleY).append(delim);
+        sb.append("footprintScale=").append(footprintScaleValue);
         return sb.toString();
       }
     }
@@ -1010,9 +1010,9 @@ public class TokenPropertyFunctions extends AbstractFunction {
       }
     }
     /*
-     * setTokenLayoutProps(scale, xOffset, yOffset, token: currentToken(), mapName = current map)
+     * setLayoutProps(scale, xOffset, yOffset, token: currentToken(), mapName = current map)
      */
-    if (functionName.equalsIgnoreCase("setTokenLayoutProps")) {
+    if (functionName.equalsIgnoreCase("setLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 3, 5);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 3, 4);
 
