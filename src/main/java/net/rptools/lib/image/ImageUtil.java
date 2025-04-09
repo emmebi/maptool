@@ -43,7 +43,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class ImageUtil {
   public static final String HINT_TRANSPARENCY = "hintTransparency";
-  
+
   public static final FilenameFilter SUPPORTED_IMAGE_FILE_FILTER =
       (dir, name) -> {
         name = name.toLowerCase();

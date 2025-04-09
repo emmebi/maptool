@@ -81,77 +81,158 @@ public class SpinnerSliderPaired {
     log.debug("new spinner-slider pair: " + this);
   }
 
-  // @formatter:off
-  // spotless:off
-    private static final Logger log = LogManager.getLogger(SpinnerSliderPaired.class);
-    // Property Change Support
-    protected SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
-    protected VetoableChangeSupport vcs = new VetoableChangeSupport(this);
-    public void addVetoableChangeListener(VetoableChangeListener listener) { vcs.addVetoableChangeListener(listener); }
-    protected void removeVetoableChangeListener(VetoableChangeListener listener){ vcs.addVetoableChangeListener(listener); }
-    public void addPropertyChangeListener(PropertyChangeListener listener) { pcs.addPropertyChangeListener(listener); }
-    protected void removePropertyChangeListener(PropertyChangeListener listener) { pcs.removePropertyChangeListener(listener); }
+  private static final Logger log = LogManager.getLogger(SpinnerSliderPaired.class);
+  // Property Change Support
+  protected SwingPropertyChangeSupport pcs = new SwingPropertyChangeSupport(this);
+  protected VetoableChangeSupport vcs = new VetoableChangeSupport(this);
 
-    // controls
-    private JSpinner linkedSpinner;
-    private JSlider linkedSlider;
-    public JSpinner getLinkedSpinner(){ return linkedSpinner; }
-    public JSlider getLinkedSlider(){ return linkedSlider; }
-    private void setLinkedSlider(@NotNull JSlider slider){
-        this.linkedSlider = slider;
-        getLinkedSlider().addMouseWheelListener(
+  public void addVetoableChangeListener(VetoableChangeListener listener) {
+    vcs.addVetoableChangeListener(listener);
+  }
+
+  protected void removeVetoableChangeListener(VetoableChangeListener listener) {
+    vcs.addVetoableChangeListener(listener);
+  }
+
+  public void addPropertyChangeListener(PropertyChangeListener listener) {
+    pcs.addPropertyChangeListener(listener);
+  }
+
+  protected void removePropertyChangeListener(PropertyChangeListener listener) {
+    pcs.removePropertyChangeListener(listener);
+  }
+
+  // controls
+  private JSpinner linkedSpinner;
+  private JSlider linkedSlider;
+
+  public JSpinner getLinkedSpinner() {
+    return linkedSpinner;
+  }
+
+  public JSlider getLinkedSlider() {
+    return linkedSlider;
+  }
+
+  private void setLinkedSlider(@NotNull JSlider slider) {
+    this.linkedSlider = slider;
+    getLinkedSlider()
+        .addMouseWheelListener(
             e -> incrementPairValue((int) Math.round(e.getPreciseWheelRotation())));
-    }
-    private void setLinkedSpinner(JSpinner spinner){
-        this.linkedSpinner = spinner;
-        getLinkedSpinner().addChangeListener(spinnerEditListener);
-        getLinkedSpinner().addMouseWheelListener(
-            e -> incrementPairValue( e.getPreciseWheelRotation()));
-    }
-    // option to set the spinner to loop/wrap at end values
-    private boolean spinnerWraps = false;
-    public void setSpinnerWraps(boolean b){ this.spinnerWraps = b; }
+  }
 
-    // property setter
-    private Consumer<Number> propertySetter;
-    private Supplier<Number> propertyGetter;
-    private String propertyName = "Property";
-    public Consumer<Number> getPropertySetter() { return propertySetter; }
-    public Supplier<Number> getPropertyGetter() { return propertyGetter; }
-    public void setPropertySetter(Consumer<Number> propertySetter) {this.propertySetter = propertySetter; }
-    public void setPropertyGetter(Supplier<Number> propertyGetter) {this.propertyGetter = propertyGetter; }
-    public void setPropertyName(String s){ this.propertyName = s; }
-    private void setProperty(Number n){
-        if(propertyGetter != null){
-            if(propertyGetter.get().doubleValue() != n.doubleValue() && propertySetter != null){
-                propertySetter.accept(n);
-                log.debug(propertyName + " set to " + n);
-            }
-        }
-    }
-    public void update(){ if(propertyGetter != null){ setPairValue(propertyGetter.get()); } }
-    // Instance of NumericModel that ties the two controls together
-    private final NumericModel commonModel = new NumericModel();
-    // functions that define the relationship between spinner and slider values
-    private Function<Integer, Number> sliderToSpinner;
-    private Function<Number, Integer> spinnerToSlider;
-    public Function<Number, Integer> getSpinnerToSlider() { return spinnerToSlider; }
-    public void setSpinnerToSlider(Function<Number, Integer> function) { spinnerToSlider = function; }
-    public Function<Integer, Number> getSliderToSpinner() { return sliderToSpinner; }
-    public void setSliderToSpinner(Function<Integer, Number> function) { sliderToSpinner = function; }
+  private void setLinkedSpinner(JSpinner spinner) {
+    this.linkedSpinner = spinner;
+    getLinkedSpinner().addChangeListener(spinnerEditListener);
+    getLinkedSpinner().addMouseWheelListener(e -> incrementPairValue(e.getPreciseWheelRotation()));
+  }
 
-    // public methods pointing to model methods
-    public Number getPairNextValue(){ return commonModel.getModelNextValue(); }
-    public Number getPairPreviousValue(){ return commonModel.getModelPreviousValue(); }
-    public int getPairSliderValue(){ return commonModel.getModelNumber(true).intValue(); }
-    public double getPairSpinnerValue(){ return commonModel.getModelNumber(false).doubleValue(); }
-    public void incrementPairValue(Number n){ commonModel.incrementModelValue(n);}
-    public void setPairMaximum(Number n){ commonModel.setModelMaximum(n);}
-    public void setPairMinimum(Number n){ commonModel.setModelMinimum(n);}
-    public void setPairStepSize(Number n){ commonModel.setModelStepSize(n);}
-    public void setPairValue(Number n){ commonModel.setModelValue(n);}
-    //@formatter:on
-    // spotless:on
+  // option to set the spinner to loop/wrap at end values
+  private boolean spinnerWraps = false;
+
+  public void setSpinnerWraps(boolean b) {
+    this.spinnerWraps = b;
+  }
+
+  // property setter
+  private Consumer<Number> propertySetter;
+  private Supplier<Number> propertyGetter;
+  private String propertyName = "Property";
+
+  public Consumer<Number> getPropertySetter() {
+    return propertySetter;
+  }
+
+  public Supplier<Number> getPropertyGetter() {
+    return propertyGetter;
+  }
+
+  public void setPropertySetter(Consumer<Number> propertySetter) {
+    this.propertySetter = propertySetter;
+  }
+
+  public void setPropertyGetter(Supplier<Number> propertyGetter) {
+    this.propertyGetter = propertyGetter;
+  }
+
+  public void setPropertyName(String s) {
+    this.propertyName = s;
+  }
+
+  private void setProperty(Number n) {
+    if (propertyGetter != null) {
+      if (propertyGetter.get().doubleValue() != n.doubleValue() && propertySetter != null) {
+        propertySetter.accept(n);
+        log.debug(propertyName + " set to " + n);
+      }
+    }
+  }
+
+  public void update() {
+    if (propertyGetter != null) {
+      setPairValue(propertyGetter.get());
+    }
+  }
+
+  // Instance of NumericModel that ties the two controls together
+  private final NumericModel commonModel = new NumericModel();
+  // functions that define the relationship between spinner and slider values
+  private Function<Integer, Number> sliderToSpinner;
+  private Function<Number, Integer> spinnerToSlider;
+
+  public Function<Number, Integer> getSpinnerToSlider() {
+    return spinnerToSlider;
+  }
+
+  public void setSpinnerToSlider(Function<Number, Integer> function) {
+    spinnerToSlider = function;
+  }
+
+  public Function<Integer, Number> getSliderToSpinner() {
+    return sliderToSpinner;
+  }
+
+  public void setSliderToSpinner(Function<Integer, Number> function) {
+    sliderToSpinner = function;
+  }
+
+  // public methods pointing to model methods
+  public Number getPairNextValue() {
+    return commonModel.getModelNextValue();
+  }
+
+  public Number getPairPreviousValue() {
+    return commonModel.getModelPreviousValue();
+  }
+
+  public int getPairSliderValue() {
+    return commonModel.getModelNumber(true).intValue();
+  }
+
+  public double getPairSpinnerValue() {
+    return commonModel.getModelNumber(false).doubleValue();
+  }
+
+  public void incrementPairValue(Number n) {
+    commonModel.incrementModelValue(n);
+  }
+
+  public void setPairMaximum(Number n) {
+    commonModel.setModelMaximum(n);
+  }
+
+  public void setPairMinimum(Number n) {
+    commonModel.setModelMinimum(n);
+  }
+
+  public void setPairStepSize(Number n) {
+    commonModel.setModelStepSize(n);
+  }
+
+  public void setPairValue(Number n) {
+    commonModel.setModelValue(n);
+  }
+
   // The shared model - two delegates controlled from above
   private class NumericModel {
     public NumericModel() {}
