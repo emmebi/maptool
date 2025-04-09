@@ -51,7 +51,7 @@ public class MathUtil {
   }
 
   /**
-   * Uses Generics Maps a value in one range to its equivalent in a second range
+   * Maps a value in one range to its equivalent in a second range
    *
    * @param valueToMap value in the first range that needs to be converted
    * @param in_min the minimum value for the original range
@@ -62,6 +62,6 @@ public class MathUtil {
    */
   public static double mapToRange(
       double valueToMap, double in_min, double in_max, double out_min, double out_max) {
-    return ((valueToMap - in_min) * (out_max - out_min) / (in_max - in_min)) + out_min;
+    return (valueToMap - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
   }
 }

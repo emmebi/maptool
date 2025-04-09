@@ -124,8 +124,8 @@ public class TokenLayoutRenderPanel extends JPanel {
     if (d == zoomFactor) {
       return;
     }
-    if (helper.zoomPair.getSpinnerValue() != zoomFactor) {
-      helper.zoomPair.setValue(d);
+    if (helper.zoomPair.getPairSpinnerValue() != zoomFactor) {
+      helper.zoomPair.setPairValue(d);
     }
   }
 
@@ -208,11 +208,12 @@ public class TokenLayoutRenderPanel extends JPanel {
             dragStartX = -1;
             dragStartY = -1;
             evtTarget = MouseTarget.NONE;
-            helper.iFeelDirty();
+            helper.flagAsDirty();
           }
 
           @Override
           public void mousePressed(MouseEvent e) {
+            super.mousePressed(e);
             dragStartX = e.getX();
             dragStartY = e.getY();
             if (SwingUtilities.isLeftMouseButton(e)) {
@@ -235,11 +236,12 @@ public class TokenLayoutRenderPanel extends JPanel {
           public void mouseExited(MouseEvent e) {
             if (old != null) MapTool.getFrame().setStatusMessage(old);
             evtTarget = MouseTarget.NONE;
-            helper.iFeelDirty();
+            helper.flagAsDirty();
           }
 
           @Override
           public void mouseClicked(MouseEvent e) {
+            super.mouseClicked(e);
             if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
               viewOffsetX = 0;
               viewOffsetY = 0;
@@ -273,23 +275,23 @@ public class TokenLayoutRenderPanel extends JPanel {
 
             switch (evtTarget) {
               case MouseTarget.ROTATION -> {
-                helper.rotationPair.incrementValue(delta);
+                helper.rotationPair.incrementPairValue(delta);
               }
               case MouseTarget.ZOOM -> {
-                helper.zoomPair.incrementValue(delta);
-                setZoomFactor(helper.zoomPair.getSpinnerValue());
+                helper.zoomPair.incrementPairValue(delta);
+                setZoomFactor(helper.zoomPair.getPairSpinnerValue());
               }
               case MouseTarget.SCALE -> {
                 // Only for NOT snap-to-scale
                 if (!token.isSnapToScale()) {
                   return;
                 }
-                helper.scalePair.incrementValue(delta / 16d);
+                helper.scalePair.incrementPairValue(delta / 8d);
               }
               default -> log.debug("Defaulting - invalid mouse event target.");
             }
             evtTarget = MouseTarget.NONE;
-            helper.iFeelDirty();
+            helper.flagAsDirty();
           }
         });
     addMouseMotionListener(
@@ -298,11 +300,16 @@ public class TokenLayoutRenderPanel extends JPanel {
           public void mouseDragged(MouseEvent e) {
             int dx = e.getX() - dragStartX;
             int dy = e.getY() - dragStartY;
+
             if (evtTarget == MouseTarget.IMAGE_OFFSET) {
+              // avoid rounding to zero
+              dx = dx == -1 || dx == 1 ? dx : (int) (dx / zoomFactor);
+              dy = dy == -1 || dy == 1 ? dy : (int) (dy / zoomFactor);
+              // limit to bounds
               int offX = Math.clamp(helper.getTokenAnchorX() + dx, -maxXoff, maxXoff);
               int offY = Math.clamp(helper.getTokenAnchorY() + dy, -maxYoff, maxYoff);
-              helper.anchorXPair.setValue(offX);
-              helper.anchorYPair.setValue(offY);
+              helper.anchorXPair.setPairValue(offX);
+              helper.anchorYPair.setPairValue(offY);
 
             } else if (evtTarget == MouseTarget.VIEW_OFFSET) {
               // drag view

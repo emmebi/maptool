@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.SwingPropertyChangeSupport;
 import net.rptools.lib.MathUtil;
@@ -47,10 +46,7 @@ import org.jetbrains.annotations.NotNull;
  * being updated with the spinner value.<br>
  * Providing a <code>Supplier&lt;Number></code> for a linked property can be used to update the
  * spinner value by calling <code>update()</code>. PropertyChangeSupport and VetoableChangeSupport
- * have been implemented on the spinner and slider models for the methods;<br>
- * setMinimum,<br>
- * setMaximum, and<br>
- * setValue.
+ * have been implemented on the numeric model for the setPairValue method.
  */
 public class SpinnerSliderPaired {
   // constructors
@@ -59,7 +55,7 @@ public class SpinnerSliderPaired {
   }
 
   public SpinnerSliderPaired(JSpinner spinner, JSlider slider, Consumer<Number> propertySetter) {
-    this(spinner, slider, propertySetter, (n) -> n.intValue(), (i) -> ((Number) i).doubleValue());
+    this(spinner, slider, propertySetter, Number::intValue, (i) -> ((Number) i).doubleValue());
     log.debug("spinner-slider pair using default relationship.");
   }
 
@@ -69,7 +65,7 @@ public class SpinnerSliderPaired {
       Consumer<Number> propertySetter,
       Function<Number, Integer> spinnerToSlider,
       Function<Integer, Number> sliderToSpinner) {
-    // set funcitional relationship
+    // set functional relationship
     setSpinnerToSlider(spinnerToSlider);
     setSliderToSpinner(sliderToSpinner);
     // set the controls
@@ -82,7 +78,7 @@ public class SpinnerSliderPaired {
     getLinkedSlider().setModel(commonModel.sliderModelDelegate);
     getLinkedSpinner().setModel(commonModel.spinnerModelDelegate);
 
-    log.debug("new spinner-slider pair: " + this.toString());
+    log.debug("new spinner-slider pair: " + this);
   }
 
   // @formatter:off
@@ -97,22 +93,20 @@ public class SpinnerSliderPaired {
     protected void removePropertyChangeListener(PropertyChangeListener listener) { pcs.removePropertyChangeListener(listener); }
 
     // controls
-    private transient JSpinner linkedSpinner;
-    private transient JSlider linkedSlider;
+    private JSpinner linkedSpinner;
+    private JSlider linkedSlider;
     public JSpinner getLinkedSpinner(){ return linkedSpinner; }
     public JSlider getLinkedSlider(){ return linkedSlider; }
     private void setLinkedSlider(@NotNull JSlider slider){
         this.linkedSlider = slider;
         getLinkedSlider().addMouseWheelListener(
-            e -> { incrementValue((int) Math.round(e.getPreciseWheelRotation()));
-        });
+            e -> incrementPairValue((int) Math.round(e.getPreciseWheelRotation())));
     }
     private void setLinkedSpinner(JSpinner spinner){
         this.linkedSpinner = spinner;
         getLinkedSpinner().addChangeListener(spinnerEditListener);
         getLinkedSpinner().addMouseWheelListener(
-            e -> { incrementValue( e.getPreciseWheelRotation());
-        });
+            e -> incrementPairValue( e.getPreciseWheelRotation()));
     }
     // option to set the spinner to loop/wrap at end values
     private boolean spinnerWraps = false;
@@ -135,30 +129,31 @@ public class SpinnerSliderPaired {
             }
         }
     }
-    public void update(){ if(propertyGetter != null){ setValue(propertyGetter.get()); } }
+    public void update(){ if(propertyGetter != null){ setPairValue(propertyGetter.get()); } }
     // Instance of NumericModel that ties the two controls together
-    private NumericModel commonModel = new NumericModel();
+    private final NumericModel commonModel = new NumericModel();
     // functions that define the relationship between spinner and slider values
     private Function<Integer, Number> sliderToSpinner;
     private Function<Number, Integer> spinnerToSlider;
-    public Function getSpinnerToSlider() { return spinnerToSlider; }
-    public void setSpinnerToSlider(Function function) { spinnerToSlider = function; }
-    public Function getSliderToSpinner() { return sliderToSpinner; }
-    public void setSliderToSpinner(Function function) { sliderToSpinner = function; }
+    public Function<Number, Integer> getSpinnerToSlider() { return spinnerToSlider; }
+    public void setSpinnerToSlider(Function<Number, Integer> function) { spinnerToSlider = function; }
+    public Function<Integer, Number> getSliderToSpinner() { return sliderToSpinner; }
+    public void setSliderToSpinner(Function<Integer, Number> function) { sliderToSpinner = function; }
 
     // public methods pointing to model methods
-    public Number getNextValue(){ return commonModel.getNextValue(); }
-    public Number getPreviousValue(){ return commonModel.getPreviousValue(); }
-    public int getSliderValue(){ return commonModel.getNumber(true).intValue(); }
-    public double getSpinnerValue(){ return commonModel.getNumber(false).doubleValue(); }
-    public void incrementValue(Number n){ commonModel.incrementValue(n);}
-    public void setMaximum(Number n){ commonModel.setMaximum(n);}
-    public void setMinimum(Number n){ commonModel.setMinimum(n);}
-    public void setValue(Number n){ commonModel.setValue(n);}
+    public Number getPairNextValue(){ return commonModel.getModelNextValue(); }
+    public Number getPairPreviousValue(){ return commonModel.getModelPreviousValue(); }
+    public int getPairSliderValue(){ return commonModel.getModelNumber(true).intValue(); }
+    public double getPairSpinnerValue(){ return commonModel.getModelNumber(false).doubleValue(); }
+    public void incrementPairValue(Number n){ commonModel.incrementModelValue(n);}
+    public void setPairMaximum(Number n){ commonModel.setModelMaximum(n);}
+    public void setPairMinimum(Number n){ commonModel.setModelMinimum(n);}
+    public void setPairStepSize(Number n){ commonModel.setModelStepSize(n);}
+    public void setPairValue(Number n){ commonModel.setModelValue(n);}
     //@formatter:on
     // spotless:on
   // The shared model - two delegates controlled from above
-  public class NumericModel {
+  private class NumericModel {
     public NumericModel() {}
 
     // initialise delegates with linked spinner values
@@ -168,7 +163,7 @@ public class SpinnerSliderPaired {
       }
       if (spinnerToSlider == null) { // default 1:1 relationship
         sliderToSpinner = i -> ((Number) i).doubleValue();
-        spinnerToSlider = n -> n.intValue();
+        spinnerToSlider = Number::intValue;
       }
       SpinnerNumberModel spinModel = (SpinnerNumberModel) getLinkedSpinner().getModel();
       spinnerModelDelegate =
@@ -186,34 +181,41 @@ public class SpinnerSliderPaired {
     }
 
     // a method for every flavour
-    private void incrementValue(Number delta) {
-      PropertyChangeEvent pce = new PropertyChangeEvent(this, "increment", getNumber(false), delta);
-      try {
-        vcs.fireVetoableChange(pce);
-        spinnerModelDelegate.increment(delta);
-        pcs.firePropertyChange(pce);
-      } catch (PropertyVetoException e) {
-        log.info(e.getMessage(), e);
+    private void incrementModelValue(Number delta) {
+      boolean isInt = MathUtil.isInt(delta);
+      if (isInt) {
+        setModelValue(getModelNumber(true).intValue() + delta.intValue());
+      } else {
+        setModelValue(getModelNumber(false).doubleValue() + delta.doubleValue());
       }
     }
 
-    private void setStepSize(Number n) {
-      PropertyChangeEvent pce = new PropertyChangeEvent(this, "stepsize", getNumber(false), n);
-      try {
-        vcs.fireVetoableChange(pce);
-        spinnerModelDelegate.setStepSize(n);
-        pcs.firePropertyChange(pce);
-      } catch (PropertyVetoException e) {
-        log.info(e.getMessage(), e);
-      }
+    private void setModelStepSize(Number n) {
+      spinnerModelDelegate.setStepSize(n);
     }
 
-    private void setValue(Number n) {
-      PropertyChangeEvent pce =
-          new PropertyChangeEvent(this, "value", getNumber(MathUtil.isInt(n)), n);
+    private void setModelValue(Number n) {
+      boolean isInt = MathUtil.isInt(n);
+      PropertyChangeEvent pce;
+      if (isInt) {
+        int current = getModelNumber(true).intValue();
+        if (n.intValue() != current) {
+          pce = new PropertyChangeEvent(this, "value", current, n);
+        } else {
+          return;
+        }
+      } else {
+        double curr = getModelNumber(false).doubleValue();
+        if (n.doubleValue() != curr) {
+          pce = new PropertyChangeEvent(this, "value", curr, n);
+        } else {
+          return;
+        }
+      }
+
       try {
         vcs.fireVetoableChange(pce);
-        if (MathUtil.isInt(n)) {
+        if (isInt) {
           sliderModelDelegate.setValue(n.intValue());
         } else {
           spinnerModelDelegate.setValue(n);
@@ -224,9 +226,9 @@ public class SpinnerSliderPaired {
       }
     }
 
-    private void setMaximum(Number n) {
+    private void setModelMaximum(Number n) {
       PropertyChangeEvent pce =
-          new PropertyChangeEvent(this, "value", getNumber(MathUtil.isInt(n)), n);
+          new PropertyChangeEvent(this, "value", getModelNumber(MathUtil.isInt(n)), n);
       try {
         vcs.fireVetoableChange(pce);
         if (MathUtil.isInt(n)) {
@@ -240,9 +242,9 @@ public class SpinnerSliderPaired {
       }
     }
 
-    private void setMinimum(Number n) {
+    private void setModelMinimum(Number n) {
       PropertyChangeEvent pce =
-          new PropertyChangeEvent(this, "value", getNumber(MathUtil.isInt(n)), n);
+          new PropertyChangeEvent(this, "value", getModelNumber(MathUtil.isInt(n)), n);
       try {
         vcs.fireVetoableChange(pce);
         if (MathUtil.isInt(n)) {
@@ -256,23 +258,23 @@ public class SpinnerSliderPaired {
       }
     }
 
-    private Number getNextValue() {
+    private Number getModelNextValue() {
       return (Number) spinnerModelDelegate.getNextValue();
     }
 
-    private Number getPreviousValue() {
+    private Number getModelPreviousValue() {
       return (Number) spinnerModelDelegate.getPreviousValue();
     }
 
-    private <T extends Number> T getNumber(boolean asInt) {
+    private Number getModelNumber(boolean asInt) {
       if (asInt) {
-        return (T) spinnerToSlider.apply(spinnerModelDelegate.getNumber());
+        return spinnerToSlider.apply(spinnerModelDelegate.getNumber());
       } else {
-        return (T) spinnerModelDelegate.getNumber();
+        return spinnerModelDelegate.getNumber();
       }
     }
 
-    // Delegate classes with aditional setters and normal setters redirected
+    // Delegate classes with additional setters and normal setters redirected
     public NumericSpinnerModel spinnerModelDelegate = new NumericSpinnerModel(0d, 0d, 100d, 1d);
 
     private class NumericSpinnerModel extends SpinnerNumberModel {
@@ -280,129 +282,79 @@ public class SpinnerSliderPaired {
         super(value, minimum, maximum, stepSize);
       }
 
-      public void setMax(@NotNull Number n) {
-        super.setMaximum(n.doubleValue());
-        sliderModelDelegate.setMaximum(spinnerToSlider.apply((Number) super.getMaximum()));
+      public void setSpinnerMax(@NotNull Number n) {
+        if (((Number) this.getMaximum()).doubleValue() != n.doubleValue()) {
+          super.setMaximum(n.doubleValue());
+          sliderModelDelegate.setMaximum(spinnerToSlider.apply((Number) super.getMaximum()));
+        }
       }
 
-      public void setMin(@NotNull Number n) {
-        super.setMinimum(n.doubleValue());
-        sliderModelDelegate.setMinimum(spinnerToSlider.apply((Number) super.getMinimum()));
+      public void setSpinnerMin(@NotNull Number n) {
+        if (((Number) this.getMinimum()).doubleValue() != n.doubleValue()) {
+          super.setMinimum(n.doubleValue());
+          sliderModelDelegate.setMinimum(spinnerToSlider.apply((Number) super.getMinimum()));
+        }
       }
 
-      public void setVal(@NotNull Number n) {
-        super.setValue(n.doubleValue());
-        setProperty(n);
-        sliderModelDelegate.setValue(spinnerToSlider.apply(super.getNumber()));
+      private boolean sentTolider = false;
+
+      public void setSpinnerVal(@NotNull Number n, boolean fromSlider) {
+        if (sentTolider && fromSlider) {
+          sentTolider = false;
+        } else {
+          setSpinnerVal(n);
+        }
       }
 
-      public void setStep(@NotNull Number n) {
-        super.setStepSize(n);
-      }
-
-      public void incr(@NotNull Number n) {
-        double newVal = getNumber().doubleValue() + n.doubleValue();
+      public void setSpinnerVal(@NotNull Number n) {
+        double newVal = n.doubleValue();
         double max = ((Number) getMaximum()).doubleValue();
         double min = ((Number) getMinimum()).doubleValue();
-        if (spinnerWraps && (newVal < min || newVal > max)) {
-          if (newVal < min) {
-            newVal = newVal - min + max;
-          } else {
-            newVal = newVal - max + min;
-          }
+        if (newVal < min && spinnerWraps) {
+          newVal = newVal - min + max;
+        } else if (newVal > max && spinnerWraps) {
+          newVal = newVal - max + min;
         } else {
-          newVal = Math.min(max, Math.max(newVal, min));
+          newVal = Math.clamp(newVal, min, max);
         }
-        setValue(newVal);
+        if (!MathUtil.inTolerance(newVal, this.getNumber().doubleValue(), 0.01)) {
+          super.setValue(n.doubleValue());
+          setProperty(n);
+          sentTolider = true;
+          sliderModelDelegate.setValue(spinnerToSlider.apply(super.getNumber()));
+        }
       }
 
-      public void increment(@NotNull Number n) {
-        n = MathUtil.doublePrecision(n.doubleValue(), 4);
-        try {
-          PropertyChangeEvent pce =
-              new PropertyChangeEvent(this, "increment", super.getNumber(), n);
-          vcs.fireVetoableChange(pce);
-          incr(n);
-          pcs.firePropertyChange(pce);
-        } catch (PropertyVetoException e) {
-          log.info(e.getMessage());
-        }
+      public void incrSpinner(@NotNull Number n) {
+        double newVal = getNumber().doubleValue() + n.doubleValue();
+        setValue(newVal);
       }
 
       @Override
       public Object getNextValue() {
-        try {
-          PropertyChangeEvent pce =
-              new PropertyChangeEvent(this, "increment", super.getNumber(), super.getStepSize());
-          vcs.fireVetoableChange(pce);
-          incr(getStepSize());
-          pcs.firePropertyChange(pce);
-        } catch (PropertyVetoException e) {
-          log.info(e.getMessage());
-        }
+        incrSpinner(getStepSize());
         return getNumber();
       }
 
       @Override
       public Object getPreviousValue() {
-        try {
-          PropertyChangeEvent pce =
-              new PropertyChangeEvent(this, "increment", super.getNumber(), super.getStepSize());
-          vcs.fireVetoableChange(pce);
-          incr(-getStepSize().doubleValue());
-          pcs.firePropertyChange(pce);
-        } catch (PropertyVetoException e) {
-          log.info(e.getMessage());
-        }
-        return super.getNumber();
+        incrSpinner(-getStepSize().doubleValue());
+        return getNumber();
       }
 
       @Override
       public void setMinimum(Comparable<?> minimum) {
-        minimum = MathUtil.doublePrecision(((Number) minimum).doubleValue(), 4);
-        if (((Number) this.getMinimum()).doubleValue() != ((Number) minimum).doubleValue()) {
-          try {
-            PropertyChangeEvent pce =
-                new PropertyChangeEvent(this, "minimum", super.getNumber(), minimum);
-            vcs.fireVetoableChange(pce);
-            setMin((Number) minimum);
-            pcs.firePropertyChange(pce);
-          } catch (PropertyVetoException e) {
-            log.info(e.getMessage());
-          }
-        }
+        setSpinnerMin((Number) minimum);
       }
 
       @Override
       public void setMaximum(Comparable<?> maximum) {
-        maximum = MathUtil.doublePrecision(((Number) maximum).doubleValue(), 4);
-        if (((Number) this.getMaximum()).doubleValue() != ((Number) maximum).doubleValue()) {
-          try {
-            PropertyChangeEvent pce =
-                new PropertyChangeEvent(this, "maximum", super.getNumber(), maximum);
-            vcs.fireVetoableChange(pce);
-            setMax((Number) maximum);
-            pcs.firePropertyChange(pce);
-          } catch (PropertyVetoException e) {
-            log.info(e.getMessage());
-          }
-        }
+        setSpinnerMax((Number) maximum);
       }
 
       @Override
       public void setValue(Object value) {
-        value = MathUtil.doublePrecision(((Number) value).doubleValue(), 4);
-        if (this.getNumber().doubleValue() != ((Number) value).doubleValue()) {
-          try {
-            PropertyChangeEvent pce =
-                new PropertyChangeEvent(this, "value", super.getNumber(), value);
-            vcs.fireVetoableChange(pce);
-            setVal((Number) value);
-            pcs.firePropertyChange(pce);
-          } catch (PropertyVetoException e) {
-            log.info(e.getMessage());
-          }
-        }
+        setSpinnerVal((Number) value);
       }
 
       @Override
@@ -419,7 +371,6 @@ public class SpinnerSliderPaired {
             + '}';
       }
     }
-    ;
 
     public NumericSliderModel sliderModelDelegate = new NumericSliderModel(0, 0, 0, 100);
 
@@ -428,61 +379,22 @@ public class SpinnerSliderPaired {
         super(value, extent, min, max);
       }
 
-      public void setMax(@NotNull Number n) {
-        super.setMaximum(n.intValue());
-        spinnerModelDelegate.setMaximum(sliderToSpinner.apply(n.intValue()).doubleValue());
-      }
-
-      public void setMin(@NotNull Number n) {
-        super.setMinimum(n.intValue());
-        spinnerModelDelegate.setMinimum(sliderToSpinner.apply(n.intValue()).doubleValue());
-      }
-
-      public void setVal(@NotNull Number n) {
-        super.setValue(n.intValue());
-        spinnerModelDelegate.setValue(sliderToSpinner.apply(n.intValue()).doubleValue());
-      }
-
       @Override
       public void setValue(int n) {
-        if (this.getValue() != n) {
-          try {
-            PropertyChangeEvent pce = new PropertyChangeEvent(this, "value", super.getValue(), n);
-            vcs.fireVetoableChange(pce);
-            setVal((Number) n);
-            pcs.firePropertyChange(pce);
-          } catch (PropertyVetoException e) {
-            log.info(e.getMessage());
-          }
-        }
+        super.setValue(n);
+        spinnerModelDelegate.setSpinnerVal(sliderToSpinner.apply(n).doubleValue(), true);
       }
 
       @Override
       public void setMinimum(int n) {
-        if (this.getValue() != n) {
-          try {
-            PropertyChangeEvent pce = new PropertyChangeEvent(this, "value", super.getMinimum(), n);
-            vcs.fireVetoableChange(pce);
-            setMin((Number) n);
-            pcs.firePropertyChange(pce);
-          } catch (PropertyVetoException e) {
-            log.info(e.getMessage());
-          }
-        }
+        super.setMinimum(n);
+        spinnerModelDelegate.setMinimum(sliderToSpinner.apply(n).doubleValue());
       }
 
       @Override
       public void setMaximum(int n) {
-        if (this.getValue() != n) {
-          try {
-            PropertyChangeEvent pce = new PropertyChangeEvent(this, "value", super.getMaximum(), n);
-            vcs.fireVetoableChange(pce);
-            setMax((Number) n);
-            pcs.firePropertyChange(pce);
-          } catch (PropertyVetoException e) {
-            log.info(e.getMessage());
-          }
-        }
+        super.setMaximum(n);
+        spinnerModelDelegate.setMaximum(sliderToSpinner.apply(n).doubleValue());
       }
 
       @Override
@@ -501,7 +413,6 @@ public class SpinnerSliderPaired {
             + '}';
       }
     }
-    ;
 
     // spotless:on
     // @formatter:on
@@ -547,20 +458,16 @@ public class SpinnerSliderPaired {
         + '}';
   }
 
-  private ChangeListener spinnerEditListener =
-      new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent e) {
-          JSpinner spinner = (JSpinner) e.getSource();
-          try {
-            spinner.commitEdit();
-          } catch (ParseException pe) {
-            // Edited value is invalid, revert the spinner to the last valid value,
-            JComponent editor = spinner.getEditor();
-            if (editor instanceof JSpinner.NumberEditor) {
-              ((JSpinner.NumberEditor) editor).getTextField().setValue(spinner.getValue());
-            }
-            return;
+  private final ChangeListener spinnerEditListener =
+      e -> {
+        JSpinner spinner = (JSpinner) e.getSource();
+        try {
+          spinner.commitEdit();
+        } catch (ParseException pe) {
+          // Edited value is invalid, revert the spinner to the last valid value,
+          JComponent editor = spinner.getEditor();
+          if (editor instanceof JSpinner.NumberEditor) {
+            ((JSpinner.NumberEditor) editor).getTextField().setValue(spinner.getValue());
           }
         }
       };
