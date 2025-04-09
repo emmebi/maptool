@@ -46,7 +46,7 @@ public class AuraSyntax {
   private static final Logger log = LogManager.getLogger(AuraSyntax.class);
 
   public Map<GUID, LightSource> parseAuras(String text, Iterable<LightSource> original) {
-    final var aurasMap = new LinkedHashMap<GUID, LightSource>();
+    final var aurasMap = new HashMap<GUID, LightSource>();
     final var reader = new LineNumberReader(new BufferedReader(new StringReader(text)));
     List<String> errlog = new LinkedList<>();
 
@@ -98,7 +98,7 @@ public class AuraSyntax {
           final var currentGroupName = line;
           currentGroupOriginalAuras =
               originalAuraMap.getOrDefault(currentGroupName, Collections.emptyMap()).values();
-          auraGroupMap = new LinkedHashMap<>();
+          auraGroupMap = new HashMap<>();
           auraMap.put(currentGroupName, auraGroupMap);
           continue;
         }

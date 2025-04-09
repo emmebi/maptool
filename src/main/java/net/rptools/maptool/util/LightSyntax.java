@@ -46,7 +46,7 @@ public class LightSyntax {
   private static final Logger log = LogManager.getLogger(LightSyntax.class);
 
   public Map<GUID, LightSource> parseLights(String text, Iterable<LightSource> original) {
-    final var lightSourceMap = new LinkedHashMap<GUID, LightSource>();
+    final var lightSourceMap = new HashMap<GUID, LightSource>();
     final var reader = new LineNumberReader(new BufferedReader(new StringReader(text)));
     List<String> errlog = new LinkedList<>();
 
@@ -100,7 +100,7 @@ public class LightSyntax {
               originalLightSourcesMap
                   .getOrDefault(currentGroupName, Collections.emptyMap())
                   .values();
-          lightSourceMap = new LinkedHashMap<>();
+          lightSourceMap = new HashMap<>();
           lightMap.put(currentGroupName, lightSourceMap);
           continue;
         }

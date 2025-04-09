@@ -126,7 +126,7 @@ public class CampaignProperties {
 
     // Play it safe. Don't keep the provided implementations but copy them.
     for (var entry : properties.lightSourcesMap.entrySet()) {
-      lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+      lightSourcesMap.put(entry.getKey(), new HashMap<>(entry.getValue()));
     }
 
     for (BooleanTokenOverlay overlay : properties.tokenStates.values()) {
@@ -164,7 +164,7 @@ public class CampaignProperties {
 
     // Play it safe. Don't keep the provided implementations but copy them.
     for (var entry : lightSourcesMap.entrySet()) {
-      properties.lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+      properties.lightSourcesMap.put(entry.getKey(), new HashMap<>(entry.getValue()));
     }
     properties.lookupTableMap.putAll(lookupTableMap);
     properties.sightTypeMap.putAll(sightTypeMap);
@@ -237,7 +237,7 @@ public class CampaignProperties {
   public Map<String, Map<GUID, LightSource>> getLightSourcesMap() {
     var copy = new TreeMap<String, Map<GUID, LightSource>>();
     for (var entry : lightSourcesMap.entrySet()) {
-      copy.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+      copy.put(entry.getKey(), new HashMap<>(entry.getValue()));
     }
     return copy;
   }
@@ -246,7 +246,7 @@ public class CampaignProperties {
     lightSourcesMap.clear();
     // Play it safe. Don't keep the provided implementations but copy them.
     for (var entry : map.entrySet()) {
-      lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+      lightSourcesMap.put(entry.getKey(), new HashMap<>(entry.getValue()));
     }
   }
 
@@ -295,7 +295,7 @@ public class CampaignProperties {
       Map<String, List<LightSource>> map = LightSource.getDefaultLightSources();
       for (var entry : map.entrySet()) {
         String key = entry.getKey();
-        Map<GUID, LightSource> lightSourceMap = new LinkedHashMap<>();
+        Map<GUID, LightSource> lightSourceMap = new HashMap<>();
         for (LightSource source : entry.getValue()) {
           lightSourceMap.put(source.getId(), source);
         }
@@ -492,7 +492,7 @@ public class CampaignProperties {
     lightSourcesMap = new TreeMap<>();
     if (oldLightSourcesMap != null) {
       for (var entry : oldLightSourcesMap.entrySet()) {
-        lightSourcesMap.put(entry.getKey(), new LinkedHashMap<>(entry.getValue()));
+        lightSourcesMap.put(entry.getKey(), new HashMap<>(entry.getValue()));
       }
     }
 
@@ -564,7 +564,7 @@ public class CampaignProperties {
     dto.getLightSourcesMap()
         .forEach(
             (k, v) -> {
-              var map = new LinkedHashMap<GUID, LightSource>();
+              var map = new HashMap<GUID, LightSource>();
               v.getLightSourcesList()
                   .forEach(
                       l -> {
