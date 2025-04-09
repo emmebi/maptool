@@ -43,6 +43,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class ImageUtil {
   public static final String HINT_TRANSPARENCY = "hintTransparency";
+  
   public static final FilenameFilter SUPPORTED_IMAGE_FILE_FILTER =
       (dir, name) -> {
         name = name.toLowerCase();
@@ -251,12 +252,11 @@ public class ImageUtil {
     try {
       pg.grabPixels();
     } catch (InterruptedException e) {
-      System.err.println("interrupted waiting for pixels!");
+      log.error("Interrupted waiting for pixels", e);
       return Transparency.OPAQUE;
     }
     if ((pg.getStatus() & ImageObserver.ABORT) != 0) {
       log.error("image fetch aborted or errored");
-      System.err.println("image fetch aborted or errored");
       return Transparency.OPAQUE;
     }
     // Look for specific pixels

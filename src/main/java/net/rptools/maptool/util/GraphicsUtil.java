@@ -45,10 +45,10 @@ import net.rptools.maptool.model.GridFactory;
 
 /** */
 public class GraphicsUtil {
+
   public static final int BOX_PADDINGX = 10;
   public static final int BOX_PADDINGY = 2;
 
-  // TODO: Make this configurable
   public static final ImageLabel GREY_LABEL =
       new ImageLabel(RessourceManager.getImage(Images.BOX_GRAY), 4, 4);
   public static final ImageLabel BLUE_LABEL =
@@ -85,7 +85,6 @@ public class GraphicsUtil {
     if (string == null) {
       string = "";
     }
-    // TODO: expand to work for variable width fonts.
     Font oldFont = g.getFont();
     Font fixedWidthFont = new Font("Courier New", 0, 12);
     g.setFont(fixedWidthFont);
@@ -224,8 +223,9 @@ public class GraphicsUtil {
    *     light colors from getting bleached out.
    */
   public static Color lighten(Color c) {
-    if (c == null) return null;
-    else {
+    if (c == null) {
+      return null;
+    } else {
       int r = c.getRed();
       int g = c.getGreen();
       int b = c.getBlue();
@@ -327,7 +327,6 @@ public class GraphicsUtil {
     double b = h / 2;
 
     for (double t = -Math.PI; t <= Math.PI; t += (2 * Math.PI / steps)) {
-      // TODO Why do we accept double inputs, but round/cast to int here?
       int px = (int) Math.round(x + a * Math.cos(t));
       int py = (int) Math.round(y + b * Math.sin(t));
 
@@ -445,7 +444,6 @@ public class GraphicsUtil {
         };
     f.add(p);
     f.setVisible(true);
-    // System.out.println(area.equals(area2));
   }
 
   public static Shape createGridShape(String gridType, double size) {

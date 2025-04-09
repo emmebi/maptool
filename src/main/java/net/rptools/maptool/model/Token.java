@@ -410,12 +410,6 @@ public class Token implements Cloneable {
     y = token.y;
     z = token.z;
 
-    // These properties shouldn't be transferred, they are more transient and relate to token
-    // history, not to new tokens
-    // lastX = token.lastX;
-    // lastY = token.lastY;
-    // lastPath = token.lastPath;
-
     snapToScale = token.snapToScale;
     width = token.width;
     height = token.height;
@@ -547,10 +541,7 @@ public class Token implements Cloneable {
     lastX = lastY = 0;
     // lightSourceList?
     macroMap = null;
-    // macroPropertiesMap = null;
     ownerList.clear();
-    // propertyMapCI = null;
-    // propertyType = "Basic";
     /**
      * Lee: why shouldn't propertyType be set to what the framework uses? In case of multiple
      * propertyType, give a choice; or incorporate in the Campaign Properties window a marker for
@@ -571,8 +562,8 @@ public class Token implements Cloneable {
         sightType = MapTool.getCampaign().getCampaignProperties().getDefaultSightType();
       }
     } catch (Exception e) {
+      log.error("Error while defaulting sight type", e);
       sightType = MapTool.getCampaign().getCampaignProperties().getDefaultSightType();
-      e.printStackTrace();
     }
   }
 
@@ -1787,48 +1778,44 @@ public class Token implements Cloneable {
   }
 
   public Object getProperty(String key) {
-
-    // // Short name ?
-    // if (value == null) {
-    // for (EditTokenProperty property :
-    // MapTool.getCampaign().getCampaignProperties().getTokenPropertyList(getPropertyType())) {
-    // if (property.getShortName().equals(key)) {
-    // value = getPropertyMap().get(property.getShortName().toUpperCase());
-    // }
-    // }
-    // }
     return getPropertyMap().get(key);
   }
 
-  public Object getEvaluatedProperty(String key) {
-    return getEvaluatedProperty(null, key);
+  /**
+   * Returns the default value of this key for the token's property type.
+   *
+   * <p>Searches the property list case-insensitively.
+   *
+   * @return null if the property doesn't exist, otherwise the value expression
+   */
+  @Nullable
+  public String getPropertyDefault(@Nonnull String key) {
+    List<TokenProperty> propertyList =
+        MapTool.getCampaign().getCampaignProperties().getTokenPropertyList(propertyType);
+    if (propertyList == null) {
+      return null;
+    }
+
+    for (TokenProperty property : propertyList) {
+      if (key.equalsIgnoreCase(property.getName())) {
+        return property.getDefaultValue();
+      }
+    }
+
+    return null;
   }
 
   /**
-   * Returns the evaluated property corresponding to the key.
+   * Evaluate the provided expression with the resolver
    *
    * @param resolver the variable resolver to parse code inside the property
    * @param key the key of the value
-   * @return the value
+   * @param val An expression to evaluate
+   * @return The evaluated value
    */
-  public Object getEvaluatedProperty(MapToolVariableResolver resolver, String key) {
-    Object val = getProperty(key);
-    if (val == null) {
-      // Global default ?
-      List<TokenProperty> propertyList =
-          MapTool.getCampaign().getCampaignProperties().getTokenPropertyList(propertyType);
-      if (propertyList != null) {
-        for (TokenProperty property : propertyList) {
-          if (key.equalsIgnoreCase(property.getName())) {
-            val = property.getDefaultValue();
-            break;
-          }
-        }
-      }
-    }
-    if (val == null) {
-      return "";
-    }
+  @Nonnull
+  public Object evaluateProperty(
+      @Nullable MapToolVariableResolver resolver, @Nonnull String key, @Nonnull Object val) {
     if (val.toString().trim().startsWith("{")) {
       /*
        * The normal Gson evaluator was too lenient in identifying JSON objects, so we had to move
@@ -1870,17 +1857,42 @@ public class Token implements Cloneable {
       val = val.toString();
     }
     if (val == null) {
-      val = "";
-    } else {
-      // Finally we try convert it to a JSON object. Fixes #1560.
-      if (val.toString().trim().startsWith("{")) {
-        JsonElement json = JSONMacroFunctions.getInstance().asJsonElement(val.toString());
-        if (json.isJsonObject()) {
-          return json;
-        }
+      return "";
+    }
+    // Finally we try convert it to a JSON object. Fixes #1560.
+    if (val.toString().trim().startsWith("{")) {
+      JsonElement json = JSONMacroFunctions.getInstance().asJsonElement(val.toString());
+      if (json.isJsonObject()) {
+        return json;
       }
     }
+
     return val;
+  }
+
+  @Nonnull
+  public Object getEvaluatedProperty(@Nonnull String key) {
+    return getEvaluatedProperty(null, key);
+  }
+
+  /**
+   * Returns the evaluated property corresponding to the key.
+   *
+   * @param resolver the variable resolver to parse code inside the property
+   * @param key the key of the value
+   * @return the value
+   */
+  @Nonnull
+  public Object getEvaluatedProperty(
+      @Nullable MapToolVariableResolver resolver, @Nonnull String key) {
+    Object val = getProperty(key);
+    if (val == null) {
+      val = getPropertyDefault(key);
+    }
+    if (val == null) {
+      return "";
+    }
+    return evaluateProperty(resolver, key, val);
   }
 
   /**
@@ -2386,7 +2398,7 @@ public class Token implements Cloneable {
         AssetManager.putAsset(asset);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      log.error("Error while creating asset", e);
     }
     return asset;
   }
@@ -2701,13 +2713,19 @@ public class Token implements Cloneable {
       case setState:
         var state = parameters.get(0).getStringValue();
         var stateValue = parameters.get(1);
-        if (stateValue.hasBoolValue()) setState(state, stateValue.getBoolValue());
-        else setState(state, BigDecimal.valueOf(stateValue.getDoubleValue()));
+        if (stateValue.hasBoolValue()) {
+          setState(state, stateValue.getBoolValue());
+        } else {
+          setState(state, BigDecimal.valueOf(stateValue.getDoubleValue()));
+        }
         break;
       case setAllStates:
         stateValue = parameters.get(0);
-        if (stateValue.hasBoolValue()) setAllStates(stateValue.getBoolValue());
-        else setAllStates(BigDecimal.valueOf(stateValue.getDoubleValue()));
+        if (stateValue.hasBoolValue()) {
+          setAllStates(stateValue.getBoolValue());
+        } else {
+          setAllStates(BigDecimal.valueOf(stateValue.getDoubleValue()));
+        }
         break;
       case setPropertyType:
         setPropertyType(parameters.get(0).getStringValue());
