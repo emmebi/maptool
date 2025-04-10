@@ -113,8 +113,8 @@ public class TokenPropertyFunctions extends AbstractFunction {
         "getNotes",
         "setNotes",
         "getTokenLayoutProps",
+        "setTokenLayoutProps",
         "setLayoutProps",
-        "setExtendedTokenLayoutProps",
         "setTokenSnapToGrid",
         "getAllowsURIAccess",
         "setAllowsURIAccess",
@@ -948,9 +948,9 @@ public class TokenPropertyFunctions extends AbstractFunction {
         jarr.addProperty("scale", scale);
         jarr.addProperty("xOffset", xOffset);
         jarr.addProperty("yOffset", yOffset);
-        jarr.addProperty("scaleX", scaleX);
+        jarr.addProperty("xScale", scaleX);
         jarr.addProperty("rotation", rotation);
-        jarr.addProperty("scaleY", scaleY);
+        jarr.addProperty("yScale", scaleY);
         jarr.addProperty("footprintScale", footprintScaleValue);
         return jarr;
       } else {
@@ -959,30 +959,28 @@ public class TokenPropertyFunctions extends AbstractFunction {
         sb.append("xOffset=").append(xOffset).append(delim);
         sb.append("yOffset=").append(yOffset).append(delim);
         sb.append("rotation=").append(rotation).append(delim);
-        sb.append("scaleX=").append(scaleX).append(delim);
-        sb.append("scaleY=").append(scaleY).append(delim);
+        sb.append("xScale=").append(scaleX).append(delim);
+        sb.append("yScale=").append(scaleY).append(delim);
         sb.append("footprintScale=").append(footprintScaleValue);
         return sb.toString();
       }
     }
     /*
-     * setExtendedTokenLayoutProps(StrProp/JSON Object, token: currentToken(), mapName = current map)
+     * setLayoutProps(StrProp/JSON Object, token: currentToken(), mapName = current map)
      */
-    if (functionName.equalsIgnoreCase("setExtendedTokenLayoutProps")) {
+    if (functionName.equalsIgnoreCase("setLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 1, 3);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
       JsonObject json;
       try { // try for json object
-        json = FunctionUtil.paramAsJsonObject("setExtendedTokenLayoutProps", parameters, 0);
+        json = FunctionUtil.paramAsJsonObject("setLayoutProps", parameters, 0);
       } catch (ParserException pe) {
         try { // try for strProp
           json =
               JSONMacroFunctions.getInstance()
                   .getJsonObjectFunctions()
                   .fromStrProp(
-                      FunctionUtil.paramAsString(
-                          "setExtendedTokenLayoutProps", parameters, 0, true),
-                      ";");
+                      FunctionUtil.paramAsString("setLayoutProps", parameters, 0, true), ";");
         } catch (ParserException pe2) {
           throw new ParserException(
               I18N.getText(
@@ -994,10 +992,14 @@ public class TokenPropertyFunctions extends AbstractFunction {
         for (String s : jobj.keySet()) {
           switch (s.toLowerCase()) {
             case "scale" -> token.setSizeScale(jobj.get(s).getAsDouble());
+            case "offsetx" -> token.setAnchor(jobj.get(s).getAsInt(), token.getAnchorY());
             case "xoffset" -> token.setAnchor(jobj.get(s).getAsInt(), token.getAnchorY());
+            case "offsety" -> token.setAnchor(token.getAnchorX(), jobj.get(s).getAsInt());
             case "yoffset" -> token.setAnchor(token.getAnchorX(), jobj.get(s).getAsInt());
             case "scalex" -> token.setScaleX(jobj.get(s).getAsDouble());
+            case "xscale" -> token.setScaleX(jobj.get(s).getAsDouble());
             case "scaley" -> token.setScaleY(jobj.get(s).getAsDouble());
+            case "yscale" -> token.setScaleY(jobj.get(s).getAsDouble());
             case "rotation" -> token.setImageRotation(jobj.get(s).getAsDouble());
             default -> {
               continue;
@@ -1010,9 +1012,9 @@ public class TokenPropertyFunctions extends AbstractFunction {
       }
     }
     /*
-     * setLayoutProps(scale, xOffset, yOffset, token: currentToken(), mapName = current map)
+     * setTokenLayoutProps(scale, xOffset, yOffset, token: currentToken(), mapName = current map)
      */
-    if (functionName.equalsIgnoreCase("setLayoutProps")) {
+    if (functionName.equalsIgnoreCase("setTokenLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 3, 5);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 3, 4);
 
