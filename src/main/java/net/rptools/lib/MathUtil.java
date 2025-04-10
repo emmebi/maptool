@@ -36,6 +36,9 @@ public class MathUtil {
   public static boolean isInt(Object o) {
     return o.getClass().isAssignableFrom(Integer.class);
   }
+  public static boolean isDouble(Object o) {
+    return o.getClass().isAssignableFrom(Double.class);
+  }
 
   /**
    * Checks that a value lies within a specified tolerance. Useful for checking if a value is "close
