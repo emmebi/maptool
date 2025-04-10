@@ -40,7 +40,6 @@ import org.apache.logging.log4j.Logger;
  */
 public class TokenLayoutRenderPanel extends JPanel {
   private static final Logger log = LogManager.getLogger(TokenLayoutRenderPanel.class);
-
   public TokenLayoutRenderPanel() {
     evtTarget = MouseTarget.NONE;
     addRenderPaneListeners();
@@ -184,7 +183,10 @@ public class TokenLayoutRenderPanel extends JPanel {
     // which axis has the least space to grow
     boolean scaleToWidth = size.getWidth() - fitWidth < size.getHeight() - fitHeight;
     // set the zoom-factor
-    double newZoom = scaleToWidth ? size.getWidth() / fitWidth : size.getHeight() / fitHeight;
+    double newZoom = Math.clamp(
+            scaleToWidth ? size.getWidth() / fitWidth : size.getHeight() / fitHeight,
+            TokenLayoutPanelHelper.MIN_ZOOM,
+            TokenLayoutPanelHelper.MAX_ZOOM);
 
     setZoomFactor(newZoom);
     log.debug(
