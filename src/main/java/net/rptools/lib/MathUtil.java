@@ -34,10 +34,11 @@ public class MathUtil {
   }
 
   public static boolean isInt(Object o) {
-    return o.getClass().isAssignableFrom(Integer.class);
-  }
-  public static boolean isDouble(Object o) {
-    return o.getClass().isAssignableFrom(Double.class);
+    if (o == null) {
+      return false;
+    } else {
+      return o.getClass().isAssignableFrom(Integer.class);
+    }
   }
 
   /**

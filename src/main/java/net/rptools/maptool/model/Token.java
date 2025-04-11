@@ -241,7 +241,6 @@ public class Token implements Cloneable {
   private int lastY;
   private Path<? extends AbstractPoint> lastPath;
 
-  // Token Layout
   private int anchorX;
   private int anchorY;
   private double sizeScale = 1;
@@ -2128,7 +2127,6 @@ public class Token implements Cloneable {
     return "Token: " + id;
   }
 
-  // Token Layout - Getters/Setters
   public void setAnchor(int x, int y) {
     anchorX = x;
     anchorY = y;
@@ -2246,7 +2244,7 @@ public class Token implements Cloneable {
    * @return null or angle in degrees
    */
   public int getFacing() {
-    // -90° is natural alignment. TODO This should really be a per grid setting
+    // -90° is natural alignment.
     return facing == null ? -90 : facing;
   }
 
@@ -2281,8 +2279,8 @@ public class Token implements Cloneable {
     td.put(TokenTransferData.ASSET_ID, imageAssetMap.get(null));
     td.put(TokenTransferData.Z, z);
     td.put(TokenTransferData.SNAP_TO_SCALE, snapToScale);
-    td.put(TokenTransferData.WIDTH, scaleX); // this makes no sense
-    td.put(TokenTransferData.HEIGHT, scaleY); // ditto
+    td.put(TokenTransferData.WIDTH, scaleX);
+    td.put(TokenTransferData.HEIGHT, scaleY);
     td.put(TokenTransferData.SNAP_TO_GRID, snapToGrid);
     td.put(TokenTransferData.OWNER_TYPE, ownerType);
     td.put(TokenTransferData.VISIBLE_OWNER_ONLY, visibleOnlyToOwner);
@@ -3000,7 +2998,7 @@ public class Token implements Cloneable {
     token.height = dto.getHeight();
     token.isoWidth = dto.getIsoWidth();
     token.isoHeight = dto.getIsoHeight();
-    // Layout
+
     token.anchorX = dto.getAnchorX();
     token.anchorY = dto.getAnchorY();
     token.scaleX = dto.getScaleX();
