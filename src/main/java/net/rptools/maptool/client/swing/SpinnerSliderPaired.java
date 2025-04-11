@@ -216,7 +216,6 @@ public class SpinnerSliderPaired {
   }
 
   public void setPairValue(Number n) {
-    log.info("setPairValue: " + n);
     commonModel.setModelValue(n);
   }
 
@@ -271,7 +270,6 @@ public class SpinnerSliderPaired {
 
     // a method for every flavour
     private void incrementModelValue(Number delta) {
-      log.info("incrementModelValue: " + delta);
       if (MathUtil.isInt(delta)) {
         setModelValue(getModelNumber(true).intValue() + delta.intValue(), Source.SLIDER);
       } else {
@@ -292,7 +290,6 @@ public class SpinnerSliderPaired {
           && sources.contains(Source.SPINNER)
           && sources.contains(Source.SLIDER)) {
         sources.clear();
-        log.info("cleared");
         return;
       } else {
         sources.add(s);
@@ -308,16 +305,7 @@ public class SpinnerSliderPaired {
 
       if (modelWraps) {
         // wrap if exceeding range
-
         if (newVal < floor) {
-          log.info(
-              newVal
-                  + " < floor "
-                  + floor
-                  + " ceiling: "
-                  + ceiling
-                  + " calc = "
-                  + (newVal - floor + ceiling));
           newVal = newVal - floor + ceiling;
         } else if (newVal >= ceiling) {
           newVal = newVal - ceiling + floor;
@@ -478,9 +466,7 @@ public class SpinnerSliderPaired {
           try {
             spinner.commitEdit();
           } catch (ParseException pe) {
-            log.info(
-                pe.getLocalizedMessage()); // Edited value is invalid, revert the spinner to the
-            // last valid value,
+            // Edited value is invalid, revert the spinner to the last valid value,
             JComponent editor = spinner.getEditor();
             if (editor instanceof JSpinner.NumberEditor) {
               ((JSpinner.NumberEditor) editor).getTextField().setValue(spinner.getValue());
