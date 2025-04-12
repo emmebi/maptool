@@ -973,8 +973,7 @@ class TokenLayoutPanelHelper {
           AppConstants.FLIP_DIRECTION.getFlipDirection(
               flipDirections.contains(AppConstants.FLIP_DIRECTION.HORIZONTAL),
               flipDirections.contains(AppConstants.FLIP_DIRECTION.VERTICAL),
-              flipDirections.contains(AppConstants.FLIP_DIRECTION.ISOMETRIC)
-          );
+              flipDirections.contains(AppConstants.FLIP_DIRECTION.ISOMETRIC));
       if (!direction.equals(AppConstants.FLIP_DIRECTION.NONE)) {
         bi = ImageUtil.flipCartesian(bi, direction);
       }
