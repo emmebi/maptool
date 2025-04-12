@@ -3007,6 +3007,7 @@ public class Token implements Cloneable {
     token.isFlippedX = dto.getFlippedX();
     token.isFlippedY = dto.getFlippedY();
     token.isFlippedIso = dto.getFlippedIso();
+    token.imageRotation = dto.getImageRotation();
     token.facing = dto.hasFacing() ? dto.getFacing().getValue() : null;
 
     dto.getSizeMapMap().forEach((k, v) -> token.sizeMap.put(k, GUID.valueOf(v)));
@@ -3115,6 +3116,7 @@ public class Token implements Cloneable {
     dto.setSizeScale(sizeScale);
     dto.setScaleX(scaleX);
     dto.setScaleY(scaleY);
+    dto.setImageRotation(imageRotation);
     if (lastPath != null) {
       dto.setLastPath(lastPath.toDto());
     }
