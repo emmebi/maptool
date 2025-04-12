@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.image.ImageUtil;
-import net.rptools.maptool.client.ui.zone.renderer.TokenLocation;
+import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
@@ -32,7 +32,7 @@ import org.apache.log4j.Logger;
 
 public class TokenRenderer {
   public static final String GRAPHICS = "graphics";
-  public static final String LOCATION = "location";
+  public static final String POSITION = "position";
   public static final String OPACITY = "opacity";
   public static final String CLIP = "clip";
   private static final Logger log = LogManager.getLogger(TokenRenderer.class);
@@ -40,7 +40,7 @@ public class TokenRenderer {
   private final Map<Token, BufferedImage> renderImageMap = new HashMap<>();
   private final Map<Token, TokenState> tokenStateMap = new HashMap<>();
   private Graphics2D g2d;
-  private TokenLocation location;
+  private TokenPosition position;
   private Token token;
   private float opacity = 1f;
   private Area clip = null;
@@ -89,11 +89,11 @@ public class TokenRenderer {
   private boolean haveSufficientRenderInfo(Map<String, Object> renderInfo) {
     try {
       // has minimum keys required
-      if (!(renderInfo.containsKey(GRAPHICS) && renderInfo.containsKey(LOCATION))) {
+      if (!(renderInfo.containsKey(GRAPHICS) && renderInfo.containsKey(POSITION))) {
         return false;
       }
       g2d = (Graphics2D) renderInfo.get(GRAPHICS);
-      location = (TokenLocation) renderInfo.get(LOCATION);
+      position = (TokenPosition) renderInfo.get(POSITION);
       if (renderInfo.containsKey(OPACITY)) {
         opacity = (float) renderInfo.get(OPACITY);
       } else {
@@ -148,7 +148,7 @@ public class TokenRenderer {
     if (clip != null) {
       g2d.setClip(clip);
     }
-    g2d.translate(location.x + location.scaledWidth / 2d, location.y + location.scaledHeight / 2d);
+    g2d.translate(position.x + position.scaledWidth / 2d, position.y + position.scaledHeight / 2d);
 
     if (token.hasFacing() && canSpin) {
       g2d.rotate(Math.toRadians(token.getFacingInDegrees()));
@@ -198,11 +198,11 @@ public class TokenRenderer {
   }
 
   public void paintFacingArrow(
-      Graphics2D tokenG, Token token, Rectangle footprintBounds, TokenLocation location) {
+      Graphics2D tokenG, Token token, Rectangle footprintBounds, TokenPosition position) {
     if (!facingArrowRenderer.isInitialised()) {
       facingArrowRenderer.setRenderer(renderer);
     }
-    facingArrowRenderer.paintArrow(tokenG, token, footprintBounds, location, renderer);
+    facingArrowRenderer.paintArrow(tokenG, token, footprintBounds, position, renderer);
   }
 
   private record TokenState(

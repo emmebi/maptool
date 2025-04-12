@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import net.rptools.lib.CodeTimer;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.ui.zone.renderer.TokenLocation;
+import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.Grid;
@@ -73,7 +73,7 @@ public class FacingArrowRenderer {
       Graphics2D tokenG,
       Token token,
       Rectangle footprintBounds_,
-      TokenLocation location,
+      TokenPosition position,
       ZoneRenderer zoneRenderer) {
     if (!renderer.equals(zoneRenderer)) {
       setRenderer(zoneRenderer);
@@ -101,8 +101,8 @@ public class FacingArrowRenderer {
       facing %= 360;
     }
     double radFacing = Math.toRadians(facing);
-    double cx = location.x + location.scaledWidth / 2d;
-    double cy = location.y + location.scaledHeight / 2d;
+    double cx = position.x + position.scaledWidth / 2d;
+    double cy = position.y + position.scaledHeight / 2d;
 
     Shape facingArrow = getArrow(token);
 
@@ -112,8 +112,8 @@ public class FacingArrowRenderer {
             .createTransformedShape(facingArrow);
 
     if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
-      double xp = location.scaledWidth / 2;
-      double yp = location.scaledHeight / 2;
+      double xp = position.scaledWidth / 2;
+      double yp = position.scaledHeight / 2;
       if (facing >= 45 && facing <= 135 || facing >= 225 && facing <= 315) {
         xp = yp / Math.tan(Math.toRadians(facing));
         if (facing > 180) {
