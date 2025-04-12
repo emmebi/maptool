@@ -444,5 +444,4 @@ public class GraphicsUtil {
     f.add(p);
     f.setVisible(true);
   }
-
 }
