@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.rptools.lib.MathUtil;
+import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
@@ -414,21 +415,21 @@ public class ImageUtil {
    * @param direction 0-nothing, 1-horizontal, 2-vertical, 3-both
    * @return flipped BufferedImage
    */
-  public static BufferedImage flipCartesian(BufferedImage image, int direction) {
-    boolean flipHorizontal = (direction & 1) == 1;
-    boolean flipVertical = (direction & 2) == 2;
-
-    if (!flipHorizontal && !flipVertical) {
+  public static BufferedImage flipCartesian(
+      BufferedImage image, AppConstants.FLIP_DIRECTION direction) {
+    boolean flipH = AppConstants.FLIP_DIRECTION.isFlippedH(direction);
+    boolean flipV = AppConstants.FLIP_DIRECTION.isFlippedV(direction);
+    if (!flipH && !flipV) {
       return image;
     }
 
     BufferedImage workImage =
         new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
 
-    int workW = image.getWidth() * (flipHorizontal ? -1 : 1);
-    int workH = image.getHeight() * (flipVertical ? -1 : 1);
-    int workX = flipHorizontal ? image.getWidth() : 0;
-    int workY = flipVertical ? image.getHeight() : 0;
+    int workW = image.getWidth() * (flipH ? -1 : 1);
+    int workH = image.getHeight() * (flipV ? -1 : 1);
+    int workX = flipH ? image.getWidth() : 0;
+    int workY = flipV ? image.getHeight() : 0;
 
     Graphics2D wig = workImage.createGraphics();
     wig.drawImage(image, workX, workY, workW, workH, null);
@@ -545,7 +546,10 @@ public class ImageUtil {
   public static BufferedImage getTokenRenderImage(Token token, ZoneRenderer zr) {
     BufferedImage image = getTokenImage(token, zr);
 
-    int flipDirection = (token.isFlippedX() ? 1 : 0) + (token.isFlippedY() ? 2 : 0);
+    AppConstants.FLIP_DIRECTION flipDirection =
+        AppConstants.FLIP_DIRECTION.getFlipDirection(
+            token.isFlippedX(), token.isFlippedY(), token.getIsFlippedIso());
+
     image = flipCartesian(image, flipDirection);
     if (token.getIsFlippedIso() && zr.getZone().getGrid().isIsometric()) {
       image = flipIsometric(image, true);
