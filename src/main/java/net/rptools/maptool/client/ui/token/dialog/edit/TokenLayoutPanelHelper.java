@@ -38,7 +38,6 @@ import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
-import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -985,7 +984,7 @@ class TokenLayoutPanelHelper {
     }
 
     private Shape createGridShape(boolean trueSize) {
-      return GraphicsUtil.createGridShape(
+      return Grid.createGridShape(
           GridFactory.getGridType(grid), (trueSize ? grid.getSize() : grid.getSize() - 8));
     }
 
