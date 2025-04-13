@@ -39,7 +39,7 @@
             </constraints>
             <properties>
               <name value="notesPanel"/>
-              <visible value="true"/>
+              <visible value="false"/>
             </properties>
             <border type="none"/>
             <children>
@@ -1237,6 +1237,7 @@
                       <actionCommand value=""/>
                       <name value="scaleButton"/>
                       <text value=""/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <hspacer id="e2734">
@@ -1340,6 +1341,7 @@
                     <properties>
                       <name value="rotationSlider"/>
                       <orientation value="1"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="34932" class="javax.swing.JLabel">
@@ -1349,6 +1351,7 @@
                     <properties>
                       <name value="rotationLabel"/>
                       <text resource-bundle="net/rptools/maptool/language/i18n" key="Label.rotation"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="c3ed3" class="javax.swing.JSpinner" default-binding="true">
@@ -1357,6 +1360,7 @@
                     </constraints>
                     <properties>
                       <name value="rotationSpinner"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <vspacer id="c6c0c">
@@ -1368,7 +1372,7 @@
               </grid>
               <component id="188d4" class="javax.swing.JButton" default-binding="true">
                 <constraints>
-                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="2" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <minimum-size width="32" height="32"/>
                     <preferred-size width="32" height="32"/>
                     <maximum-size width="32" height="32"/>

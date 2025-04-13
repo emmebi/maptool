@@ -67,18 +67,17 @@ public class TokenLayoutRenderPanel extends JPanel {
 
   private TokenLayoutPanelHelper helper;
 
-  protected void setHelper(TokenLayoutPanelHelper h) {
+  void setHelper(TokenLayoutPanelHelper h) {
     helper = h;
   }
 
-  public TokenLayoutPanelHelper getHelper() {
+  TokenLayoutPanelHelper getHelper() {
     return helper;
   }
 
   private enum MouseTarget {
     NONE,
     IMAGE_OFFSET,
-    ROTATION,
     SCALE,
     VIEW_OFFSET,
     ZOOM
@@ -99,11 +98,6 @@ public class TokenLayoutRenderPanel extends JPanel {
 
   private double zoomFactor = -1.0;
 
-  public void setInitialScale(double initialScale) {
-    this.initialScale = initialScale;
-  }
-
-  private double initialScale = 1.0;
   public Supplier<Number> zoom = () -> zoomFactor;
   public Consumer<Number> zoomSet = d -> zoomFactor = MathUtil.doublePrecision(d.doubleValue(), 4);
 
@@ -140,7 +134,6 @@ public class TokenLayoutRenderPanel extends JPanel {
     zoomFactor = -1d;
     this.token = token;
     helper.setToken(token, false);
-    setInitialScale(helper.getTokenSizeScale());
     calcZoomFactor();
   }
 
@@ -265,39 +258,29 @@ public class TokenLayoutRenderPanel extends JPanel {
           }
         });
     addMouseWheelListener(
-        new MouseWheelListener() {
-          @Override
-          public void mouseWheelMoved(MouseWheelEvent e) {
-            double delta = e.getPreciseWheelRotation();
-            if (delta == 0) {
-              return;
-            }
-            evtTarget =
-                SwingUtil.isShiftDown(e)
-                    ? MouseTarget.ROTATION
-                    : SwingUtil.isControlDown(e) ? MouseTarget.ZOOM : MouseTarget.SCALE;
-
-            switch (evtTarget) {
-              case MouseTarget.ROTATION -> {
-                delta = delta < 0 ? Math.min(-0.025, delta) : Math.max(0.025, delta);
-                helper.rotationPair.incrementPairValue(delta);
-              }
-              case MouseTarget.ZOOM -> {
-                helper.zoomPair.incrementPairValue(delta);
-                setZoomFactor(helper.zoomPair.getPairSpinnerValue());
-              }
-              case MouseTarget.SCALE -> {
-                // Only for NOT snap-to-scale
-                if (!token.isSnapToScale()) {
-                  return;
-                }
-                helper.scalePair.incrementPairValue(delta / 8d);
-              }
-              default -> log.debug("Defaulting - invalid mouse event target.");
-            }
-            evtTarget = MouseTarget.NONE;
-            helper.flagAsDirty();
+        e -> {
+          double delta = e.getPreciseWheelRotation();
+          if (delta == 0) {
+            return;
           }
+          evtTarget = SwingUtil.isControlDown(e) ? MouseTarget.ZOOM : MouseTarget.SCALE;
+
+          switch (evtTarget) {
+            case MouseTarget.ZOOM -> {
+              helper.zoomPair.incrementPairValue(delta);
+              setZoomFactor(helper.zoomPair.getPairSpinnerValue());
+            }
+            case MouseTarget.SCALE -> {
+              // Only for NOT snap-to-scale
+              if (!token.isSnapToScale()) {
+                return;
+              }
+              helper.scalePair.incrementPairValue(delta / 8d);
+            }
+            default -> log.debug("Defaulting - invalid mouse event target.");
+          }
+          evtTarget = MouseTarget.NONE;
+          helper.flagAsDirty();
         });
     addMouseMotionListener(
         new MouseMotionAdapter() {
@@ -359,7 +342,7 @@ public class TokenLayoutRenderPanel extends JPanel {
     // Footprint
     helper.renderBits.paintFootprint(g, zoomFactor);
     // Add horizontal and vertical lines to help with centering
-    helper.renderBits.paintCentreLines(g, 0, true, false);
+    helper.renderBits.paintCentreLines(g, true, false);
     // Token
     helper.renderBits.paintToken(g, evtTarget.equals(MouseTarget.IMAGE_OFFSET));
     helper.renderBits.paintCentreMark(g);

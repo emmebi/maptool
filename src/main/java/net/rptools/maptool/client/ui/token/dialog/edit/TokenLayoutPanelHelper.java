@@ -15,7 +15,6 @@
 package net.rptools.maptool.client.ui.token.dialog.edit;
 
 import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatButton;
 import java.awt.*;
 import java.awt.event.*;
@@ -106,8 +105,6 @@ class TokenLayoutPanelHelper {
       EnumSet.noneOf(AppConstants.FLIP_DIRECTION.class);
   private static final UIDefaults UI_DEFAULTS = UIManager.getDefaults();
   private static final double DEFAULT_FONT_SIZE = UI_DEFAULTS.getFont("defaultFont").getSize2D();
-  private static final int ICON_SIZE = (int) (DEFAULT_FONT_SIZE * 2 + 4);
-
   protected Grid grid = MapTool.getFrame().getCurrentZoneRenderer().getZone().getGrid();
   private boolean noGrid = GridFactory.getGridType(grid).equals(GridFactory.NONE);
   private int gridSize = grid.getSize();
@@ -126,10 +123,9 @@ class TokenLayoutPanelHelper {
   private JRootPane parentRoot;
   private final TokenLayoutRenderPanel renderPanel;
   private JComboBox sizeCombo;
-  private JLabel scaleLabel;
-  private JSpinner anchorXSpinner, anchorYSpinner, rotationSpinner, scaleSpinner, zoomSpinner;
-  private JSlider anchorXSlider, anchorYSlider, rotationSlider, scaleSlider, zoomSlider;
-  private AbstractButton scaleButton, okButton;
+  private JSpinner anchorXSpinner, anchorYSpinner, scaleSpinner, zoomSpinner;
+  private JSlider anchorXSlider, anchorYSlider, scaleSlider, zoomSlider;
+  private AbstractButton okButton;
 
   private void setOKButton(JButton b) {
     okButton = b;
@@ -146,11 +142,6 @@ class TokenLayoutPanelHelper {
     return sizeCombo;
   }
 
-  private JLabel getScaleLabel() {
-    if (scaleLabel == null) scaleLabel = parent.getLabel("scaleLabel");
-    return scaleLabel;
-  }
-
   private JSpinner getAnchorXSpinner() {
     if (anchorXSpinner == null) anchorXSpinner = parent.getSpinner("anchorXSpinner");
     return anchorXSpinner;
@@ -159,11 +150,6 @@ class TokenLayoutPanelHelper {
   private JSpinner getAnchorYSpinner() {
     if (anchorYSpinner == null) anchorYSpinner = parent.getSpinner("anchorYSpinner");
     return anchorYSpinner;
-  }
-
-  private JSpinner getRotationSpinner() {
-    if (rotationSpinner == null) rotationSpinner = parent.getSpinner("rotationSpinner");
-    return rotationSpinner;
   }
 
   private JSpinner getScaleSpinner() {
@@ -186,11 +172,6 @@ class TokenLayoutPanelHelper {
     return anchorYSlider;
   }
 
-  private JSlider getRotationSlider() {
-    if (rotationSlider == null) rotationSlider = (JSlider) parent.getComponent("rotationSlider");
-    return rotationSlider;
-  }
-
   private JSlider getScaleSlider() {
     if (scaleSlider == null) scaleSlider = (JSlider) parent.getComponent("scaleSlider");
     return scaleSlider;
@@ -201,31 +182,14 @@ class TokenLayoutPanelHelper {
     return zoomSlider;
   }
 
-  private AbstractButton getScaleButton() {
-    if (scaleButton == null) scaleButton = parent.getButton("scaleButton");
-    return scaleButton;
-  }
-
   private TokenLayoutRenderPanel getRenderPanel() {
     return renderPanel;
   }
 
-  SpinnerSliderPaired anchorXPair, anchorYPair, rotationPair, scalePair, zoomPair;
+  SpinnerSliderPaired anchorXPair, anchorYPair, scalePair, zoomPair;
 
   double getTokenSizeScale() {
     return mirrorToken.getSizeScale();
-  }
-
-  private double getTokenScaleX() {
-    return mirrorToken.getScaleX();
-  }
-
-  private double getTokenScaleY() {
-    return mirrorToken.getScaleY();
-  }
-
-  private double getTokenImageRotation() {
-    return mirrorToken.getImageRotation();
   }
 
   int getTokenAnchorX() {
@@ -248,16 +212,8 @@ class TokenLayoutPanelHelper {
     return mirrorToken.getIsFlippedIso();
   }
 
-  private void setTokenScaleX(double scale) {
-    mirrorToken.setScaleX(scale);
-  }
-
-  private void setTokenScaleY(double scale) {
-    mirrorToken.setScaleY(scale);
-  }
-
-  private void setTokenSizeScale(double scale) {
-    mirrorToken.setSizeScale(scale);
+  private void setTokenSizeScale(Number scale) {
+    mirrorToken.setSizeScale(scale.doubleValue());
   }
 
   private void setTokenAnchorX(Number x) {
@@ -266,10 +222,6 @@ class TokenLayoutPanelHelper {
 
   private void setTokenAnchorY(Number y) {
     mirrorToken.setAnchorY(y.intValue());
-  }
-
-  private void setTokenImageRotation(Number value) {
-    mirrorToken.setImageRotation(value.doubleValue());
   }
 
   protected void setTokenFlipIso(Boolean b) {
@@ -301,42 +253,6 @@ class TokenLayoutPanelHelper {
     }
     flagAsDirty();
   }
-
-  /**
-   * There is one spinner/slider for three different scale settings. This sets the value for the
-   * active axis/axes
-   *
-   * @param n (Number) the scale value being set
-   */
-  protected void setScaleByAxis(Number n) {
-    double value = n.doubleValue();
-    //    double value = MathUtil.doublePrecision(n.doubleValue(), 4);
-    log.debug("scaleAxis: " + scaleAxis + " -> " + value);
-    switch (scaleAxis) {
-      case 0 -> setTokenSizeScale(value);
-      case 1 -> setTokenScaleX(value);
-      case 2 -> setTokenScaleY(value);
-    }
-  }
-
-  /**
-   * There is one spinner/slider for three different scale settings. This returns the value for the
-   * active axis/axes
-   *
-   * @return double value for appropriate scale
-   */
-  private Number getScaleByAxis() {
-    if (scaleAxis == 0) {
-      return getTokenSizeScale();
-    } else if (scaleAxis == 1) {
-      return getTokenScaleX();
-    } else {
-      return getTokenScaleY();
-    }
-  }
-
-  /* used to determine which scale is being edited: 0 is XY, 1 is X, 2 is Y */
-  private int scaleAxis = 0;
 
   /**
    * These functions serve to link the scale and zoom sliders and spinners and allow a useful
@@ -371,7 +287,6 @@ class TokenLayoutPanelHelper {
 
   void resetPanel() {
     setToken(originalToken, false);
-    renderPanel.setInitialScale(1d);
     renderPanel.calcZoomFactor();
   }
 
@@ -437,9 +352,6 @@ class TokenLayoutPanelHelper {
   protected void commitChanges(Token tok) {
     tok.setAnchor(getTokenAnchorX(), getTokenAnchorY());
     tok.setSizeScale(getTokenSizeScale());
-    tok.setScaleX(getTokenScaleX());
-    tok.setScaleY(getTokenScaleY());
-    tok.setImageRotation(getTokenImageRotation());
     tok.setFlippedX(flipDirections.contains(AppConstants.FLIP_DIRECTION.HORIZONTAL));
     tok.setFlippedY(flipDirections.contains(AppConstants.FLIP_DIRECTION.VERTICAL));
     tok.setIsFlippedIso(flipDirections.contains(AppConstants.FLIP_DIRECTION.ISOMETRIC));
@@ -448,9 +360,7 @@ class TokenLayoutPanelHelper {
   protected void setToken(Token token, boolean useDefaults) {
     grid = MapTool.getFrame().getCurrentZoneRenderer().getZone().getGrid();
     boolean isoGrid = grid.isIsometric();
-    boolean hexGrid = grid.isHex();
     noGrid = GridFactory.getGridType(grid).equals(GridFactory.NONE);
-    boolean squareGrid = GridFactory.getGridType(grid).equals(GridFactory.SQUARE);
     renderBits = new RenderBits();
     gridSize = grid.getSize();
     cellHeight = grid.getCellHeight();
@@ -461,10 +371,7 @@ class TokenLayoutPanelHelper {
     this.mirrorToken = new Token(token, false);
 
     if (useDefaults) {
-      mirrorToken.setImageRotation(0);
       mirrorToken.setSizeScale(1d);
-      mirrorToken.setScaleX(1d);
-      mirrorToken.setScaleY(1d);
       mirrorToken.setAnchor(0, 0);
     }
 
@@ -513,13 +420,8 @@ class TokenLayoutPanelHelper {
     anchorYPair.setPropertyName("AnchorY");
     anchorYPair.addPropertyChangeListener(controlListener);
 
-    rotationPair.setPropertySetter(this::setTokenImageRotation);
-    rotationPair.setPropertyGetter(this::getTokenImageRotation);
-    rotationPair.setPropertyName("Rotation");
-    rotationPair.addPropertyChangeListener(controlListener);
-
-    scalePair.setPropertySetter(this::setScaleByAxis);
-    scalePair.setPropertyGetter(this::getScaleByAxis);
+    scalePair.setPropertySetter(this::setTokenSizeScale);
+    scalePair.setPropertyGetter(this::getTokenSizeScale);
     scalePair.setPropertyName("Scale");
     scalePair.addPropertyChangeListener(controlListener);
 
@@ -588,9 +490,6 @@ class TokenLayoutPanelHelper {
     anchorXPair = new SpinnerSliderPaired(getAnchorXSpinner(), getAnchorXSlider());
     anchorYPair = new SpinnerSliderPaired(getAnchorYSpinner(), getAnchorYSlider());
 
-    rotationPair = new SpinnerSliderPaired(getRotationSpinner(), getRotationSlider());
-    rotationPair.setModelWraps(true);
-
     scalePair =
         new SpinnerSliderPaired(
             getScaleSpinner(),
@@ -613,7 +512,6 @@ class TokenLayoutPanelHelper {
 
     anchorXPair.addPropertyChangeListener(evt -> flagAsDirty());
     anchorYPair.addPropertyChangeListener(evt -> flagAsDirty());
-    rotationPair.addPropertyChangeListener(evt -> flagAsDirty());
     scalePair.addPropertyChangeListener(evt -> flagAsDirty());
     zoomPair.addPropertyChangeListener(evt -> flagAsDirty());
   }
@@ -622,19 +520,16 @@ class TokenLayoutPanelHelper {
     /* models */
     getAnchorXSpinner().setModel(new SpinnerNumberModel(0d, -200d, 200d, 1d));
     getAnchorYSpinner().setModel(new SpinnerNumberModel(0d, -200d, 200d, 1d));
-    getRotationSpinner().setModel(new SpinnerNumberModel(0d, 0d, 360d, 0.1));
     getScaleSpinner().setModel(new SpinnerNumberModel(1d, 0d, 3d, 0.1));
     getZoomSpinner().setModel(new SpinnerNumberModel(1d, 0d, 3d, 0.1));
     getZoomSpinner().setVisible(false);
     /* editors */
     getAnchorXSpinner().setEditor(new JSpinner.NumberEditor(anchorXSpinner, "0"));
     getAnchorYSpinner().setEditor(new JSpinner.NumberEditor(anchorYSpinner, "0"));
-    getRotationSpinner().setEditor(new JSpinner.NumberEditor(rotationSpinner, "0.0"));
     getScaleSpinner().setEditor(new JSpinner.NumberEditor(scaleSpinner, "0%"));
 
     ((JSpinner.NumberEditor) getAnchorXSpinner().getEditor()).getTextField().setColumns(3);
     ((JSpinner.NumberEditor) getAnchorYSpinner().getEditor()).getTextField().setColumns(3);
-    ((JSpinner.NumberEditor) getRotationSpinner().getEditor()).getTextField().setColumns(3);
     ((JSpinner.NumberEditor) getScaleSpinner().getEditor()).getTextField().setColumns(4);
 
     /* listeners */
@@ -644,24 +539,12 @@ class TokenLayoutPanelHelper {
     ((JSpinner.NumberEditor) getAnchorYSpinner().getEditor())
         .getTextField()
         .addFocusListener(focusListener);
-    ((JSpinner.NumberEditor) getRotationSpinner().getEditor())
-        .getTextField()
-        .addFocusListener(focusListener);
     ((JSpinner.NumberEditor) getScaleSpinner().getEditor())
         .getTextField()
         .addFocusListener(focusListener);
   }
 
   private void initButtons() {
-    /* icons */
-    createButtonIcons();
-
-    scaleButton = new FlatButton();
-    parent.replaceComponent("scalePanel", "scaleButton", scaleButton);
-    getScaleButton().addActionListener(new ScaleButtonListener());
-    getScaleButton().setIcon(scaleIcons[scaleAxis]);
-    getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "   ");
-
     FlatButton layoutHelpButton = new FlatButton();
     layoutHelpButton.setButtonType(FlatButton.ButtonType.help);
     parent.replaceComponent("layoutTabPanel", "layoutHelpButton", layoutHelpButton);
@@ -696,9 +579,6 @@ class TokenLayoutPanelHelper {
         + rowText.formatted(
             I18N.getString("Mouse.wheel"), I18N.getString("EditTokenDialog.layout.help.scaleImage"))
         + rowText.formatted(
-            I18N.getString("Mouse.shiftWheel"),
-            I18N.getString("EditTokenDialog.layout.help.rotateImage"))
-        + rowText.formatted(
             I18N.getString("Mouse.ctrlWheel"),
             I18N.getString("EditTokenDialog.layout.help.zoomView"));
   }
@@ -727,7 +607,6 @@ class TokenLayoutPanelHelper {
     getAnchorYSlider().setModel(new DefaultBoundedRangeModel(0, gridSize, -gridSize, gridSize));
     getScaleSlider().setModel(new DefaultBoundedRangeModel(0, 0, -200, 200));
     getZoomSlider().setModel(new DefaultBoundedRangeModel(0, 0, -200, 200));
-    getRotationSlider().setModel(new DefaultBoundedRangeModel(0, 360, 0, 360));
 
     class VertLabel extends VerticalLabel {
       private double divisor = 1;
@@ -778,7 +657,6 @@ class TokenLayoutPanelHelper {
 
     setupSlider(getAnchorXSlider(), 50, 25);
     setupSlider(getAnchorYSlider(), 50, 25);
-    setupSlider(getRotationSlider(), 60, 12);
     setupSlider(getScaleSlider(), 100, 20);
     setupSlider(getZoomSlider(), 100, 20);
   }
@@ -794,42 +672,8 @@ class TokenLayoutPanelHelper {
   private void setControlValues() {
     getAnchorXSpinner().setValue(getTokenAnchorX());
     getAnchorYSpinner().setValue(getTokenAnchorY());
-    scaleAxis = 0;
-    getScaleButton().setIcon(scaleIcons[scaleAxis]);
     getScaleSpinner().setValue(getTokenSizeScale());
-    getRotationSpinner().setValue(getTokenImageRotation());
     getZoomSpinner().setValue(1d);
-  }
-
-  ImageIcon[] scaleIcons = new ImageIcon[3];
-
-  private void createButtonIcons() {
-    String iconBase = "net/rptools/maptool/client/image/";
-    scaleIcons[0] = new FlatSVGIcon(iconBase + "scale.svg", ICON_SIZE, ICON_SIZE);
-    scaleIcons[1] = new FlatSVGIcon(iconBase + "scaleHor.svg", ICON_SIZE, ICON_SIZE);
-    scaleIcons[2] = new FlatSVGIcon(iconBase + "scaleVert.svg", ICON_SIZE, ICON_SIZE);
-  }
-
-  private class ScaleButtonListener implements ActionListener {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      scaleAxis = scaleAxis == 2 ? 0 : scaleAxis + 1;
-      getScaleButton().setIcon(scaleIcons[scaleAxis]);
-      switch (scaleAxis) {
-        case 0 -> {
-          getScaleSlider().setValue(PERCENT_SPINNER_TO_SLIDER.apply(getTokenSizeScale()));
-          getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "  ");
-        }
-        case 1 -> {
-          getScaleSlider().setValue(PERCENT_SPINNER_TO_SLIDER.apply(getTokenScaleX()));
-          getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "-X");
-        }
-        case 2 -> {
-          getScaleSlider().setValue(PERCENT_SPINNER_TO_SLIDER.apply(getTokenScaleY()));
-          getScaleLabel().setText(I18N.getString("sightLight.optionLabel.scale") + "-Y");
-        }
-      }
-    }
   }
 
   /**
@@ -1095,12 +939,10 @@ class TokenLayoutPanelHelper {
      * Horizontal and vertical lines oriented on cx/cy
      *
      * @param g graphics object
-     * @param rotation used to draw lines on rotated images
      * @param solid Draw as solid else dashed
      * @param colourSet1 Use colour set 1 else 2
      */
-    protected void paintCentreLines(
-        Graphics g, double rotation, boolean solid, boolean colourSet1) {
+    protected void paintCentreLines(Graphics g, boolean solid, boolean colourSet1) {
       /* create cross-hair with a central gap */
       double cx = centrePoint.getX();
       double cy = centrePoint.getY();
@@ -1120,19 +962,7 @@ class TokenLayoutPanelHelper {
       lines.lineTo(cx - aperture, cy);
       lines.moveTo(cx + aperture, cy);
       lines.lineTo(2 * w, cy);
-      Shape s;
-      if (!MathUtil.inTolerance(rotation, 0, 0.009)) {
-        s =
-            AffineTransform.getRotateInstance(Math.toRadians(rotation), cx, cy)
-                .createTransformedShape(lines);
-        s =
-            AffineTransform.getTranslateInstance(
-                    getTokenAnchorX() * zoomFactor, getTokenAnchorY() * zoomFactor)
-                .createTransformedShape(s);
-      } else {
-        s = lines;
-      }
-      paintShapeOutLine(g, s, solid, colourSet1);
+      paintShapeOutLine(g, lines, solid, colourSet1);
     }
 
     /*
@@ -1305,10 +1135,6 @@ class TokenLayoutPanelHelper {
         g2d.drawImage(workImage, imageXform, null);
       }
       g2d.dispose();
-      double rotAngle = getTokenImageRotation();
-      if (rotAngle < -0.01 || rotAngle > 0.01) {
-        paintCentreLines(g, rotAngle, false, true);
-      }
     }
   }
 }
