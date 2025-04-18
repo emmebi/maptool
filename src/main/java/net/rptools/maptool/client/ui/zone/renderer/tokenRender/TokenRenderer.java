@@ -169,7 +169,6 @@ public class TokenRenderer {
   private TokenState createRecord(Token token) {
     return new TokenState(
         token.getFacing(),
-        token.getImageRotation(),
         token.getScaleX(),
         token.getScaleY(),
         token.getSizeScale(),
@@ -207,7 +206,6 @@ public class TokenRenderer {
 
   private record TokenState(
       int facing,
-      double imageRotation,
       double scaleX,
       double scaleY,
       double sizeScale,

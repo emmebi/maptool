@@ -113,14 +113,10 @@ public class SpinnerSliderPaired {
 
   private void setLinkedSlider(@NotNull JSlider slider) {
     this.linkedSlider = slider;
-    getLinkedSlider()
-        .addMouseWheelListener(
-            e -> incrementPairValue((int) Math.round(e.getPreciseWheelRotation())));
   }
 
   private void setLinkedSpinner(JSpinner spinner) {
     this.linkedSpinner = spinner;
-    getLinkedSpinner().addMouseWheelListener(e -> incrementPairValue(e.getPreciseWheelRotation()));
   }
 
   // option to set the spinner to loop/wrap at end values
@@ -259,6 +255,9 @@ public class SpinnerSliderPaired {
               ceiling,
               spinModel.getStepSize().doubleValue());
       getLinkedSpinner().addChangeListener(spinnerEditListener);
+      getLinkedSpinner()
+          .addMouseWheelListener(e -> incrementModelValue(e.getPreciseWheelRotation()));
+
       sliderModelDelegate =
           new NumericSliderModel(
               spinnerToSlider.apply(spinnerModelDelegate.getNumber()),
@@ -266,6 +265,16 @@ public class SpinnerSliderPaired {
               spinnerToSlider.apply(floor),
               spinnerToSlider.apply(ceiling));
       getLinkedSlider().addChangeListener(sliderChangeListener);
+      getLinkedSlider()
+          .addMouseWheelListener(
+              e -> {
+                sliderModelDelegate.setValue(
+                    Math.clamp(
+                        sliderModelDelegate.getValue()
+                            + (int) Math.round(e.getPreciseWheelRotation()),
+                        spinnerToSlider.apply(floor),
+                        spinnerToSlider.apply(ceiling)));
+              });
     }
 
     // a method for every flavour

@@ -190,7 +190,6 @@ public class Token implements Cloneable {
     setScaleX,
     setScaleY,
     setScaleXY,
-    setImageRotation,
     setNotes,
     setGMNotes,
     saveMacro,
@@ -246,7 +245,6 @@ public class Token implements Cloneable {
   private double sizeScale = 1;
   private double scaleX = 1;
   private double scaleY = 1;
-  private double imageRotation = 0;
   private boolean snapToScale = true; // Is size based on footprint
 
   // measurements
@@ -445,7 +443,6 @@ public class Token implements Cloneable {
     isFlippedX = token.isFlippedX;
     isFlippedY = token.isFlippedY;
     isFlippedIso = token.isFlippedIso;
-    imageRotation = token.imageRotation;
     scaleX = token.scaleX;
     scaleY = token.scaleY;
     sizeScale = token.sizeScale;
@@ -2179,14 +2176,6 @@ public class Token implements Cloneable {
     this.isFlippedY = flippedY;
   }
 
-  public double getImageRotation() {
-    return this.imageRotation;
-  }
-
-  public void setImageRotation(double angle) {
-    this.imageRotation = angle;
-  }
-
   public double getScaleX() {
     return this.scaleX;
   }
@@ -3004,10 +2993,9 @@ public class Token implements Cloneable {
     token.scaleX = dto.getScaleX();
     token.scaleY = dto.getScaleY();
     token.sizeScale = dto.getSizeScale();
-    token.isFlippedX = dto.getFlippedX();
-    token.isFlippedY = dto.getFlippedY();
-    token.isFlippedIso = dto.getFlippedIso();
-    token.imageRotation = dto.getImageRotation();
+    token.isFlippedX = dto.getIsFlippedX();
+    token.isFlippedY = dto.getIsFlippedY();
+    token.isFlippedIso = dto.getIsFlippedIso();
     token.facing = dto.hasFacing() ? dto.getFacing().getValue() : null;
 
     dto.getSizeMapMap().forEach((k, v) -> token.sizeMap.put(k, GUID.valueOf(v)));
@@ -3116,7 +3104,7 @@ public class Token implements Cloneable {
     dto.setSizeScale(sizeScale);
     dto.setScaleX(scaleX);
     dto.setScaleY(scaleY);
-    dto.setImageRotation(imageRotation);
+
     if (lastPath != null) {
       dto.setLastPath(lastPath.toDto());
     }
@@ -3170,9 +3158,9 @@ public class Token implements Cloneable {
         terrainModifiersIgnored.stream()
             .map(m -> TerrainModifierOperationDto.valueOf(m.name()))
             .collect(Collectors.toList()));
-    dto.setFlippedX(isFlippedX);
-    dto.setFlippedY(isFlippedY);
-    dto.setFlippedIso(isFlippedIso);
+    dto.setIsFlippedX(isFlippedX);
+    dto.setIsFlippedY(isFlippedY);
+    dto.setIsFlippedIso(isFlippedIso);
     if (charsheetImage != null) {
       dto.setCharsheetImage(StringValue.of(charsheetImage.toString()));
     }

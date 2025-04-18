@@ -114,7 +114,6 @@ public class TokenPropertyFunctions extends AbstractFunction {
         "setNotes",
         "getTokenLayoutProps",
         "setTokenLayoutProps",
-        "setLayoutProps",
         "setTokenSnapToGrid",
         "getAllowsURIAccess",
         "setAllowsURIAccess",
@@ -936,81 +935,22 @@ public class TokenPropertyFunctions extends AbstractFunction {
       double scale = token.getSizeScale();
       int xOffset = token.getAnchorX();
       int yOffset = token.getAnchorY();
-      double rotation = token.getImageRotation();
-      double scaleX = token.getScaleX();
-      double scaleY = token.getScaleY();
-      String footprintScaleValue =
-          String.valueOf(
-              token.getFootprint(token.getZoneRenderer().getZone().getGrid()).getScale());
 
       if ("json".equals(delim)) {
         JsonObject jarr = new JsonObject();
         jarr.addProperty("scale", scale);
         jarr.addProperty("xOffset", xOffset);
         jarr.addProperty("yOffset", yOffset);
-        jarr.addProperty("xScale", scaleX);
-        jarr.addProperty("rotation", rotation);
-        jarr.addProperty("yScale", scaleY);
-        jarr.addProperty("footprintScale", footprintScaleValue);
         return jarr;
       } else {
         StringBuilder sb = new StringBuilder();
         sb.append("scale=").append(scale).append(delim);
         sb.append("xOffset=").append(xOffset).append(delim);
         sb.append("yOffset=").append(yOffset).append(delim);
-        sb.append("rotation=").append(rotation).append(delim);
-        sb.append("xScale=").append(scaleX).append(delim);
-        sb.append("yScale=").append(scaleY).append(delim);
-        sb.append("footprintScale=").append(footprintScaleValue);
         return sb.toString();
       }
     }
-    /*
-     * setLayoutProps(StrProp/JSON Object, token: currentToken(), mapName = current map)
-     */
-    if (functionName.equalsIgnoreCase("setLayoutProps")) {
-      FunctionUtil.checkNumberParam(functionName, parameters, 1, 3);
-      Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
-      JsonObject json;
-      try { // try for json object
-        json = FunctionUtil.paramAsJsonObject("setLayoutProps", parameters, 0);
-      } catch (ParserException pe) {
-        try { // try for strProp
-          json =
-              JSONMacroFunctions.getInstance()
-                  .getJsonObjectFunctions()
-                  .fromStrProp(
-                      FunctionUtil.paramAsString("setLayoutProps", parameters, 0, true), ";");
-        } catch (ParserException pe2) {
-          throw new ParserException(
-              I18N.getText(
-                  "macro.function.input.illegalArgumentType", "unknown", "JSON Object/StrProp"));
-        }
-      }
-      if (json != null && json.isJsonObject()) {
-        JsonObject jobj = json.getAsJsonObject();
-        for (String s : jobj.keySet()) {
-          switch (s.toLowerCase()) {
-            case "scale" -> token.setSizeScale(jobj.get(s).getAsDouble());
-            case "offsetx" -> token.setAnchor(jobj.get(s).getAsInt(), token.getAnchorY());
-            case "xoffset" -> token.setAnchor(jobj.get(s).getAsInt(), token.getAnchorY());
-            case "offsety" -> token.setAnchor(token.getAnchorX(), jobj.get(s).getAsInt());
-            case "yoffset" -> token.setAnchor(token.getAnchorX(), jobj.get(s).getAsInt());
-            case "scalex" -> token.setScaleX(jobj.get(s).getAsDouble());
-            case "xscale" -> token.setScaleX(jobj.get(s).getAsDouble());
-            case "scaley" -> token.setScaleY(jobj.get(s).getAsDouble());
-            case "yscale" -> token.setScaleY(jobj.get(s).getAsDouble());
-            case "rotation" -> token.setImageRotation(jobj.get(s).getAsDouble());
-            default -> {
-              continue;
-            }
-          }
-        }
-        return true;
-      } else {
-        return false;
-      }
-    }
+
     /*
      * setTokenLayoutProps(scale, xOffset, yOffset, token: currentToken(), mapName = current map)
      */

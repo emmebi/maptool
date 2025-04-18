@@ -722,7 +722,6 @@ class TokenLayoutPanelHelper {
 
       workImage = ImageUtil.getScaledTokenImage(tokenImage, mirrorToken, grid, zoomFactor);
       workImage = getFlippedImage(workImage);
-      workImage = ImageUtil.rotateImage(workImage, mirrorToken.getImageRotation());
     }
 
     private void setStrokeArrays() {

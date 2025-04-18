@@ -557,9 +557,6 @@ public class ImageUtil {
 
     image = getScaledTokenImage(image, token, zr);
 
-    if (token.getImageRotation() != 0) {
-      image = rotateImage(image, token.getImageRotation());
-    }
     return image;
   }
 
