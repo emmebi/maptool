@@ -58,7 +58,7 @@ public class MacroLocationFactory {
   }
 
   public MacroLocation createLibTokenLocation(@Nonnull String name, @Nonnull String libTokenName) {
-    return new MacroLocation(name, MacroSource.libToken, libTokenName.substring(4), null);
+    return new MacroLocation(name, MacroSource.library, libTokenName.substring(4), null);
   }
 
   public MacroLocation createGmLocation(@Nonnull String name) {
@@ -68,6 +68,18 @@ public class MacroLocationFactory {
   public MacroLocation createExecFunctionLocation(@Nonnull String functionName) {
     return new MacroLocation(
         MacroSource.execFunction.getSourceName(), MacroSource.execFunction, functionName, null);
+  }
+
+  public MacroLocation createMacroLinkLocation(@Nonnull String name) {
+    return new MacroLocation(
+        MacroSource.macroLink.getSourceName(),
+        MacroSource.macroLink,
+        MacroSource.macroLink.getSourceName(),
+        null);
+  }
+
+  public MacroLocation createEventLocation(@Nonnull String name) {
+    return new MacroLocation(MacroSource.event.getSourceName(), MacroSource.event, name, null);
   }
 
   public MacroLocation createSentryIoLoggingLocation() {

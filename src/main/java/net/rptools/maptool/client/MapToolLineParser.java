@@ -1200,21 +1200,38 @@ public class MapToolLineParser {
       throw new ParserException(I18N.getText("lineParser.invalidMacroLoc", mloc.getName()));
     }
 
-    switch (mloc.getSource()) {
-      case libToken -> {
+      switch (mloc.getSource()) {
+      case library, uri -> {
         try {
-          var lib = new LibraryManager().getLibrary(mloc.getLocation());
+          String namespace;
+          String macro;
+          switch (mloc.getSource()) {
+            case uri -> {
+              namespace = mloc.getUri().getHost();
+              macro = mloc.getUri().toString();
+            }
+            case library -> {
+              namespace = mloc.getLocation().replaceFirst("^(?i)lib:", "");
+              macro = mloc.getName();
+            }
+            case null, default -> {
+              throw new IllegalStateException("Unexpected value: " + mloc.getSource());
+            }
+          }
+          var lib = new LibraryManager().getLibrary(namespace);
           if (lib.isEmpty()) {
             throw new ParserException(
                 I18N.getText("lineParser.unknownLibToken", mloc.getLocation()));
           }
           var library = lib.get();
-          var macroInfo = library.getMTScriptMacroInfo(mloc.getName()).get();
+          var macroInfo = library.getMTScriptMacroInfo(macro).get();
           if (macroInfo.isEmpty()) {
             // if the macro source is the same as the location then check private macros.
-            if (contextStackEmpty()
-                || mloc.getLocation().equalsIgnoreCase(getMacroSource().getLocation())) {
-              macroInfo = library.getPrivateMacroInfo(mloc.getName()).get();
+            if (!contextStackEmpty()) {
+              if (getMacroSource().getSource() == MacroLocation.MacroSource.event
+                  || mloc.getLocation().equalsIgnoreCase(getMacroSource().getLocation())) {
+                macroInfo = library.getPrivateMacroInfo(mloc.getName()).get();
+              }
             }
             if (macroInfo.isEmpty()) {
               throw new ParserException(I18N.getText("lineParser.unknownMacro", mloc.getName()));

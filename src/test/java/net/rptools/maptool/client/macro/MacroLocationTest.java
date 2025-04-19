@@ -57,7 +57,7 @@ class MacroLocationTest {
   void testParseNameLibToken() {
     MacroLocation location = MacroLocation.parseMacroName("test@lib:libName", null, null);
     assertEquals("test", location.getName());
-    assertEquals(MacroLocation.MacroSource.libToken, location.getSource());
+    assertEquals(MacroLocation.MacroSource.library, location.getSource());
     assertEquals("lib:libName", location.getLocation());
     assertNull(location.getUri());
   }
@@ -157,7 +157,7 @@ class MacroLocationTest {
     MacroLocation caller = MacroLocation.parseMacroName("testParent@lib:libName", null, mockToken);
     MacroLocation location = MacroLocation.parseMacroName("test@this", caller, null);
     assertEquals("test", location.getName());
-    assertEquals(MacroLocation.MacroSource.libToken, location.getSource());
+    assertEquals(MacroLocation.MacroSource.library, location.getSource());
     assertEquals("lib:libName", location.getLocation());
     assertNull(location.getUri());
   }

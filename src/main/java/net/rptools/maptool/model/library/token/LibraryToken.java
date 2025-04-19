@@ -308,7 +308,7 @@ class LibraryToken implements Library {
               // Cater for the different ways the macro name can be specified
               String expectedMacroName = macroName;
               if (macroName.toLowerCase().startsWith("lib://")) {
-                expectedMacroName = macroName.replaceFirst("(i?)lib:\\/\\/.*\\/macro\\/", "");
+                expectedMacroName = macroName.replaceFirst("(?i)lib:\\/\\/.*\\/macro\\/", "");
               } else if (macroName.toLowerCase().startsWith("lib:")) {
                 expectedMacroName = macroName.substring(4);
               }

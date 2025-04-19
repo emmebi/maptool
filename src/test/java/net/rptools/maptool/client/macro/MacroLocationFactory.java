@@ -69,7 +69,7 @@ class MacroLocationFactoryTest {
   void testCreateLibTokenLocation() {
     MacroLocation location = factory.createLibTokenLocation("libMacro", "lib:TokenName");
     assertEquals("libMacro", location.getName());
-    assertEquals(MacroLocation.MacroSource.libToken, location.getSource());
+    assertEquals(MacroLocation.MacroSource.library, location.getSource());
     assertEquals("TokenName", location.getLocation());
     assertNull(location.getUri());
   }

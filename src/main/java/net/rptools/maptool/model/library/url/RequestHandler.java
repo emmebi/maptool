@@ -45,7 +45,7 @@ public class RequestHandler {
     // macro: URIs can only use POST requests
     if (scheme.equalsIgnoreCase("macro")) {
       if (!("post".equalsIgnoreCase(method))) {
-        responseHeaders.put(":Status", "0");
+        responseHeaders.put(":Status", "405");
         c.complete("Only POST method can call macros");
         return c;
       }
@@ -58,7 +58,7 @@ public class RequestHandler {
         return callMacro(uri, body, requestHeaders, responseHeaders);
       }
       if (!("get".equalsIgnoreCase(method))) {
-        responseHeaders.put(":Status", "0");
+        responseHeaders.put(":Status", "405");
         c.complete("Only GET method can retrieve resources");
         return c;
       }
@@ -83,7 +83,7 @@ public class RequestHandler {
 
     if (scheme.equalsIgnoreCase("asset")) {
       if (!("get".equalsIgnoreCase(method))) {
-        responseHeaders.put(":Status", "0");
+        responseHeaders.put(":Status", "405");
         c.complete("Only GET method can retrieve assets");
         return c;
       }

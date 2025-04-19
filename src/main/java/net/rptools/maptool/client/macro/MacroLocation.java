@@ -48,11 +48,13 @@ public class MacroLocation {
     gm("gm", true),
     campaign("campaign", true),
     global("global", true),
-    libToken("libToken", true),
+    library("libToken", true),
     uri("uri", true),
     execFunction("execFunction", false),
     sentryIoLogging("sentryIoLogging", false),
     tooltip("tooltip", true),
+    macroLink("macroLink", false),
+    event("event", false),
     unknown("unknown", false);
 
     /**
@@ -131,7 +133,7 @@ public class MacroLocation {
     if (qMacroNameLower.contains("@lib:")) {
       String libName = qMacroName.substring(qMacroName.indexOf("@") + 1);
       return new MacroLocation(
-          qMacroName.substring(0, qMacroName.indexOf("@")), MacroSource.libToken, libName, null);
+          qMacroName.substring(0, qMacroName.indexOf("@")), MacroSource.library, libName, null);
     }
 
     if (qMacroNameLower.contains("@this")) {

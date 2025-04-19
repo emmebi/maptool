@@ -264,7 +264,7 @@ public class LibraryManager {
       var source = context.getSource();
       if (context == null
           || source == null
-          || source.getSource() != MacroLocation.MacroSource.libToken) {
+          || source.getSource() != MacroLocation.MacroSource.library) {
         return Optional.empty();
       }
 
