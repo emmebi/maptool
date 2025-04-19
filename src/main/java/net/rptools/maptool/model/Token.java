@@ -1490,15 +1490,15 @@ public class Token implements Cloneable {
 
     // Sizing
     if (!isSnapToScale()) {
-      w = getWidth() * getScaleX();
-      h = getHeight() * getScaleY();
+      w = getWidth();
+      h = getHeight();
       if (grid.isIsometric() && getShape() == Token.TokenShape.FIGURE) {
         // Native size figure tokens need to follow iso rules
         h = (w / 2);
       }
     } else {
-      w = footprintBounds.width * footprint.getScale() * sizeScale;
-      h = footprintBounds.height * footprint.getScale() * sizeScale;
+      w = footprintBounds.width * footprint.getScale();
+      h = footprintBounds.height * footprint.getScale();
     }
     // Positioning
     if (!isSnapToGrid()) {
@@ -1514,9 +1514,6 @@ public class Token implements Cloneable {
     footprintBounds.width = (int) w; // perhaps make this a double
     footprintBounds.height = (int) h;
 
-    // Offset
-    footprintBounds.x += anchorX;
-    footprintBounds.y += anchorY;
     return footprintBounds;
   }
 
