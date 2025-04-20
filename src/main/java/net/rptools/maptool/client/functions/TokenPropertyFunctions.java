@@ -712,7 +712,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
     if (functionName.equalsIgnoreCase("isFlippedIso")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
-      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -921,7 +921,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 2);
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 0, 1);
       MapTool.serverCommand().updateTokenProperty(token, Token.Update.flipIso);
-      return token.isFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
+      return token.getIsFlippedIso() ? BigDecimal.ONE : BigDecimal.ZERO;
     }
 
     /*
@@ -929,10 +929,10 @@ public class TokenPropertyFunctions extends AbstractFunction {
      */
     if (functionName.equalsIgnoreCase("getTokenLayoutProps")) {
       FunctionUtil.checkNumberParam(functionName, parameters, 0, 3);
-      String delim = parameters.size() > 0 ? parameters.get(0).toString() : ",";
+      String delim = parameters.size() > 0 ? parameters.get(0).toString() : ";";
       Token token = FunctionUtil.getTokenFromParam(resolver, functionName, parameters, 1, 2);
 
-      Double scale = token.getSizeScale();
+      double scale = token.getSizeScale();
       int xOffset = token.getAnchorX();
       int yOffset = token.getAnchorY();
 
@@ -943,7 +943,11 @@ public class TokenPropertyFunctions extends AbstractFunction {
         jarr.addProperty("yOffset", yOffset);
         return jarr;
       } else {
-        return "scale=" + scale + delim + "xOffset=" + xOffset + delim + "yOffset=" + yOffset;
+        StringBuilder sb = new StringBuilder();
+        sb.append("scale=").append(scale).append(delim);
+        sb.append("xOffset=").append(xOffset).append(delim);
+        sb.append("yOffset=").append(yOffset).append(delim);
+        return sb.toString();
       }
     }
 
