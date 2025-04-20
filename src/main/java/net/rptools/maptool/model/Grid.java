@@ -19,10 +19,8 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -65,11 +63,21 @@ public abstract class Grid implements Cloneable {
 
   private static final Dimension NO_DIM = new Dimension();
   private static final DirectionCalculator calculator = new DirectionCalculator();
+  private static final Map<String, String> FOOTPRINT_XML_PATHS =
+      new HashMap<>(
+          Map.of(
+              GridFactory.HEX_HORI, "net/rptools/maptool/model/hexGridHorizFootprints.xml",
+              GridFactory.HEX_VERT, "net/rptools/maptool/model/hexGridVertFootprints.xml",
+              GridFactory.ISOMETRIC, "net/rptools/maptool/model/squareGridFootprints.xml",
+              GridFactory.ISOMETRIC_HEX, "net/rptools/maptool/model/hexGridHorizFootprints.xml",
+              GridFactory.NONE, "net/rptools/maptool/model/gridlessGridFootprints.xml",
+              GridFactory.SQUARE, "net/rptools/maptool/model/squareGridFootprints.xml"));
   private static final Map<Integer, Area> gridShapeCache = new ConcurrentHashMap<>();
 
   protected transient Map<KeyStroke, Action> movementKeys = null;
   private transient Zone zone;
   private transient Area cellShape;
+  private transient List<TokenFootprint> footprintList;
   private int offsetX = 0;
   private int offsetY = 0;
   private int size;
@@ -176,6 +184,11 @@ public abstract class Grid implements Cloneable {
    */
   public abstract Point2D.Double getCellCenter(CellPoint cell);
 
+  protected OffsetTranslator getOffsetTranslator() {
+    return null;
+  }
+  ;
+
   protected List<TokenFootprint> loadFootprints(String path, OffsetTranslator... translators)
       throws IOException {
     Object obj = FileUtil.objFromResource(path);
@@ -211,7 +224,24 @@ public abstract class Grid implements Cloneable {
     return getDefaultFootprint();
   }
 
-  public abstract List<TokenFootprint> getFootprints();
+  public List<TokenFootprint> getFootprints() {
+    if (footprintList == null) {
+      String type = GridFactory.getGridType(this);
+      try {
+        String path = FOOTPRINT_XML_PATHS.get(type);
+        if (type.equalsIgnoreCase(GridFactory.HEX_HORI)
+            || type.equalsIgnoreCase(GridFactory.HEX_VERT)
+            || type.equalsIgnoreCase(GridFactory.ISOMETRIC_HEX)) {
+          footprintList = loadFootprints(path, getOffsetTranslator());
+        } else {
+          footprintList = loadFootprints(path);
+        }
+      } catch (IOException ioe) {
+        MapTool.showError("msg.error.footprints.load", ioe, type);
+      }
+    }
+    return footprintList;
+  }
 
   public boolean isIsometric() {
     return false;
