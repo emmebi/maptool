@@ -248,7 +248,7 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
               if (token == null) {
                 continue;
               }
-              token.setFlippedIso(!token.isFlippedIso());
+              token.setIsFlippedIso(!token.getIsFlippedIso());
               MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
             }
             MapTool.getFrame().refresh();
