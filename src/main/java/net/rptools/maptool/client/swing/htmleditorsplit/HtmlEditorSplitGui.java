@@ -18,7 +18,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 import java.util.Map;
-
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -109,21 +108,28 @@ public class HtmlEditorSplitGui {
     // Otherwise, there will be no line numbers or folding indicators.
     textScrollPane.setFoldIndicatorEnabled(true);
     textScrollPane.setLineNumbersEnabled(true);
-    final Map<String, String> localStrings = new HashMap<>(Map.of(
-            I18N.getText(SyntaxConstants.SYNTAX_STYLE_NONE), SyntaxConstants.SYNTAX_STYLE_NONE,
-            I18N.getText(SyntaxConstants.SYNTAX_STYLE_HTML), SyntaxConstants.SYNTAX_STYLE_HTML,
-            I18N.getText(SyntaxConstants.SYNTAX_STYLE_MARKDOWN), SyntaxConstants.SYNTAX_STYLE_MARKDOWN,
-            SyntaxConstants.SYNTAX_STYLE_NONE, I18N.getText(SyntaxConstants.SYNTAX_STYLE_NONE),
-            SyntaxConstants.SYNTAX_STYLE_HTML, I18N.getText(SyntaxConstants.SYNTAX_STYLE_HTML),
-            SyntaxConstants.SYNTAX_STYLE_MARKDOWN, I18N.getText(SyntaxConstants.SYNTAX_STYLE_MARKDOWN)
-    ));
+    final Map<String, String> localStrings =
+        new HashMap<>(
+            Map.of(
+                I18N.getText(SyntaxConstants.SYNTAX_STYLE_NONE),
+                SyntaxConstants.SYNTAX_STYLE_NONE,
+                I18N.getText(SyntaxConstants.SYNTAX_STYLE_HTML),
+                SyntaxConstants.SYNTAX_STYLE_HTML,
+                I18N.getText(SyntaxConstants.SYNTAX_STYLE_MARKDOWN),
+                SyntaxConstants.SYNTAX_STYLE_MARKDOWN,
+                SyntaxConstants.SYNTAX_STYLE_NONE,
+                I18N.getText(SyntaxConstants.SYNTAX_STYLE_NONE),
+                SyntaxConstants.SYNTAX_STYLE_HTML,
+                I18N.getText(SyntaxConstants.SYNTAX_STYLE_HTML),
+                SyntaxConstants.SYNTAX_STYLE_MARKDOWN,
+                I18N.getText(SyntaxConstants.SYNTAX_STYLE_MARKDOWN)));
     textTypeComboBox.addItem(localStrings.get(SyntaxConstants.SYNTAX_STYLE_NONE));
     textTypeComboBox.addItem(localStrings.get(SyntaxConstants.SYNTAX_STYLE_HTML));
     textTypeComboBox.addItem(localStrings.get(SyntaxConstants.SYNTAX_STYLE_MARKDOWN));
     textTypeComboBox.addItemListener(
         e -> {
           if (e.getStateChange() == ItemEvent.SELECTED) {
-              setTextStyle(localStrings.get((String) e.getItem()));
+            setTextStyle(localStrings.get((String) e.getItem()));
           }
         });
 
