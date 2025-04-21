@@ -187,7 +187,6 @@ public abstract class Grid implements Cloneable {
   protected OffsetTranslator getOffsetTranslator() {
     return null;
   }
-  ;
 
   protected List<TokenFootprint> loadFootprints(String path, OffsetTranslator... translators)
       throws IOException {
@@ -229,12 +228,11 @@ public abstract class Grid implements Cloneable {
       String type = GridFactory.getGridType(this);
       try {
         String path = FOOTPRINT_XML_PATHS.get(type);
-        if (type.equalsIgnoreCase(GridFactory.HEX_HORI)
-            || type.equalsIgnoreCase(GridFactory.HEX_VERT)
-            || type.equalsIgnoreCase(GridFactory.ISOMETRIC_HEX)) {
-          footprintList = loadFootprints(path, getOffsetTranslator());
-        } else {
+        OffsetTranslator offsetTranslator = getOffsetTranslator();
+        if (offsetTranslator == null) {
           footprintList = loadFootprints(path);
+        } else {
+          footprintList = loadFootprints(path, getOffsetTranslator());
         }
       } catch (IOException ioe) {
         MapTool.showError("msg.error.footprints.load", ioe, type);

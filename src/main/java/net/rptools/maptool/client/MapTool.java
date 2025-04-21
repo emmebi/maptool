@@ -207,7 +207,7 @@ public class MapTool {
    * @return the <code>String</code> result
    */
   public static String generateMessage(String msgKey, Throwable t) {
-    return generateMessage(msgKey, t, (Object[]) null);
+    return generateMessage(msgKey, t, null);
   }
 
   /**
@@ -219,7 +219,7 @@ public class MapTool {
    * @param params arguments to pass when fetching string.
    * @return the <code>String</code> result
    */
-  private static String generateMessage(String msgKey, Throwable t, Object... params) {
+  private static String generateMessage(String msgKey, Throwable t, Object[] params) {
     String msg = "";
     if (msgKey != null) {
       if (params != null) {
