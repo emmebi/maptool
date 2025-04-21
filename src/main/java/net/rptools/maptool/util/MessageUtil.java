@@ -15,15 +15,7 @@
 package net.rptools.maptool.util;
 
 import java.awt.Color;
-import java.util.Locale;
 import javax.swing.UIManager;
-
-import com.ibm.icu.impl.FormattedStringBuilder;
-import com.ibm.icu.impl.personname.PersonNameFormatterImpl;
-import com.ibm.icu.text.MessageFormat;
-import com.ibm.icu.text.PersonName;
-import com.ibm.icu.text.PersonNameFormatter;
-import com.ibm.icu.text.SimplePersonName;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;

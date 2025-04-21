@@ -31,6 +31,7 @@ public class EmotePossessiveMacro extends AbstractMacro {
 
     MapTool.addMessage(
         TextMessage.say(
-            context.getTransformationHistory(), MessageUtil.getFormattedEmotePossessive(macro, null)));
+            context.getTransformationHistory(),
+            MessageUtil.getFormattedEmotePossessive(macro, null)));
   }
 }
