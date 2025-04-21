@@ -15,7 +15,15 @@
 package net.rptools.maptool.util;
 
 import java.awt.Color;
+import java.util.Locale;
 import javax.swing.UIManager;
+
+import com.ibm.icu.impl.FormattedStringBuilder;
+import com.ibm.icu.impl.personname.PersonNameFormatterImpl;
+import com.ibm.icu.text.MessageFormat;
+import com.ibm.icu.text.PersonName;
+import com.ibm.icu.text.PersonNameFormatter;
+import com.ibm.icu.text.SimplePersonName;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
@@ -78,10 +86,11 @@ public class MessageUtil {
     return "<div class='emote'>" + getAvatarMessage(msg, token, identity) + "</div>";
   }
 
-  public static String getFormattedEmotePlural(String msg, Token token) {
+  public static String getFormattedEmotePossessive(String msg, Token token) {
     String identity =
         token == null ? MapTool.getFrame().getCommandPanel().getIdentity() : token.getName();
-    msg = applyChatColor(identity + "'s " + msg);
+    identity += identity.endsWith("s") ? "' " : "'s ";
+    msg = applyChatColor(identity + msg);
 
     return "<div class='emote'>" + getAvatarMessage(msg, token, identity) + "</div>";
   }
