@@ -523,7 +523,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   private void setGmNotesEnabled(boolean enabled) {
     JTabbedPane tabbedPane = getTabbedPane();
-    String libTokenTile = I18N.getString("EditTokenDialog.label.gmnotes");
+    String libTokenTile = I18N.getString("EditTokenDialog.tab.gmnotes");
     tabbedPane.setEnabledAt(tabbedPane.indexOfTab(libTokenTile), enabled);
     getGMNotesEditor().setEnabled(enabled);
   }
