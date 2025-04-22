@@ -221,6 +221,9 @@ public class PreferencesDialog extends JDialog {
   /** Checkbox for if new macros should be editable by players by default. */
   private final JCheckBox allowPlayerMacroEditsDefault;
 
+  /** Checkbox for opening macro editor on creating new macro. */
+  private final JCheckBox openEditorForNewMacros;
+
   /** Checkbox for if the details of inline rolls should be shown in tooltips. */
   private final JCheckBox toolTipInlineRolls;
 
@@ -635,6 +638,7 @@ public class PreferencesDialog extends JDialog {
     visionTypeCombo = panel.getComboBox("defaultVisionType");
     mapSortType = panel.getComboBox("mapSortType");
     movementMetricCombo = panel.getComboBox("movementMetric");
+    openEditorForNewMacros = panel.getCheckBox("openEditorForNewMacros");
     allowPlayerMacroEditsDefault = panel.getCheckBox("allowPlayerMacroEditsDefault");
     toolTipInlineRolls = panel.getCheckBox("toolTipInlineRolls");
     suppressToolTipsMacroLinks = panel.getCheckBox("suppressToolTipsMacroLinks");
@@ -926,7 +930,8 @@ public class PreferencesDialog extends JDialog {
         e ->
             AppPreferences.allowPlayerMacroEditsDefault.set(
                 allowPlayerMacroEditsDefault.isSelected()));
-
+    openEditorForNewMacros.addActionListener(
+        e -> AppPreferences.openEditorForNewMacro.set(openEditorForNewMacros.isSelected()));
     showAvatarInChat.addActionListener(
         e -> AppPreferences.showAvatarInChat.set(showAvatarInChat.isSelected()));
     saveReminderCheckBox.addActionListener(
@@ -1603,6 +1608,7 @@ public class PreferencesDialog extends JDialog {
     syrinscapeActiveCheckBox.setSelected(AppPreferences.syrinscapeActive.get());
     showAvatarInChat.setSelected(AppPreferences.showAvatarInChat.get());
     allowPlayerMacroEditsDefault.setSelected(AppPreferences.allowPlayerMacroEditsDefault.get());
+    openEditorForNewMacros.setSelected(AppPreferences.openEditorForNewMacro.get());
     toolTipInlineRolls.setSelected(AppPreferences.useToolTipForInlineRoll.get());
     suppressToolTipsMacroLinks.setSelected(AppPreferences.suppressToolTipsForMacroLinks.get());
     trustedOutputForeground.setColor(AppPreferences.trustedPrefixForeground.get());
