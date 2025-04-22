@@ -1334,8 +1334,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
 
       // For snap-to-grid tokens (except background stamps) we anchor at the center of the token.
       final var isSnapToGridAndAnchoredAtCenter =
-          tokenBeingResized.isSnapToGrid()
-              && tokenBeingResized.getLayer().anchorSnapToGridAtCenter();
+          tokenBeingResized.isSnapToGrid() && tokenBeingResized.getLayer().isSnapToGridAtCenter();
       final var snapToGridMultiplier = isSnapToGridAndAnchoredAtCenter ? 2 : 1;
       var widthIncrease = adjustment.x * snapToGridMultiplier;
       var heightIncrease = adjustment.y * snapToGridMultiplier;

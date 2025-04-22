@@ -140,6 +140,9 @@ public class AppPreferences {
   public static final Preference<Integer> toolTipDismissDelay =
       IntegerType.create("toolTipDismissDelay", 30000);
 
+  public static final Preference<Boolean> openEditorForNewMacro =
+      BooleanType.create("openEditorForNewMacro", true);
+
   public static final Preference<Boolean> allowPlayerMacroEditsDefault =
       BooleanType.create("allowPlayerMacroEditsDefault", true);
 

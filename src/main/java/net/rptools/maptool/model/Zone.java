@@ -251,7 +251,7 @@ public class Zone {
      * @return {@code true} if the {@code Token} instances on the layer should be resized relative
      *     to their center rather than their corner.
      */
-    public boolean anchorSnapToGridAtCenter() {
+    public boolean isSnapToGridAtCenter() {
       return this != BACKGROUND;
     }
 

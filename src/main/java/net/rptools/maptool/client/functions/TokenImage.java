@@ -111,7 +111,7 @@ public class TokenImage extends AbstractFunction {
       FunctionUtil.paramAsFloat(functionName, args, 0, true);
       token = FunctionUtil.getTokenFromParam(resolver, functionName, args, 1, 2);
 
-      MapTool.serverCommand().updateTokenProperty(token, Token.Update.setTokenOpacity, strOpacity);
+      MapTool.serverCommand().updateTokenProperty(token, Token.Update.setOpacity, strOpacity);
       return token.getTokenOpacity();
     }
 
