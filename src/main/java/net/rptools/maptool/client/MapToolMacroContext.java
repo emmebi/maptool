@@ -104,22 +104,4 @@ public class MapToolMacroContext {
   public boolean isUseToolTipsForUnformatedRolls() {
     return useToolTipsForUnformatedRolls;
   }
-
-  /**
-   * Get the namespace for the macro in context
-   *
-   * @return name space
-   */
-  /* TODO: CDW public String getNamespace() {
-    if (source.getSource() == MacroLocation.MacroSource.uri) {
-      return source.getNamespace();
-    }
-    if (source.length() > 4) {
-      var ns = source.substring(4);
-      if (new LibraryManager().addOnLibraryExists(ns)) {
-        return ns;
-      }
-    }
-    return null;
-  }*/
 }

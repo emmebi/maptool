@@ -50,6 +50,18 @@ public class MapToolLineParser {
   /** Name of macro to divert calls to unknown macros on a lib macro to. */
   public static final String UNKNOWN_LIB_MACRO = "!!unknown-macro!!";
 
+  /**
+   * The args value to pass to the runMacro functions to indicate that the arrguments are stored in
+   * a variable
+   */
+  public static final String ARGS_PASSED_AS_VARIABLE_INDICATOR = "@args";
+
+  /**
+   * The variable name to store the arguments in when speicifing {@code
+   * ARGS_PASSED_AS_VARIABLE_INDICATOR}
+   */
+  public static final String ARGS_PASSED_AS_VARIABLE_NAME = "@args";
+
   /** Stack that holds our contexts. */
   private final Stack<MapToolMacroContext> contextStack = new Stack<MapToolMacroContext>();
 
@@ -1148,6 +1160,23 @@ public class MapToolLineParser {
     }
   }
 
+  /**
+   * Runs a macro from a specified location.
+   *
+   * <p>If {@code args} is the value {@link #ARGS_PASSED_AS_VARIABLE_INDICATOR} then the arguments
+   * will be taken from the vairable {@link #ARGS_PASSED_AS_VARIABLE_NAME } set in the {@code
+   * resolver} to avoid conversion to/from a string. The variable {@link
+   * #ARGS_PASSED_AS_VARIABLE_NAME} is expected to be a JsonArray if you want to take full advantage
+   * of this feature.
+   *
+   * @param resolver the {@link MapToolVariableResolver} used for resolving variables in the macro
+   *     being run.
+   * @param tokenInContext the {@code Token} if any that is the "current" token for the macro.
+   * @param qMacroName the qualified macro name. (i.e. macro name and location of macro).
+   * @param args the arguments to pass to the macro when executing it.
+   * @return the result of the macro execution.
+   * @throws ParserException when an error occurs parsing or executing the macro.
+   */
   public String runMacro(
       MapToolVariableResolver resolver, Token tokenInContext, String qMacroName, String args)
       throws ParserException {
@@ -1156,6 +1185,12 @@ public class MapToolLineParser {
 
   /**
    * Runs a macro from a specified location.
+   *
+   * <p>If {@code args} is the value {@link #ARGS_PASSED_AS_VARIABLE_INDICATOR} then the arguments
+   * will be taken from the vairable {@link #ARGS_PASSED_AS_VARIABLE_NAME } set in the {@code
+   * resolver} to avoid conversion to/from a string. The variable {@link
+   * #ARGS_PASSED_AS_VARIABLE_NAME} is expected to be a JsonArray if you want to take full advantage
+   * of this feature.
    *
    * @param resolver the {@link MapToolVariableResolver} used for resolving variables in the macro
    *     being run.
@@ -1200,7 +1235,7 @@ public class MapToolLineParser {
       throw new ParserException(I18N.getText("lineParser.invalidMacroLoc", mloc.getName()));
     }
 
-      switch (mloc.getSource()) {
+    switch (mloc.getSource()) {
       case library, uri -> {
         try {
           String namespace;
@@ -1312,8 +1347,24 @@ public class MapToolLineParser {
     } else {
       macroResolver = resolver;
     }
-    macroResolver.setVariable("macro.args", args);
-    JsonElement json = JSONMacroFunctions.getInstance().asJsonElement(args);
+
+    JsonElement json = null;
+    if (ARGS_PASSED_AS_VARIABLE_INDICATOR.equals(args)) {
+      // If the args are the indicator then we need to get the args from the resolver to avoid
+      // unwanted conversions
+      Object argObj = resolver.getVariable(ARGS_PASSED_AS_VARIABLE_NAME);
+      macroResolver.setVariable("macro.args", argObj);
+      if (argObj instanceof JsonArray) {
+        json = (JsonArray) argObj;
+      }
+    } else {
+      macroResolver.setVariable("macro.args", args);
+    }
+
+    if (json == null) {
+      json = JSONMacroFunctions.getInstance().asJsonElement(args);
+    }
+
     if (json.isJsonArray()) {
       JsonArray jarr = json.getAsJsonArray();
       macroResolver.setVariable("macro.args.num", BigDecimal.valueOf(jarr.size()));
