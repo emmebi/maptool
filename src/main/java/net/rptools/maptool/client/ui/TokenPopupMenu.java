@@ -111,6 +111,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
       add(createExposeMenu());
     }
     addOwnedItem(createLightSourceMenu());
+    addOwnedItem(createAurasMenu());
     add(new JSeparator());
 
     addToggledItem(new ShowPathsAction(), renderer.isPathShowing(tokenUnderMouse));
