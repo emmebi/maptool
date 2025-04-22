@@ -24,13 +24,14 @@ import net.rptools.maptool.util.MessageUtil;
 @MacroDefinition(
     name = "emotes",
     aliases = {"mes"},
-    description = "emoteplural.description")
-public class EmotePluralMacro extends AbstractMacro {
+    description = "emotePossessive.description")
+public class EmotePossessiveMacro extends AbstractMacro {
   public void execute(MacroContext context, String macro, MapToolMacroContext executionContext) {
     macro = processText(macro);
 
     MapTool.addMessage(
         TextMessage.say(
-            context.getTransformationHistory(), MessageUtil.getFormattedEmotePlural(macro, null)));
+            context.getTransformationHistory(),
+            MessageUtil.getFormattedEmotePossessive(macro, null)));
   }
 }
