@@ -992,16 +992,16 @@ public class CampaignPropertiesDialog extends JDialog {
                 ${aurasExampleGroupName}
                 ----
                 - ${sightExampleComment}
-                ${aurasExampleNameGmRedSquare}: aura square GM 2.5#ff0000
-                ${aurasExampleNameGmRed}: aura GM 7.5#ff0000
-                ${aurasExampleNameOwner}: aura owner 7.5#00ff00
-                ${aurasExampleNameAllPlayers}: aura 7.5#0000ff
-                ${aurasExampleNameSideFields}: aura cone arc=90 12.5#6666ff offset=90  12.5#aadd00 offset=-90  12.5#aadd00 offset=180  12.5#bb00aa
-                ${aurasExampleNameDonutHole}: aura circle 20 40#ffff00
-                ${aurasExampleNameDonutCone}: aura cone arc=30 10 20#ffff00
-                ${aurasExampleNameRangeCircles} 30/60/90: aura circle 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000
-                ${aurasExampleNameRangeArcs} 30/60/90: aura cone arc=135 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000
-                ${aurasExampleNameLineOfSight}: aura beam width=0.4 150#ffff00
+                ${aurasExampleNameGmRedSquare}: square GM 2.5#ff0000
+                ${aurasExampleNameGmRed}: GM 7.5#ff0000
+                ${aurasExampleNameOwner}: owner 7.5#00ff00
+                ${aurasExampleNameAllPlayers}: 7.5#0000ff
+                ${aurasExampleNameSideFields}: cone arc=90 12.5#6666ff offset=90  12.5#aadd00 offset=-90  12.5#aadd00 offset=180  12.5#bb00aa
+                ${aurasExampleNameDonutHole}: circle 20 40#ffff00
+                ${aurasExampleNameDonutCone}: cone arc=30 10 20#ffff00
+                ${aurasExampleNameRangeCircles} 30/60/90: circle 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000
+                ${aurasExampleNameRangeArcs} 30/60/90: cone arc=135 30.5 30.9#000000 60.5 60.9#000000 90.5 90.9#000000
+                ${aurasExampleNameLineOfSight}: beam width=0.4 150#ffff00
                 </font></pre>
                 <dl>
                   <dt>${aurasExampleNameGmRedSquare}</dt><dd>${aurasExampleTextGmRedSquare}</dd>
