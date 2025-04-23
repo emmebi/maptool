@@ -32,7 +32,6 @@ import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
-import net.rptools.maptool.model.TokenFootprint.OffsetTranslator;
 import net.rptools.maptool.server.proto.GridDto;
 import net.rptools.maptool.server.proto.HexGridDto;
 
@@ -599,8 +598,6 @@ public abstract class HexGrid extends Grid {
     gridRadius += (int) (token.getFootprint(this).getBounds(this).getWidth() / getSize() / 2);
     return getGridAreaFromCache(gridRadius).createTransformedArea(getGridOffset(token));
   }
-
-  protected abstract OffsetTranslator getOffsetTranslator();
 
   protected void readDto(HexGridDto dto) {
     hexRatio = dto.getHexRatio();

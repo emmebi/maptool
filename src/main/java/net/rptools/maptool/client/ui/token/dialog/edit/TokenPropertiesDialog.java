@@ -23,11 +23,11 @@ public class TokenPropertiesDialog {
   private JPanel headPanel;
   private JPanel buttonPanel;
   private JLabel tokenImage;
-  private JTabbedPane tabPanel;
   private HtmlEditorSplit gmNotesEditor;
   private HtmlEditorSplit playerNotesEditor;
   private JComboBox comboBox1;
   private JComboBox comboBox2;
+  private JTabbedPane tabPanel;
   private JLabel ownershipList;
 
   public JComponent getRootComponent() {
