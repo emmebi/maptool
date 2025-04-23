@@ -90,7 +90,7 @@ public class MacroLocation {
     /** Macros from the global Panel. */
     global("global", true),
     /** Macros from a library. */
-    library("libToken", true),
+    library("library", true),
     /** Macros from a URI. */
     uri("uri", true),
     /** Macros from the execFunction function. */

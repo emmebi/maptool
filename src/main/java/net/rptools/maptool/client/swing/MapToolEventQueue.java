@@ -29,7 +29,6 @@ import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolMacroContext;
 import net.rptools.maptool.client.functions.getInfoFunction;
-import net.rptools.maptool.client.macro.MacroLocation;
 import net.rptools.maptool.client.macro.MacroLocationFactory;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.player.Player;
@@ -174,7 +173,6 @@ public class MapToolEventQueue extends EventQueue {
   private static void addGetInfoToSentry(String command) {
     Object campaign;
     try {
-      var source = MacroLocation.MacroSource.sentryIoLogging;
       var loc = macroLocationFactory.createSentryIoLoggingLocation();
       MapToolMacroContext sentryContext = new MapToolMacroContext(command, loc, true);
       MapTool.getParser().enterContext(sentryContext);
