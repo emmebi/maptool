@@ -15,22 +15,19 @@
 package net.rptools.maptool.client.swing;
 
 import java.awt.*;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.awt.event.*;
+import java.awt.font.TextLayout;
+import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import net.rptools.maptool.client.AppPreferences;
 
 /**
  * @author trevor
  */
 public class StatusPanel extends JPanel {
-
-  private JLabel statusLabel;
+  private final StatusMarquee statusLabel = new StatusMarquee();
 
   public StatusPanel() {
-
-    statusLabel = new JLabel();
     statusLabel.setMinimumSize(new Dimension(0, 0));
 
     setLayout(new GridBagLayout());
@@ -42,6 +39,14 @@ public class StatusPanel extends JPanel {
     constraints.fill = GridBagConstraints.BOTH;
 
     add(wrap(statusLabel), constraints);
+    addComponentListener(
+        new ComponentAdapter() {
+          @Override
+          public void componentResized(ComponentEvent e) {
+            super.componentResized(e);
+            repaint();
+          }
+        });
   }
 
   public void setStatus(String status) {
@@ -66,9 +71,199 @@ public class StatusPanel extends JPanel {
   }
 
   private JComponent wrap(JComponent component) {
-
     component.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-
     return component;
+  }
+
+  private static class StatusMarquee extends JLabel implements ActionListener {
+    private static boolean allowScroll = AppPreferences.scrollStatusMessages.get();
+    private static final int TICK_INTERVAL = 1000 / AppPreferences.frameRateCap.get();
+    private static final int START_DELAY =
+        (int) (1000 * AppPreferences.scrollStatusStartDelay.get());
+    private static final int END_HOLD = (int) (1000 * AppPreferences.scrollStatusEndPause.get());
+    private static float scrollSpeed = AppPreferences.scrollStatusSpeed.get();
+    private float scrollPosition = 0;
+
+    private String labelText = ""; // keep a copy as super truncates string excess
+    private final Rectangle innerArea =
+        new Rectangle(); // region inside border modified to become clip bounds
+    private float overflow; // amount that string overflows container
+    private Graphics2D graphics; // needed for calculating text size
+    private TextLayout textLayout; // needed for calculating text size
+    private float y; // paint vertical position
+    private Timer timer;
+
+    StatusMarquee() {
+      super();
+      // Reverse direction for RTL scripts
+      scrollSpeed = this.getComponentOrientation().isLeftToRight() ? -scrollSpeed : scrollSpeed;
+      textLayout = null;
+
+      this.addMouseListener(
+          new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+              super.mouseClicked(e);
+              // RMB toggle preference - LMB pause/resume scrolling
+              if (SwingUtilities.isRightMouseButton(e)) {
+                allowScroll = !allowScroll;
+                if (!allowScroll && timer.isRunning()) {
+                  timer.stop();
+                } else if (allowScroll && !timer.isRunning()) {
+                  sizeCheck();
+                }
+              } else {
+                if (timer.isRunning()) {
+                  timer.setActionCommand("pause");
+                } else {
+                  timer.start();
+                }
+              }
+            }
+          });
+      this.addComponentListener(
+          new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+              super.componentResized(e);
+              sizeCheck();
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+              super.componentShown(e);
+              sizeCheck();
+            }
+          });
+    }
+
+    private void initTimer() {
+      if (timer == null) {
+        timer = new Timer(TICK_INTERVAL, this);
+        timer.setRepeats(true);
+      }
+      resetTimer();
+    }
+
+    private void resetTimer() {
+      timer.setDelay(TICK_INTERVAL);
+      timer.setInitialDelay(START_DELAY);
+      timer.setActionCommand("start_delay");
+    }
+
+    @Override
+    public void setText(String text) {
+      initTimer();
+      scrollPosition = 0;
+      labelText = text;
+      super.setToolTipText(
+          "<html><p width=\""
+              + Toolkit.getDefaultToolkit().getScreenSize().width / 3
+              + "\">"
+              + labelText
+              + "</p></html>");
+      sizeCheck();
+      if (!allowScroll) {
+        super.setText(text);
+      }
+    }
+
+    private void setTextLayout() {
+      // avoid NPE at creation and for empty strings
+      if (graphics == null || labelText.isEmpty()) {
+        return;
+      }
+      if (graphics.getClipBounds().width == 0) {
+        return;
+      }
+      // calculates text bounds
+      textLayout = new TextLayout(labelText, getFont(), graphics.getFontRenderContext());
+      // calculate vertical offset to centre text
+      y =
+          (float)
+              (innerArea.getHeight()
+                  - (innerArea.getHeight() - textLayout.getBounds().getHeight()) / 2);
+      markDirty();
+    }
+
+    private void sizeCheck() {
+      SwingUtilities.calculateInnerArea(this, innerArea);
+      if (innerArea == null || graphics == null) { // avoid NPEs
+        return;
+      }
+
+      setTextLayout();
+
+      // add margin to text render area
+      innerArea.setRect(
+          innerArea.x + super.getIconTextGap(),
+          innerArea.y,
+          innerArea.width - 2 * super.getIconTextGap(),
+          innerArea.height);
+
+      overflow = (float) (textLayout.getBounds().getWidth() - innerArea.width);
+
+      if (overflow > 0) {
+        overflow += innerArea.width / 8f;
+        timer.start();
+      } else {
+        timer.stop();
+        scrollPosition = 0;
+      }
+    }
+
+    private void markDirty() {
+      RepaintManager.currentManager(this)
+          .addDirtyRegion(this, innerArea.x, innerArea.y, innerArea.width, innerArea.height);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      if (!allowScroll) {
+        super.paintComponent(g);
+      } else {
+        super.paintBorder(g);
+        Graphics2D g2d = (Graphics2D) g;
+        if (graphics == null) {
+          graphics = g2d;
+          sizeCheck();
+        } else {
+          g2d.setClip(innerArea);
+          g2d.drawString(labelText, scrollPosition, y);
+        }
+        g2d.dispose();
+      }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      switch (e.getActionCommand()) {
+        case "start_delay" -> timer.setActionCommand("scroll"); // initial delay completed
+        case "end_hold" -> { // end hold period completed
+          timer.stop();
+          resetTimer();
+          scrollPosition = 0; // go back to start
+          timer.start();
+          markDirty();
+        }
+        case "pause" -> {
+          timer.setInitialDelay(0); // start scrolling immediately on resume
+          timer.setActionCommand("scroll");
+          timer.stop();
+        }
+        case "scroll" -> {
+          scrollPosition += scrollSpeed;
+          markDirty();
+        }
+      }
+
+      if ((scrollSpeed > 0 && scrollPosition > overflow)
+          || (scrollSpeed < 0 && scrollPosition < -overflow)) {
+        timer.stop();
+        timer.setInitialDelay(END_HOLD); // start end hold period
+        timer.setActionCommand("end_hold");
+        timer.start();
+      }
+    }
   }
 }
