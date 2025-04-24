@@ -518,6 +518,7 @@ public class AppPreferences {
     T get(Preferences node, String key, Supplier<T> defaultValue);
   }
 
+
   public static final class Preference<T> {
     private final String key;
     private final Supplier<T> defaultValue;
@@ -692,7 +693,7 @@ public class AppPreferences {
 
     @Override
     public void set(Preferences prefs, String key, Float value) {
-      prefs.putDouble(key, value);
+      prefs.putFloat(key, value);
     }
 
     @Override
