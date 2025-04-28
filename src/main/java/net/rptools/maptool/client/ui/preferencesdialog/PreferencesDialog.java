@@ -221,6 +221,9 @@ public class PreferencesDialog extends JDialog {
   /** Checkbox for if new macros should be editable by players by default. */
   private final JCheckBox allowPlayerMacroEditsDefault;
 
+  /** Checkbox for opening macro editor on creating new macro. */
+  private final JCheckBox openEditorForNewMacros;
+
   /** Checkbox for if the details of inline rolls should be shown in tooltips. */
   private final JCheckBox toolTipInlineRolls;
 
@@ -442,6 +445,18 @@ public class PreferencesDialog extends JDialog {
   // ** Checkbox for loading the most recently used campaign on startup */
   private final JCheckBox loadMRUcheckbox;
 
+  /** status bar scrolling checkbox */
+  private final JCheckBox statusScrollEnable;
+
+  /** status bar scrolling speed */
+  private final JSpinner statusScrollSpeedSpinner;
+
+  /** status bar scroll start delay */
+  private final JSpinner statusScrollStartDelaySpinner;
+
+  /** status bar scroll end delay */
+  private final JSpinner statusScrollEndPause;
+
   /**
    * Array of LocalizedComboItems representing the default grid types for the preferences dialog.
    * Each item in the array consists of a grid type and its corresponding localized display name.
@@ -635,6 +650,7 @@ public class PreferencesDialog extends JDialog {
     visionTypeCombo = panel.getComboBox("defaultVisionType");
     mapSortType = panel.getComboBox("mapSortType");
     movementMetricCombo = panel.getComboBox("movementMetric");
+    openEditorForNewMacros = panel.getCheckBox("openEditorForNewMacros");
     allowPlayerMacroEditsDefault = panel.getCheckBox("allowPlayerMacroEditsDefault");
     toolTipInlineRolls = panel.getCheckBox("toolTipInlineRolls");
     suppressToolTipsMacroLinks = panel.getCheckBox("suppressToolTipsMacroLinks");
@@ -726,6 +742,43 @@ public class PreferencesDialog extends JDialog {
     labelBorderWidthSpinner.setValue(AppPreferences.mapLabelBorderWidth.get());
     labelBorderArcSpinner = (JSpinner) panel.getComponent("labelBorderArcSpinner");
     labelBorderArcSpinner.setValue(AppPreferences.mapLabelBorderArc.get());
+
+    statusScrollEnable = panel.getCheckBox("statusScrollEnable");
+    statusScrollEnable.setSelected(AppPreferences.scrollStatusMessages.get());
+    statusScrollEnable.addChangeListener(
+        e -> AppPreferences.scrollStatusMessages.set(((JCheckBox) e.getSource()).isSelected()));
+
+    statusScrollSpeedSpinner = panel.getSpinner("statusScrollSpeedSpinner");
+    statusScrollSpeedSpinner.setModel(
+        new SpinnerNumberModel(
+            AppPreferences.scrollStatusSpeed.get().doubleValue(), 0.1, 5d, 0.01));
+    statusScrollSpeedSpinner.addChangeListener(
+        e ->
+            AppPreferences.scrollStatusSpeed.set(
+                ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
+                    .getNumber()
+                    .floatValue()));
+
+    statusScrollStartDelaySpinner = panel.getSpinner("statusScrollStartDelaySpinner");
+    statusScrollStartDelaySpinner.setModel(
+        new SpinnerNumberModel(
+            AppPreferences.scrollStatusStartDelay.get().doubleValue(), 0, 10d, 0.1));
+    statusScrollStartDelaySpinner.addChangeListener(
+        e ->
+            AppPreferences.scrollStatusStartDelay.set(
+                ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
+                    .getNumber()
+                    .doubleValue()));
+    statusScrollEndPause = panel.getSpinner("statusScrollEndPause");
+    statusScrollEndPause.setModel(
+        new SpinnerNumberModel(
+            AppPreferences.scrollStatusEndPause.get().doubleValue(), 0, 10d, 0.1));
+    statusScrollEndPause.addChangeListener(
+        e ->
+            AppPreferences.scrollStatusEndPause.set(
+                ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
+                    .getNumber()
+                    .doubleValue()));
     showLabelBorderCheckBox = (JCheckBox) panel.getComponent("showLabelBorder");
     showLabelBorderCheckBox.addActionListener(
         e -> {
@@ -926,7 +979,8 @@ public class PreferencesDialog extends JDialog {
         e ->
             AppPreferences.allowPlayerMacroEditsDefault.set(
                 allowPlayerMacroEditsDefault.isSelected()));
-
+    openEditorForNewMacros.addActionListener(
+        e -> AppPreferences.openEditorForNewMacro.set(openEditorForNewMacros.isSelected()));
     showAvatarInChat.addActionListener(
         e -> AppPreferences.showAvatarInChat.set(showAvatarInChat.isSelected()));
     saveReminderCheckBox.addActionListener(
@@ -1603,6 +1657,7 @@ public class PreferencesDialog extends JDialog {
     syrinscapeActiveCheckBox.setSelected(AppPreferences.syrinscapeActive.get());
     showAvatarInChat.setSelected(AppPreferences.showAvatarInChat.get());
     allowPlayerMacroEditsDefault.setSelected(AppPreferences.allowPlayerMacroEditsDefault.get());
+    openEditorForNewMacros.setSelected(AppPreferences.openEditorForNewMacro.get());
     toolTipInlineRolls.setSelected(AppPreferences.useToolTipForInlineRoll.get());
     suppressToolTipsMacroLinks.setSelected(AppPreferences.suppressToolTipsForMacroLinks.get());
     trustedOutputForeground.setColor(AppPreferences.trustedPrefixForeground.get());

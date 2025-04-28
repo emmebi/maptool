@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client;
 
+import com.sun.jdi.FloatType;
 import com.twelvemonkeys.image.ResampleOp;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -139,6 +140,9 @@ public class AppPreferences {
 
   public static final Preference<Integer> toolTipDismissDelay =
       IntegerType.create("toolTipDismissDelay", 30000);
+
+  public static final Preference<Boolean> openEditorForNewMacro =
+      BooleanType.create("openEditorForNewMacro", true);
 
   public static final Preference<Boolean> allowPlayerMacroEditsDefault =
       BooleanType.create("allowPlayerMacroEditsDefault", true);
@@ -339,6 +343,19 @@ public class AppPreferences {
 
   public static final Preference<Integer> frameRateCap =
       IntegerType.create("frameRateCap", 60).validateIt(cap -> cap > 0);
+
+  /* Scroll status bar information messages that exceed the available size */
+  public static final Preference<Boolean> scrollStatusMessages =
+      BooleanType.create("statusBarScroll", true);
+  /* Scroll status bar scrolling speed */
+  public static final Preference<Float> scrollStatusSpeed =
+      FloatType.create("statusBarSpeed", 0.85f);
+  /* Scroll status bar scrolling start delay */
+  public static final Preference<Double> scrollStatusStartDelay =
+      DoubleType.create("statusBarDelay", 2.4);
+  /* Scroll status bar scrolling end pause */
+  public static final Preference<Double> scrollStatusEndPause =
+      DoubleType.create("statusBarDelay", 1.8);
 
   public static final Preference<Integer> upnpDiscoveryTimeout =
       IntegerType.create("upnpDiscoveryTimeout", 5000);
@@ -665,6 +682,22 @@ public class AppPreferences {
     @Override
     public Double get(Preferences prefs, String key, Supplier<Double> defaultValue) {
       return prefs.getDouble(key, defaultValue.get());
+    }
+  }
+
+  private static final class FloatType implements Type<Float> {
+    public static Preference<Float> create(String key, float defaultValue) {
+      return new Preference<>(key, defaultValue, new FloatType());
+    }
+
+    @Override
+    public void set(Preferences prefs, String key, Float value) {
+      prefs.putDouble(key, value);
+    }
+
+    @Override
+    public Float get(Preferences prefs, String key, Supplier<Float> defaultValue) {
+      return prefs.getFloat(key, defaultValue.get());
     }
   }
 

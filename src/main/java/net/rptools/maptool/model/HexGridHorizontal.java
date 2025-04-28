@@ -22,14 +22,11 @@ import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
-import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.tool.PointerTool;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.client.walker.WalkerMetric;
@@ -54,7 +51,7 @@ public class HexGridHorizontal extends HexGrid {
           offsetPoint.x++;
         }
       };
-  private static List<TokenFootprint> footprintList;
+
   private static final Map<Integer, Area> gridShapeCache = new ConcurrentHashMap<>();
 
   @Override
@@ -149,20 +146,6 @@ public class HexGridHorizontal extends HexGrid {
         actionMap.remove(key);
       }
     }
-  }
-
-  @Override
-  public List<TokenFootprint> getFootprints() {
-    if (footprintList == null) {
-      try {
-        footprintList =
-            loadFootprints(
-                "net/rptools/maptool/model/hexGridHorizFootprints.xml", getOffsetTranslator());
-      } catch (IOException ioe) {
-        MapTool.showError("Could not load Hex Grid footprints", ioe);
-      }
-    }
-    return footprintList;
   }
 
   @Override

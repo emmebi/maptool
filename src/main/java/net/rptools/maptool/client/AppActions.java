@@ -2684,25 +2684,6 @@ public class AppActions {
     }
   }
 
-  /**
-   * This is the integrated load/save interface that allows individual components of the
-   * application's dataset to be saved to an external file. The goal is to allow specific maps and
-   * tokens, campaign properties (sight, light, token props), and layers + their contents to be
-   * saved through a single unified interface.
-   */
-  public static final Action LOAD_SAVE =
-      new DeveloperClientAction() {
-        {
-          init("action.loadSaveDialog");
-        }
-
-        @Override
-        protected void executeAction() {
-          LoadSaveImpl impl = new LoadSaveImpl();
-          impl.saveApplication(); // All the work is done here
-        }
-      };
-
   public static final Action SAVE_CAMPAIGN =
       new DefaultClientAction() {
         {
