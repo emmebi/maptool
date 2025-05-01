@@ -312,7 +312,7 @@ class LibraryToken implements Library {
               } else if (macroName.toLowerCase().startsWith("lib:")) {
                 expectedMacroName = macroName.substring(4);
               }
-              ;
+
               Token library = findLibrary(id);
               MacroButtonProperties buttonProps = library.getMacro(expectedMacroName, false);
               if (buttonProps == null) {

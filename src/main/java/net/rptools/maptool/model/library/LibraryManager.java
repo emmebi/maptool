@@ -261,10 +261,11 @@ public class LibraryManager {
       String namespace, MapToolMacroContext context) {
     String ns = namespace;
     if ("@this".equalsIgnoreCase(namespace)) {
+      if (context == null) {
+        return Optional.empty();
+      }
       var source = context.getSource();
-      if (context == null
-          || source == null
-          || source.getSource() != MacroLocation.MacroSource.library) {
+      if (source == null || source.getSource() != MacroLocation.MacroSource.library) {
         return Optional.empty();
       }
 

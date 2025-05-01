@@ -53,7 +53,7 @@ public class MapToolMacroContext {
    * @param macroButtonIndex The index of the button that ran this command.
    */
   public MapToolMacroContext(
-      String name, MacroLocation source, boolean trusted, int macroButtonIndex) {
+      @Nonnull String name, @Nonnull MacroLocation source, boolean trusted, int macroButtonIndex) {
     this.name = name;
     this.source = source;
     this.trusted = trusted;

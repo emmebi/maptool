@@ -51,8 +51,8 @@ public class CallFunction extends AbstractFunction {
         UNLIMITED_PARAMETERS,
         "call",
         "call.a",
-        "dcall",
-        "dcall.a",
+        "call.deferred",
+        "call.deferred.a",
         "call.foreach",
         "call.foreach.a");
   }
@@ -64,9 +64,9 @@ public class CallFunction extends AbstractFunction {
     String fnname = functionName.toLowerCase();
 
     var varResolver = (MapToolVariableResolver) resolver;
-    boolean defer = fnname.startsWith("dcall");
+    boolean defer = fnname.contains(".deferred");
     switch (fnname) {
-      case "call", "dcall" -> {
+      case "call", "call.deferred" -> {
         FunctionUtil.checkNumberParam(functionName, parameters, 1, Function.UNLIMITED_PARAMETERS);
         return doCall(
             varResolver,
@@ -74,7 +74,7 @@ public class CallFunction extends AbstractFunction {
             paramsToJsonArray(parameters.subList(1, parameters.size())),
             defer);
       }
-      case "call.a", "dcall.a" -> {
+      case "call.a", "call.deferred.a" -> {
         FunctionUtil.checkNumberParam(functionName, parameters, 2, 2);
         var jsonArray = jsonArrayFunctions.coerceToJsonArray(parameters.get(1));
         return doCall(varResolver, parameters.get(0).toString(), jsonArray, defer);
