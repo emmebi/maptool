@@ -377,6 +377,8 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    super.mouseReleased(e);
+
     if (isShowingTokenStackPopup) {
       if (tokenStackPanel.contains(e.getX(), e.getY())) {
         tokenStackPanel.handleMouseEvent(e);
