@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client;
 
-import com.sun.jdi.FloatType;
 import com.twelvemonkeys.image.ResampleOp;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -517,7 +516,6 @@ public class AppPreferences {
 
     T get(Preferences node, String key, Supplier<T> defaultValue);
   }
-
 
   public static final class Preference<T> {
     private final String key;
