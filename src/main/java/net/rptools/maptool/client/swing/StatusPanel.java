@@ -97,6 +97,7 @@ public class StatusPanel extends JPanel {
       super();
       // Reverse direction for RTL scripts
       scrollSpeed = this.getComponentOrientation().isLeftToRight() ? -scrollSpeed : scrollSpeed;
+
       textLayout = null;
 
       this.addMouseListener(
@@ -173,7 +174,7 @@ public class StatusPanel extends JPanel {
       if (graphics == null || labelText.isEmpty()) {
         return;
       }
-      if (graphics.getClipBounds().width == 0) {
+      if (graphics.getClipBounds() == null || graphics.getClipBounds().width == 0) {
         return;
       }
       // calculates text bounds
@@ -193,7 +194,9 @@ public class StatusPanel extends JPanel {
       }
 
       setTextLayout();
-
+      if(textLayout == null){
+        return;
+      }
       // add margin to text render area
       innerArea.setRect(
           innerArea.x + super.getIconTextGap(),
