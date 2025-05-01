@@ -16,6 +16,7 @@ package net.rptools.maptool.client.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
@@ -83,13 +84,12 @@ public class StatusPanel extends JPanel {
     private static final int END_HOLD = (int) (1000 * AppPreferences.scrollStatusEndPause.get());
     private static float scrollSpeed = AppPreferences.scrollStatusSpeed.get();
     private float scrollPosition = 0;
-
     private String labelText = ""; // keep a copy as super truncates string excess
     private final Rectangle innerArea =
         new Rectangle(); // region inside border modified to become clip bounds
     private float overflow; // amount that string overflows container
-    private Graphics2D graphics; // needed for calculating text size
-    private TextLayout textLayout; // needed for calculating text size
+    private FontRenderContext fontRenderContext; // for calculating text size
+    private TextLayout textLayout; // for calculating text size
     private float y; // paint vertical position
     private Timer timer;
 
@@ -110,6 +110,7 @@ public class StatusPanel extends JPanel {
                 allowScroll = !allowScroll;
                 if (!allowScroll && timer.isRunning()) {
                   timer.stop();
+                  scrollPosition = 0;
                 } else if (allowScroll && !timer.isRunning()) {
                   sizeCheck();
                 }
@@ -120,20 +121,6 @@ public class StatusPanel extends JPanel {
                   timer.start();
                 }
               }
-            }
-          });
-      this.addComponentListener(
-          new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-              super.componentResized(e);
-              sizeCheck();
-            }
-
-            @Override
-            public void componentShown(ComponentEvent e) {
-              super.componentShown(e);
-              sizeCheck();
             }
           });
     }
@@ -169,34 +156,20 @@ public class StatusPanel extends JPanel {
       }
     }
 
-    private void setTextLayout() {
-      // avoid NPE at creation and for empty strings
-      if (graphics == null || labelText.isEmpty()) {
+    private void sizeCheck() {
+      SwingUtilities.calculateInnerArea(this, innerArea);
+      if (innerArea == null || fontRenderContext == null || labelText.isEmpty()) { // avoid NPEs
         return;
       }
-      if (graphics.getClipBounds() == null || graphics.getClipBounds().width == 0) {
-        return;
-      }
+
       // calculates text bounds
-      textLayout = new TextLayout(labelText, getFont(), graphics.getFontRenderContext());
+      textLayout = new TextLayout(labelText, getFont(), fontRenderContext);
       // calculate vertical offset to centre text
       y =
           (float)
               (innerArea.getHeight()
                   - (innerArea.getHeight() - textLayout.getBounds().getHeight()) / 2);
-      markDirty();
-    }
 
-    private void sizeCheck() {
-      SwingUtilities.calculateInnerArea(this, innerArea);
-      if (innerArea == null || graphics == null) { // avoid NPEs
-        return;
-      }
-
-      setTextLayout();
-      if(textLayout == null){
-        return;
-      }
       // add margin to text render area
       innerArea.setRect(
           innerArea.x + super.getIconTextGap(),
@@ -205,6 +178,8 @@ public class StatusPanel extends JPanel {
           innerArea.height);
 
       overflow = (float) (textLayout.getBounds().getWidth() - innerArea.width);
+
+      markDirty();
 
       if (overflow > 0) {
         overflow += innerArea.width / 8f;
@@ -227,8 +202,8 @@ public class StatusPanel extends JPanel {
       } else {
         super.paintBorder(g);
         Graphics2D g2d = (Graphics2D) g;
-        if (graphics == null) {
-          graphics = g2d;
+        if (fontRenderContext == null) {
+          fontRenderContext = g2d.getFontRenderContext();
           sizeCheck();
         } else {
           g2d.setClip(innerArea);
