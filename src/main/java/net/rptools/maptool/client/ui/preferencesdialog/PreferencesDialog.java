@@ -448,6 +448,9 @@ public class PreferencesDialog extends JDialog {
   /** status bar scrolling checkbox */
   private final JCheckBox statusScrollEnable;
 
+  /** status bar temp time display */
+  private final JSpinner statusTempMessageTimeSpinner;
+
   /** status bar scrolling speed */
   private final JSpinner statusScrollSpeedSpinner;
 
@@ -748,6 +751,16 @@ public class PreferencesDialog extends JDialog {
     statusScrollEnable.addChangeListener(
         e -> AppPreferences.scrollStatusMessages.set(((JCheckBox) e.getSource()).isSelected()));
 
+    statusTempMessageTimeSpinner = panel.getSpinner("statusTempMessageTimeSpinner");
+    statusTempMessageTimeSpinner.setModel(
+        new SpinnerNumberModel(
+            AppPreferences.scrollStatusTempDuration.get().doubleValue(), 0.1, 5d, 0.01));
+    statusTempMessageTimeSpinner.addChangeListener(
+        e ->
+            AppPreferences.scrollStatusTempDuration.set(
+                ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
+                    .getNumber()
+                    .doubleValue()));
     statusScrollSpeedSpinner = panel.getSpinner("statusScrollSpeedSpinner");
     statusScrollSpeedSpinner.setModel(
         new SpinnerNumberModel(
