@@ -355,6 +355,9 @@ public class AppPreferences {
   /* Scroll status bar scrolling end pause */
   public static final Preference<Double> scrollStatusEndPause =
       DoubleType.create("statusBarDelay", 1.8);
+  /* Status bar temporary notification duration */
+  public static final Preference<Double> scrollStatusTempDuration =
+      DoubleType.create("scrollStatusTempDuration", 12d);
 
   public static final Preference<Integer> upnpDiscoveryTimeout =
       IntegerType.create("upnpDiscoveryTimeout", 5000);
@@ -529,9 +532,7 @@ public class AppPreferences {
     private final List<Consumer<T>> onChangeHandlers = new CopyOnWriteArrayList<>();
 
     private Preference(String key, T defaultValue, Type<T> type) {
-      this.key = key;
-      this.defaultValue = () -> defaultValue;
-      this.type = type;
+      this(key, () -> defaultValue, type);
     }
 
     private Preference(String key, Supplier<T> defaultValue, Type<T> type) {
