@@ -360,7 +360,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <grid id="77f3" layout-manager="GridLayoutManager" row-count="9" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="77f3" layout-manager="GridLayoutManager" row-count="10" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -534,6 +534,24 @@
                         <properties>
                           <actionCommand value="comboBoxChanged"/>
                           <name value="mapSortType"/>
+                        </properties>
+                      </component>
+                      <component id="efe38" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.maps.uvttLosImport"/>
+                          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.maps.uvttLosImport.tooltip"/>
+                        </properties>
+                      </component>
+                      <component id="f217e" class="javax.swing.JComboBox">
+                        <constraints>
+                          <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <actionCommand value="comboBoxChanged"/>
+                          <name value="uvttLosImportType"/>
                         </properties>
                       </component>
                     </children>

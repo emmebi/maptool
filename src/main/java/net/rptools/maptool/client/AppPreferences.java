@@ -193,6 +193,9 @@ public class AppPreferences {
   public static final Preference<MapSortType> mapSortType =
       EnumType.create(MapSortType.class, "sortByGMName", MapSortType.GMNAME);
 
+  public static final Preference<UvttLosImportType> uvttLosImportType =
+      EnumType.create(UvttLosImportType.class, "uvttLosImportType", UvttLosImportType.Prompt);
+
   public static final Preference<Boolean> useSoftFogEdges = BooleanType.create("useSoftFog", true);
 
   public static final Preference<Boolean> newMapsHaveFow =
@@ -506,6 +509,23 @@ public class AppPreferences {
 
     MapSortType() {
       displayName = I18N.getString("mapSortType." + name());
+    }
+
+    @Override
+    public String toString() {
+      return displayName;
+    }
+  }
+
+  public enum UvttLosImportType {
+    Walls("uvttLosImportType.walls"),
+    Masks("uvttLosImportType.masks"),
+    Prompt("uvttLosImportType.prompt");
+
+    private final String displayName;
+
+    UvttLosImportType(String key) {
+      displayName = I18N.getString(key);
     }
 
     @Override
