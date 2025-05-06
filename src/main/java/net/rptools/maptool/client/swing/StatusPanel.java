@@ -117,7 +117,7 @@ public class StatusPanel extends JPanel {
     private static boolean allowScroll = AppPreferences.scrollStatusMessages.get();
     private static final int TICK_INTERVAL = 1000 / AppPreferences.frameRateCap.get();
     private static int textDirection;
-    private static float scrollSpeed;
+    private static double scrollSpeed;
     private static double scrollPosition = 0;
     private static String labelText = ""; // keep a copy as super truncates string overflow
     private static String oldText;
