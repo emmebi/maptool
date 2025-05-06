@@ -21,6 +21,8 @@ out/
 *.log
 *~
 \${sys:appHome}/
+build-resources/wikiDocExtraction/*.txt
+build-resources/wikiDocExtraction/*.xml
 
 
 # Automatically Generated
