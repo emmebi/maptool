@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client;
 
-import com.sun.jdi.FloatType;
 import com.twelvemonkeys.image.ResampleOp;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -194,6 +193,9 @@ public class AppPreferences {
   public static final Preference<MapSortType> mapSortType =
       EnumType.create(MapSortType.class, "sortByGMName", MapSortType.GMNAME);
 
+  public static final Preference<UvttLosImportType> uvttLosImportType =
+      EnumType.create(UvttLosImportType.class, "uvttLosImportType", UvttLosImportType.Prompt);
+
   public static final Preference<Boolean> useSoftFogEdges = BooleanType.create("useSoftFog", true);
 
   public static final Preference<Boolean> newMapsHaveFow =
@@ -356,6 +358,9 @@ public class AppPreferences {
   /* Scroll status bar scrolling end pause */
   public static final Preference<Double> scrollStatusEndPause =
       DoubleType.create("statusBarDelay", 1.8);
+  /* Status bar temporary notification duration */
+  public static final Preference<Double> scrollStatusTempDuration =
+      DoubleType.create("scrollStatusTempDuration", 12d);
 
   public static final Preference<Integer> upnpDiscoveryTimeout =
       IntegerType.create("upnpDiscoveryTimeout", 5000);
@@ -512,6 +517,23 @@ public class AppPreferences {
     }
   }
 
+  public enum UvttLosImportType {
+    Walls("uvttLosImportType.walls"),
+    Masks("uvttLosImportType.masks"),
+    Prompt("uvttLosImportType.prompt");
+
+    private final String displayName;
+
+    UvttLosImportType(String key) {
+      displayName = I18N.getString(key);
+    }
+
+    @Override
+    public String toString() {
+      return displayName;
+    }
+  }
+
   private interface Type<T> {
     void set(Preferences node, String key, T value);
 
@@ -530,9 +552,7 @@ public class AppPreferences {
     private final List<Consumer<T>> onChangeHandlers = new CopyOnWriteArrayList<>();
 
     private Preference(String key, T defaultValue, Type<T> type) {
-      this.key = key;
-      this.defaultValue = () -> defaultValue;
-      this.type = type;
+      this(key, () -> defaultValue, type);
     }
 
     private Preference(String key, Supplier<T> defaultValue, Type<T> type) {
@@ -692,7 +712,7 @@ public class AppPreferences {
 
     @Override
     public void set(Preferences prefs, String key, Float value) {
-      prefs.putDouble(key, value);
+      prefs.putFloat(key, value);
     }
 
     @Override
