@@ -1217,7 +1217,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="1d15a" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="1d15a" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="4" left="4" bottom="4" right="4"/>
                 <constraints>
                   <grid row="0" column="2" row-span="4" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1245,7 +1245,7 @@
                   </component>
                   <component id="627f5" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.access.status.scrollSpeed"/>
@@ -1253,7 +1253,7 @@
                   </component>
                   <component id="e7ead" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.access.status.scrollStartDelay"/>
@@ -1261,7 +1261,7 @@
                   </component>
                   <component id="4f380" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.access.status.scrollEndPause"/>
@@ -1269,7 +1269,7 @@
                   </component>
                   <component id="d6c1e" class="javax.swing.JSpinner" default-binding="true">
                     <constraints>
-                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <name value="statusScrollSpeedSpinner"/>
@@ -1278,7 +1278,7 @@
                   </component>
                   <component id="b368a" class="javax.swing.JSpinner" default-binding="true">
                     <constraints>
-                      <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                      <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <name value="statusScrollStartDelaySpinner"/>
@@ -1287,10 +1287,27 @@
                   </component>
                   <component id="2a7ed" class="javax.swing.JSpinner" default-binding="true">
                     <constraints>
-                      <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                      <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <name value="statusScrollEndPause"/>
+                      <opaque value="false"/>
+                    </properties>
+                  </component>
+                  <component id="d697" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.access.status.tempTime"/>
+                    </properties>
+                  </component>
+                  <component id="da2d6" class="javax.swing.JSpinner" default-binding="true">
+                    <constraints>
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <name value="statusTempMessageTimeSpinner"/>
                       <opaque value="false"/>
                     </properties>
                   </component>
