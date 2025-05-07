@@ -1790,7 +1790,7 @@ public class GdxRenderer extends ApplicationAdapter {
     image.setOriginCenter();
 
     timer.start("tokenlist-5a");
-    if (token.isFlippedIso()) {
+    if (token.getIsFlippedIso()) {
       image = zoneCache.getIsoSprite(token.getImageAssetId());
       token.setHeight((int) image.getHeight());
       token.setWidth((int) image.getWidth());
