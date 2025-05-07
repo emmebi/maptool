@@ -158,6 +158,10 @@ public final class TopologyTool<StateT> extends AbstractDrawingLikeTool {
     if (state == null) {
       // We're not doing anything, so delegate to default behaviour.
       super.mouseDragged(e);
+    } else {
+      cancelMapDrag();
+      currentPoint = getPoint(e);
+      renderer.repaint();
     }
   }
 
@@ -194,7 +198,10 @@ public final class TopologyTool<StateT> extends AbstractDrawingLikeTool {
       renderer.repaint();
     }
 
-    super.mousePressed(e);
+    if (state == null) {
+      // We're not doing anything, so delegate to default behaviour.
+      super.mousePressed(e);
+    }
   }
 
   public static final class MaskOverlay implements ZoneOverlay {

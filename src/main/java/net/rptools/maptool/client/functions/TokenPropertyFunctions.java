@@ -512,7 +512,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       if (parameters.size() > 1) {
         location = parameters.get(1).toString();
       } else {
-        location = MapTool.getParser().getMacroSource();
+        location = MapTool.getParser().getMacroSource().getLocation();
       }
 
       String libName;
@@ -555,7 +555,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       if (parameters.size() > 2) {
         location = parameters.get(2).toString();
       } else {
-        location = MapTool.getParser().getMacroSource();
+        location = MapTool.getParser().getMacroSource().getLocation();
       }
 
       String libName;
@@ -593,10 +593,10 @@ public class TokenPropertyFunctions extends AbstractFunction {
       if (parameters.size() > 0) {
         location = parameters.get(0).toString();
         if (location.equals("*") || location.equalsIgnoreCase("this")) {
-          location = MapTool.getParser().getMacroSource();
+          location = MapTool.getParser().getMacroSource().getLocation();
         }
       } else {
-        location = MapTool.getParser().getMacroSource();
+        location = MapTool.getParser().getMacroSource().getLocation();
       }
 
       String libName;
@@ -619,10 +619,10 @@ public class TokenPropertyFunctions extends AbstractFunction {
       if (parameters.size() > 1) {
         location = parameters.get(1).toString();
         if (location.equals("*") || location.equalsIgnoreCase("this")) {
-          location = MapTool.getParser().getMacroSource();
+          location = MapTool.getParser().getMacroSource().getLocation();
         }
       } else {
-        location = MapTool.getParser().getMacroSource();
+        location = MapTool.getParser().getMacroSource().getLocation();
       }
 
       String libName;

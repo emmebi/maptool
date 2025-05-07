@@ -40,6 +40,7 @@ import javax.swing.event.DocumentListener;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppPreferences.RenderQuality;
+import net.rptools.maptool.client.AppPreferences.UvttLosImportType;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.DeveloperOptions;
 import net.rptools.maptool.client.MapTool;
@@ -145,6 +146,8 @@ public class PreferencesDialog extends JDialog {
 
   /** JComboBox variable used to display map sorting options. */
   private final JComboBox<AppPreferences.MapSortType> mapSortType;
+
+  private final JComboBox<UvttLosImportType> uvttLosImportType;
 
   /** Checkbox for displaying or hiding * the statistics sheet on token mouseover. */
   private final JCheckBox showStatSheetCheckBox;
@@ -448,6 +451,9 @@ public class PreferencesDialog extends JDialog {
   /** status bar scrolling checkbox */
   private final JCheckBox statusScrollEnable;
 
+  /** status bar temp time display */
+  private final JSpinner statusTempMessageTimeSpinner;
+
   /** status bar scrolling speed */
   private final JSpinner statusScrollSpeedSpinner;
 
@@ -649,6 +655,7 @@ public class PreferencesDialog extends JDialog {
     showDialogOnNewToken = panel.getCheckBox("showDialogOnNewToken");
     visionTypeCombo = panel.getComboBox("defaultVisionType");
     mapSortType = panel.getComboBox("mapSortType");
+    uvttLosImportType = panel.getComboBox("uvttLosImportType");
     movementMetricCombo = panel.getComboBox("movementMetric");
     openEditorForNewMacros = panel.getCheckBox("openEditorForNewMacros");
     allowPlayerMacroEditsDefault = panel.getCheckBox("allowPlayerMacroEditsDefault");
@@ -748,6 +755,16 @@ public class PreferencesDialog extends JDialog {
     statusScrollEnable.addChangeListener(
         e -> AppPreferences.scrollStatusMessages.set(((JCheckBox) e.getSource()).isSelected()));
 
+    statusTempMessageTimeSpinner = panel.getSpinner("statusTempMessageTimeSpinner");
+    statusTempMessageTimeSpinner.setModel(
+        new SpinnerNumberModel(
+            AppPreferences.scrollStatusTempDuration.get().doubleValue(), 0.1, 60d, 0.1));
+    statusTempMessageTimeSpinner.addChangeListener(
+        e ->
+            AppPreferences.scrollStatusTempDuration.set(
+                ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
+                    .getNumber()
+                    .doubleValue()));
     statusScrollSpeedSpinner = panel.getSpinner("statusScrollSpeedSpinner");
     statusScrollSpeedSpinner.setModel(
         new SpinnerNumberModel(
@@ -757,12 +774,12 @@ public class PreferencesDialog extends JDialog {
             AppPreferences.scrollStatusSpeed.set(
                 ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
                     .getNumber()
-                    .floatValue()));
+                    .doubleValue()));
 
     statusScrollStartDelaySpinner = panel.getSpinner("statusScrollStartDelaySpinner");
     statusScrollStartDelaySpinner.setModel(
         new SpinnerNumberModel(
-            AppPreferences.scrollStatusStartDelay.get().doubleValue(), 0, 10d, 0.1));
+            AppPreferences.scrollStatusStartDelay.get().doubleValue(), 0, 15d, 0.1));
     statusScrollStartDelaySpinner.addChangeListener(
         e ->
             AppPreferences.scrollStatusStartDelay.set(
@@ -772,13 +789,14 @@ public class PreferencesDialog extends JDialog {
     statusScrollEndPause = panel.getSpinner("statusScrollEndPause");
     statusScrollEndPause.setModel(
         new SpinnerNumberModel(
-            AppPreferences.scrollStatusEndPause.get().doubleValue(), 0, 10d, 0.1));
+            AppPreferences.scrollStatusEndPause.get().doubleValue(), 0, 15d, 0.1));
     statusScrollEndPause.addChangeListener(
         e ->
             AppPreferences.scrollStatusEndPause.set(
                 ((SpinnerNumberModel) ((JSpinner) e.getSource()).getModel())
                     .getNumber()
                     .doubleValue()));
+
     showLabelBorderCheckBox = (JCheckBox) panel.getComponent("showLabelBorder");
     showLabelBorderCheckBox.addActionListener(
         e -> {
@@ -1511,6 +1529,13 @@ public class PreferencesDialog extends JDialog {
         e ->
             AppPreferences.mapSortType.set(
                 (AppPreferences.MapSortType) mapSortType.getSelectedItem()));
+
+    uvttLosImportType.setModel(new DefaultComboBoxModel<>(UvttLosImportType.values()));
+    uvttLosImportType.setSelectedItem(AppPreferences.uvttLosImportType.get());
+    uvttLosImportType.addItemListener(
+        e ->
+            AppPreferences.uvttLosImportType.set(
+                (UvttLosImportType) uvttLosImportType.getSelectedItem()));
 
     macroEditorThemeCombo.setModel(new DefaultComboBoxModel<>());
     try (Stream<Path> paths = Files.list(AppConstants.THEMES_DIR.toPath())) {

@@ -309,8 +309,23 @@ public class MacroDialogFunctions extends AbstractFunction {
       throw new ParserException(I18N.getText("msg.error.dialog.js.id", fName, thisArg));
     }
 
-    // Create the script
-    String script = func + ".apply(" + thisArg + "," + argsArray.toString() + ");";
+    // Wrap the script in a function to check if the document is complenet/wait for the document to
+    // be complete before trying to run it
+    String script =
+        """
+        (function() {
+          function waitForComplete() {
+            if (document.readyState === "complete") {
+              %s.apply(%s, %s);
+            } else {
+              setTimeout(waitForComplete, 50);
+            }
+          };
+
+          waitForComplete();
+        })();
+        """
+            .formatted(func, thisArg, argsArray.toString());
 
     // Execute the script
     boolean executed;

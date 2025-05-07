@@ -480,6 +480,8 @@ public class PointerTool extends DefaultTool {
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    super.mouseReleased(e);
+
     mouseButtonDown = false;
 
     if (isShowingTokenStackPopup) {
