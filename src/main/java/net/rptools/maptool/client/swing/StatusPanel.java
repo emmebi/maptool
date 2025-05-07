@@ -166,7 +166,6 @@ public class StatusPanel extends JPanel {
 
       add(scrollPane, BorderLayout.CENTER);
       validate();
-      //      viewport.setScrollMode(JViewport.BLIT_SCROLL_MODE);
       viewport.setDoubleBuffered(true);
 
       button.addMouseListener(LISTEN_BUTTON);
