@@ -265,27 +265,22 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       getLibTokenURIErrorLabel()
           .setText(I18N.getText("EditTokenDialog.libTokenURI.error.notLibToken", name));
       getAllowURLAccess().setEnabled(false);
-      return;
+    } else if (libraryManager.usesReservedPrefix(name.substring(4))) {
+      getLibTokenURIErrorLabel()
+          .setText(
+              I18N.getText(
+                  "macro.setAllowsURIAccess.reservedPrefix",
+                  libraryManager.getReservedPrefix(name.substring(4))));
+      getAllowURLAccess().setEnabled(false);
+    } else if (libraryManager.usesReservedName(name.substring(4))) {
+      getLibTokenURIErrorLabel()
+          .setText(I18N.getText("EditTokenDialog.libTokenURI.error.reserved", name));
+
+      getAllowURLAccess().setEnabled(false);
     } else {
-      if (libraryManager.usesReservedPrefix(name.substring(4))) {
-        getLibTokenURIErrorLabel()
-            .setText(
-                I18N.getText(
-                    "macro.setAllowsURIAccess.reservedPrefix",
-                    libraryManager.getReservedPrefix(name.substring(4))));
-        getAllowURLAccess().setEnabled(false);
-        return;
-      } else if (libraryManager.usesReservedName(name.substring(4))) {
-        getLibTokenURIErrorLabel()
-            .setText(I18N.getText("EditTokenDialog.libTokenURI.error.reserved", name));
-
-        getAllowURLAccess().setEnabled(false);
-        return;
-      }
+      getAllowURLAccess().setEnabled(true);
+      getLibTokenURIErrorLabel().setText(" ");
     }
-
-    getAllowURLAccess().setEnabled(true);
-    getLibTokenURIErrorLabel().setText(" ");
   }
 
   @Override
