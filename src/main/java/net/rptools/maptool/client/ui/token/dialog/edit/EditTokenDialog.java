@@ -617,7 +617,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       imagePanel = new ImageAssetPanel();
 
       imagePanel.setAllowEmptyImage(false);
-      replaceComponent("basicPanel", "tokenImage", imagePanel);
+      replaceComponent("imagePanel", "tokenImage", imagePanel);
     }
     return imagePanel;
   }
