@@ -241,7 +241,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
     setLibTokenPaneEnabled(token.isLibToken());
-    validateLibTokenURIAccess(getNameField().getName());
+    validateLibTokenURIAccess(getNameField().getText());
     var combo = getStatSheetCombo();
     combo.removeAllItems();
     /* Default Entry */
@@ -549,9 +549,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   private void setLibTokenPaneEnabled(boolean show) {
-    JTabbedPane tabbedPane = getTabbedPane();
-    String libTokenTile = I18N.getString("EditTokenDialog.tab.libToken");
-    tabbedPane.setEnabledAt(tabbedPane.indexOfTab(libTokenTile), show);
+    getLibTokenProperties().setEnabled(show);
     getAllowURLAccess().setEnabled(show);
   }
 
@@ -1209,6 +1207,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   public JSpinner getVisibilityToleranceSpinner() {
     return (JSpinner) getComponent("visibilityToleranceSpinner");
+  }
+
+  public JPanel getLibTokenProperties() {
+    return (JPanel) getComponent("panel.libToken");
   }
 
   public JCheckBox getAllowURLAccess() {
