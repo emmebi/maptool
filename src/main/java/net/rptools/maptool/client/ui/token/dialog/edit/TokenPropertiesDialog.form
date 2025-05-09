@@ -93,7 +93,7 @@
             </children>
           </grid>
           <grid id="10203" layout-manager="GridLayoutManager" row-count="17" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.vbl"/>
             </constraints>
@@ -440,7 +440,7 @@
             </children>
           </grid>
           <grid id="c15c1" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.state"/>
             </constraints>
@@ -471,7 +471,7 @@
             </children>
           </grid>
           <grid id="cb03" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.speech"/>
             </constraints>
@@ -515,7 +515,7 @@
             </children>
           </grid>
           <grid id="ff3b9" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.ownership"/>
             </constraints>
@@ -552,7 +552,7 @@
             </children>
           </grid>
           <grid id="3a658" layout-manager="GridLayoutManager" row-count="12" column-count="12" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.config"/>
             </constraints>
@@ -1114,7 +1114,7 @@
             </children>
           </grid>
           <grid id="8454e" layout-manager="GridLayoutManager" row-count="5" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="4" vgap="4">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.border.title.layout"/>
             </constraints>
@@ -1396,7 +1396,7 @@
             </children>
           </grid>
           <grid id="81e06" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.libToken"/>
             </constraints>
@@ -1446,7 +1446,7 @@
             </children>
           </grid>
           <grid id="fff3c" layout-manager="GridLayoutManager" row-count="5" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="4" left="4" bottom="4" right="4"/>
+            <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.hero"/>
             </constraints>
