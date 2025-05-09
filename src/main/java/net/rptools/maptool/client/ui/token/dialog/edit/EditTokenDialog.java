@@ -110,6 +110,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       RessourceManager.getBigIcon(Icons.EDIT_TOKEN_REFRESH_ON);
   private static final ImageIcon REFRESH_ICON_OFF =
       RessourceManager.getBigIcon(Icons.EDIT_TOKEN_REFRESH_OFF);
+
+  private final TokenPropertiesDialog view;
   private final RSyntaxTextArea xmlStatblockRSyntaxTextArea = new RSyntaxTextArea(2, 2);
   private final RSyntaxTextArea textStatblockRSyntaxTextArea = new RSyntaxTextArea(2, 2);
   private final WordWrapCellRenderer propertyCellRenderer = new WordWrapCellRenderer();
@@ -123,10 +125,15 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   private AutoGenerateTopologySwingWorker autoGenerateTopologySwingWorker =
       new AutoGenerateTopologySwingWorker(false, Color.BLACK);
 
+  private EditTokenDialog(TokenPropertiesDialog view) {
+    super(view.getRootComponent());
+    this.view = view;
+    panelInit();
+  }
+
   /** Create a new token notes dialog. */
   public EditTokenDialog() {
-    super(new TokenPropertiesDialog().getRootComponent());
-    panelInit();
+    this(new TokenPropertiesDialog());
   }
 
   public void initGMNotesEditorPane() {
