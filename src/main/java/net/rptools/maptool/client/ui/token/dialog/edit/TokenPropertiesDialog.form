@@ -3,7 +3,7 @@
   <grid id="ca1c7" binding="mainPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="4" left="4" bottom="4" right="4"/>
     <constraints>
-      <xy x="10" y="10" width="1402" height="1266"/>
+      <xy x="10" y="10" width="963" height="616"/>
     </constraints>
     <properties>
       <name value="mainPanel"/>
@@ -28,6 +28,7 @@
         <properties>
           <name value="TabPane"/>
           <tabLayoutPolicy value="1"/>
+          <tabPlacement value="2"/>
           <visible value="true"/>
         </properties>
         <border type="none"/>
