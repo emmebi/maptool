@@ -27,6 +27,9 @@ public class TokenPropertiesDialog {
   private HtmlEditorSplit playerNotesEditor;
   private JComboBox comboBox1;
   private JComboBox comboBox2;
+  private JTabbedPane notesTabbedPane;
+  private JPanel playerNotesPanel;
+  private JPanel gmNotesPanel;
   private JTabbedPane tabPanel;
   private JLabel ownershipList;
 
@@ -41,5 +44,17 @@ public class TokenPropertiesDialog {
     gmNotesEditor.setName("gmNotesEditor");
     playerNotesEditor = new HtmlEditorSplit();
     playerNotesEditor.setName("playerNotesEditor");
+  }
+
+  public JTabbedPane getNotesTabbedPane() {
+    return notesTabbedPane;
+  }
+
+  public JPanel getGmNotesPanel() {
+    return gmNotesPanel;
+  }
+
+  public JPanel getPlayerNotesPanel() {
+    return playerNotesPanel;
   }
 }
