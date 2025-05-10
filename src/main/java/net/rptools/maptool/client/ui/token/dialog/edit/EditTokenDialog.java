@@ -305,14 +305,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     updateImageTableCombo();
 
     /* STATES */
-    Component barPanel = null;
     updateStatesPanel();
     Component[] statePanels = getStatesPanel().getComponents();
     for (Component statePanel : statePanels) {
-      if ("bar".equals(statePanel.getName())) {
-        barPanel = statePanel;
-        continue;
-      }
       Component[] states = ((Container) statePanel).getComponents();
       for (Component component : states) {
         JCheckBox state = (JCheckBox) component;
@@ -321,30 +316,29 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
 
     /* BARS */
-    if (barPanel != null) {
-      Component[] barComponents = ((Container) barPanel).getComponents();
-      JCheckBox cb = null;
-      JSlider bar = null;
-      for (var tokenBarPanel : barComponents) {
-        for (var component : ((Container) tokenBarPanel).getComponents()) {
-          if (component instanceof JCheckBox) {
-            cb = (JCheckBox) component;
-          } else if (component instanceof JSlider) {
-            bar = (JSlider) component;
-          }
+    var barsPanel = getBarsPanel();
+    Component[] barComponents = ((Container) barsPanel).getComponents();
+    JCheckBox cb = null;
+    JSlider bar = null;
+    for (var tokenBarPanel : barComponents) {
+      for (var component : ((Container) tokenBarPanel).getComponents()) {
+        if (component instanceof JCheckBox) {
+          cb = (JCheckBox) component;
+        } else if (component instanceof JSlider) {
+          bar = (JSlider) component;
         }
-        if (token.getState(bar.getName()) == null) {
-          cb.setSelected(true);
-          bar.setEnabled(false);
-          bar.setValue(100);
-        } else {
-          cb.setSelected(false);
-          bar.setEnabled(true);
-          bar.setValue(
-              (int)
-                  (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
-                      * 100));
-        }
+      }
+      if (token.getState(bar.getName()) == null) {
+        cb.setSelected(true);
+        bar.setEnabled(false);
+        bar.setValue(100);
+      } else {
+        cb.setSelected(false);
+        bar.setEnabled(true);
+        bar.setValue(
+            (int)
+                (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
+                    * 100));
       }
     }
 
@@ -855,12 +849,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
     /* Get the states */
     Component[] stateComponents = getStatesPanel().getComponents();
-    Container barPanel = null;
     for (Component stateComponent : stateComponents) {
-      if ("bar".equals(stateComponent.getName())) {
-        barPanel = (Container) stateComponent;
-        continue;
-      }
       Component[] components = ((Container) stateComponent).getComponents();
       for (Component component : components) {
         JCheckBox cb = (JCheckBox) component;
@@ -870,21 +859,20 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
 
     /* BARS */
-    if (barPanel != null) {
-      for (var barContainer : barPanel.getComponents()) {
-        var barComponents = ((Container) barContainer).getComponents();
+    var barsPanel = getBarsPanel();
+    for (var barContainer : barsPanel.getComponents()) {
+      var barComponents = ((Container) barContainer).getComponents();
 
-        JSlider bar = (JSlider) barComponents[1];
-        JCheckBox cb = (JCheckBox) barComponents[2];
+      JSlider bar = (JSlider) barComponents[1];
+      JCheckBox cb = (JCheckBox) barComponents[2];
 
-        BigDecimal value =
-            cb.isSelected() ? null : new BigDecimal(bar.getValue()).divide(new BigDecimal(100));
-        token.setState(bar.getName(), value);
-        bar.setValue(
-            (int)
-                (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
-                    * 100));
-      }
+      BigDecimal value =
+          cb.isSelected() ? null : new BigDecimal(bar.getValue()).divide(new BigDecimal(100));
+      token.setState(bar.getName(), value);
+      bar.setValue(
+          (int)
+              (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
+                  * 100));
     }
     /* OWNERSHIP */
     /* If the token is owned by all and we are a player don't alter the ownership list. */
@@ -1005,57 +993,61 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   private void updateStatesPanel() {
+    JPanel statesPanel = getStatesPanel();
+    statesPanel.setLayout(new MigLayout("wrap", "[fill,grow]"));
+    statesPanel.removeAll();
     /* Group the states first into individual panels */
     List<BooleanTokenOverlay> overlays =
         new ArrayList<BooleanTokenOverlay>(MapTool.getCampaign().getTokenStatesMap().values());
-    Map<String, JPanel> groups = new TreeMap<String, JPanel>();
-    var noGroupPanel =
-        new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
-    noGroupPanel.setName("no group");
-    groups.put("", noGroupPanel);
-    for (BooleanTokenOverlay overlay : overlays) {
-      String group = overlay.getGroup();
-      if (group != null && !(group = group.trim()).isEmpty()) {
-        JPanel panel = groups.get(group);
-        if (panel == null) {
-          panel =
-              new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
-          panel.setName(group);
-          panel.setBorder(BorderFactory.createTitledBorder(group));
-          groups.put(group, panel);
+    if (overlays.isEmpty()) {
+      statesPanel.setVisible(false);
+    } else {
+      statesPanel.setVisible(true);
+      Map<String, JPanel> groups = new TreeMap<String, JPanel>();
+      var noGroupPanel =
+          new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
+      noGroupPanel.setName("no group");
+      groups.put("", noGroupPanel);
+      for (BooleanTokenOverlay overlay : overlays) {
+        String group = overlay.getGroup();
+        if (group != null && !(group = group.trim()).isEmpty()) {
+          JPanel panel = groups.get(group);
+          if (panel == null) {
+            panel =
+                new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
+            panel.setName(group);
+            panel.setBorder(BorderFactory.createTitledBorder(group));
+            groups.put(group, panel);
+          }
         }
       }
-    }
 
-    /* Add the group panels and bar panel to the states panel */
-    JPanel statesPanel = getStatesPanel();
-    MigLayout layout = new MigLayout("wrap", "[fill,grow]");
-    statesPanel.setLayout(layout);
-    statesPanel.removeAll();
-
-    /* Add the individual check boxes. */
-    for (BooleanTokenOverlay state : overlays) {
-      String group = state.getGroup();
-      var panel = groups.get("");
-      if (group != null && !(group = group.trim()).isEmpty()) {
-        panel = groups.get(group);
+      /* Add the individual check boxes. */
+      for (BooleanTokenOverlay state : overlays) {
+        String group = state.getGroup();
+        var panel = groups.get("");
+        if (group != null && !(group = group.trim()).isEmpty()) {
+          panel = groups.get(group);
+        }
+        panel.add(new JCheckBox(state.getName()));
       }
-      panel.add(new JCheckBox(state.getName()));
+
+      /* Add the group panels to the states panel */
+      for (JPanel gPanel : groups.values()) {
+        if (gPanel.getComponentCount() == 0) continue;
+
+        statesPanel.add(gPanel);
+      }
     }
 
-    for (JPanel gPanel : groups.values()) {
-      if (gPanel.getComponentCount() == 0) continue;
-
-      statesPanel.add(gPanel);
-    }
-
-    JPanel barPanel = new JPanel(new MigLayout("wrap 2", "[fill,grow][fill,grow]"));
-    barPanel.setName("bar");
     /* Add sliders to the bar panel */
-    if (!MapTool.getCampaign().getTokenBarsMap().isEmpty()) {
-      barPanel.setBorder(
-          BorderFactory.createTitledBorder(I18N.getText("CampaignPropertiesDialog.tab.bars")));
-
+    var barsPanel = getBarsPanel();
+    barsPanel.setLayout(new MigLayout("wrap 1", "[fill,grow]"));
+    barsPanel.removeAll();
+    if (MapTool.getCampaign().getTokenBarsMap().isEmpty()) {
+      barsPanel.setVisible(false);
+    } else {
+      barsPanel.setVisible(true);
       for (BarTokenOverlay bar : MapTool.getCampaign().getTokenBarsMap().values()) {
         JSlider slider = new JSlider(0, 100);
         JCheckBox hide = new JCheckBox(I18N.getString("EditTokenDialog.checkbox.state.hide"));
@@ -1076,9 +1068,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         tokenbarPanel.add(new JLabel(bar.getName() + ":"));
         tokenbarPanel.add(slider, "span 1 2 align right");
         tokenbarPanel.add(hide);
-        barPanel.add(tokenbarPanel);
+        barsPanel.add(tokenbarPanel);
       }
-      statesPanel.add(barPanel);
     }
   }
 
@@ -1091,6 +1082,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   public JPanel getStatesPanel() {
     return (JPanel) getComponent("statesPanel");
+  }
+
+  public JPanel getBarsPanel() {
+    return (JPanel) getComponent("barsPanel");
   }
 
   public JTable getSpeechTable() {
