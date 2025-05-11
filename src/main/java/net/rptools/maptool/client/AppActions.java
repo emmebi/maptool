@@ -1071,8 +1071,8 @@ public class AppActions {
     Zone zone = MapTool.getFrame().getCurrentZoneRenderer().getZone();
     Grid grid = zone.getGrid();
     double sizeRatio = 1;
-    if(gridCopiedFrom.getSize() != 0 && grid.getSize() != 0){
-        sizeRatio = (double) grid.getSize() / gridCopiedFrom.getSize();
+    if (gridCopiedFrom.getSize() != 0 && grid.getSize() != 0) {
+      sizeRatio = (double) grid.getSize() / gridCopiedFrom.getSize();
     }
     boolean snapToGrid = false;
     Token topLeft = null;
@@ -1108,15 +1108,13 @@ public class AppActions {
     tokenList.sort(Token.COMPARE_BY_ZORDER);
     List<String> failedPaste = new ArrayList<String>(tokenList.size());
 
-    Point unchanged = new Point(0,0);
+    Point unchanged = new Point(0, 0);
     for (Token origToken : tokenList) {
       Token token = new Token(origToken, keepIdsOnPaste); // keep id if first paste since cut
-        if(!unchanged.equals(token.getAnchor())){
-            token.setAnchor(
-                    (int) (token.getAnchorX() * sizeRatio),
-                    (int) (token.getAnchorY() * sizeRatio)
-            );
-        }
+      if (!unchanged.equals(token.getAnchor())) {
+        token.setAnchor(
+            (int) (token.getAnchorX() * sizeRatio), (int) (token.getAnchorY() * sizeRatio));
+      }
       // need this here to get around times when a token is copied and pasted into the
       // same zone, such as a framework "template"
       if (allTokensSet != null && allTokensSet.contains(token.getExposedAreaGUID())) {
