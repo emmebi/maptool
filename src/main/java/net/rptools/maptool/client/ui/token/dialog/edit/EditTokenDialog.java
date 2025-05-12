@@ -1247,13 +1247,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   public void initOwnershipPanel() {
     CheckBoxListWithSelectable list = new CheckBoxListWithSelectable();
     list.setName("ownerList");
-    replaceComponent(
-        "ownershipPanel",
-        "ownershipList",
-        new JScrollPane(
-            list,
-            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+    replaceComponent("ownershipPanel", "ownershipList", list);
   }
 
   public void initPropertiesPanel() {
