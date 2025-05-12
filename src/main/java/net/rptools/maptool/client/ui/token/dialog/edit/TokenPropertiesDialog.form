@@ -243,7 +243,7 @@
               </grid>
             </children>
           </grid>
-          <grid id="7ceb8" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="7ceb8" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="true" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.images"/>
@@ -253,10 +253,198 @@
             </properties>
             <border type="none"/>
             <children>
-              <grid id="4fcca" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="true" same-size-vertically="true" hgap="-1" vgap="-1">
+              <grid id="26607" layout-manager="GridLayoutManager" row-count="5" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <grid id="1081f" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="4" left="4" bottom="4" right="4"/>
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.border.title.imageTable"/>
+                    <children>
+                      <component id="9f15f" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <requestFocusEnabled value="false"/>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="EditTokenDialog.label.hasImageTable"/>
+                        </properties>
+                      </component>
+                      <component id="a22e2" class="javax.swing.JCheckBox">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <name value="@hasImageTable"/>
+                          <text value=""/>
+                        </properties>
+                      </component>
+                      <hspacer id="c7ee6">
+                        <constraints>
+                          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </hspacer>
+                      <component id="f83d6" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="EditTokenDialog.label.imageTableName"/>
+                        </properties>
+                      </component>
+                      <component id="cffbd" class="javax.swing.JComboBox">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <actionCommand value="comboBoxChanged"/>
+                          <name value="imageTableCombo"/>
+                        </properties>
+                      </component>
+                      <vspacer id="8ff12">
+                        <constraints>
+                          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </vspacer>
+                    </children>
+                  </grid>
+                  <grid id="fd3d0" layout-manager="GridLayoutManager" row-count="4" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="4" left="4" bottom="4" right="4"/>
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="token.popup.menu.flip"/>
+                    <children>
+                      <component id="7082f" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <horizontalAlignment value="4"/>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.flip.vertical"/>
+                        </properties>
+                      </component>
+                      <component id="5945a" class="javax.swing.JCheckBox" default-binding="true">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <actionCommand value=""/>
+                          <name value="@isFlippedY"/>
+                          <text value=""/>
+                        </properties>
+                      </component>
+                      <component id="5f57b" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <horizontalAlignment value="4"/>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.flip.horizontal"/>
+                        </properties>
+                      </component>
+                      <component id="3f0a6" class="javax.swing.JCheckBox" default-binding="true">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <actionCommand value=""/>
+                          <name value="@isFlippedX"/>
+                          <text value=""/>
+                        </properties>
+                      </component>
+                      <component id="caa2e" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <horizontalAlignment value="4"/>
+                          <name value="isoFlipLabel"/>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.flip.isometric"/>
+                        </properties>
+                      </component>
+                      <component id="2ccfc" class="javax.swing.JCheckBox" default-binding="true">
+                        <constraints>
+                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <actionCommand value=""/>
+                          <name value="@isFlippedIso"/>
+                          <text value=""/>
+                        </properties>
+                      </component>
+                      <vspacer id="4f071">
+                        <constraints>
+                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </vspacer>
+                      <hspacer id="3ae5b">
+                        <constraints>
+                          <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </hspacer>
+                    </children>
+                  </grid>
+                  <grid id="7a307" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="4" left="4" bottom="4" right="4"/>
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.label.opacity"/>
+                    <children>
+                      <component id="25fde" class="javax.swing.JLabel">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <name value="tokenOpacityValueLabel"/>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="EditTokenDialog.label.opacity.100"/>
+                        </properties>
+                      </component>
+                      <component id="e087" class="javax.swing.JSlider">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <majorTickSpacing value="20"/>
+                          <minimum value="0"/>
+                          <minorTickSpacing value="5"/>
+                          <name value="tokenOpacitySlider"/>
+                          <orientation value="0"/>
+                          <paintTicks value="true"/>
+                          <snapToTicks value="true"/>
+                          <value value="100"/>
+                          <valueIsAdjusting value="true"/>
+                        </properties>
+                      </component>
+                      <hspacer id="2bc6f">
+                        <constraints>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </hspacer>
+                    </children>
+                  </grid>
+                  <vspacer id="4246e">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                  </vspacer>
+                </children>
+              </grid>
+              <grid id="5d08b" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -289,7 +477,7 @@
                   <grid id="e8b35" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="4" left="4" bottom="4" right="4"/>
                     <constraints>
-                      <grid row="1" column="0" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <name value="portraitPanel"/>
@@ -314,7 +502,7 @@
                   <grid id="80df9" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="4" left="4" bottom="4" right="4"/>
                     <constraints>
-                      <grid row="0" column="1" row-span="3" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="1" row-span="2" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <name value="charsheetPanel"/>
@@ -338,52 +526,6 @@
                   </grid>
                 </children>
               </grid>
-              <grid id="1081f" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="4" left="4" bottom="4" right="4"/>
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="9f15f" class="javax.swing.JLabel">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="EditTokenDialog.label.image"/>
-                    </properties>
-                  </component>
-                  <component id="a22e2" class="javax.swing.JCheckBox">
-                    <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <name value="@hasImageTable"/>
-                      <text value=""/>
-                    </properties>
-                  </component>
-                  <component id="cffbd" class="javax.swing.JComboBox">
-                    <constraints>
-                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <actionCommand value="comboBoxChanged"/>
-                      <name value="imageTableCombo"/>
-                    </properties>
-                  </component>
-                  <hspacer id="c7ee6">
-                    <constraints>
-                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                  </hspacer>
-                </children>
-              </grid>
-              <vspacer id="2d606">
-                <constraints>
-                  <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-                </constraints>
-              </vspacer>
             </children>
           </grid>
           <grid id="e19d" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -1019,7 +1161,7 @@
               </scrollpane>
             </children>
           </grid>
-          <grid id="3a658" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="3a658" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.tab.config"/>
@@ -1029,10 +1171,10 @@
             </properties>
             <border type="none"/>
             <children>
-              <grid id="d10b0" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="d10b0" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
-                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -1040,7 +1182,7 @@
                   <grid id="56be6" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="4" left="4" bottom="4" right="4"/>
                     <constraints>
-                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                     <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.label.visibility">
@@ -1197,140 +1339,17 @@
                       </vspacer>
                     </children>
                   </grid>
-                  <grid id="54d8a" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="4" left="4" bottom="4" right="4"/>
-                    <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="token.popup.menu.flip"/>
-                    <children>
-                      <component id="4542a" class="javax.swing.JLabel">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <horizontalAlignment value="4"/>
-                          <text resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.flip.vertical"/>
-                        </properties>
-                      </component>
-                      <component id="84a04" class="javax.swing.JCheckBox" default-binding="true">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <actionCommand value=""/>
-                          <name value="@isFlippedY"/>
-                          <text value=""/>
-                        </properties>
-                      </component>
-                      <component id="338d4" class="javax.swing.JLabel">
-                        <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <horizontalAlignment value="4"/>
-                          <text resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.flip.horizontal"/>
-                        </properties>
-                      </component>
-                      <component id="31919" class="javax.swing.JCheckBox" default-binding="true">
-                        <constraints>
-                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <actionCommand value=""/>
-                          <name value="@isFlippedX"/>
-                          <text value=""/>
-                        </properties>
-                      </component>
-                      <component id="cccfe" class="javax.swing.JLabel">
-                        <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <horizontalAlignment value="4"/>
-                          <name value="isoFlipLabel"/>
-                          <text resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.flip.isometric"/>
-                        </properties>
-                      </component>
-                      <component id="e0bdc" class="javax.swing.JCheckBox" default-binding="true">
-                        <constraints>
-                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <actionCommand value=""/>
-                          <name value="@isFlippedIso"/>
-                          <text value=""/>
-                        </properties>
-                      </component>
-                      <vspacer id="2dce6">
-                        <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                      </vspacer>
-                    </children>
-                  </grid>
-                  <hspacer id="9ff58">
-                    <constraints>
-                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                  </hspacer>
-                </children>
-              </grid>
-              <grid id="14226" layout-manager="GridLayoutManager" row-count="1" column-count="7" same-size-horizontally="true" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="4" left="4" bottom="4" right="4"/>
-                <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.label.opacity"/>
-                <children>
-                  <component id="70e96" class="javax.swing.JLabel">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <name value="tokenOpacityValueLabel"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="EditTokenDialog.label.opacity.100"/>
-                    </properties>
-                  </component>
-                  <component id="3401a" class="javax.swing.JSlider">
-                    <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="6" vsize-policy="1" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <majorTickSpacing value="20"/>
-                      <minimum value="0"/>
-                      <minorTickSpacing value="5"/>
-                      <name value="tokenOpacitySlider"/>
-                      <orientation value="0"/>
-                      <paintTicks value="true"/>
-                      <snapToTicks value="true"/>
-                      <value value="100"/>
-                      <valueIsAdjusting value="true"/>
-                    </properties>
-                  </component>
-                </children>
-              </grid>
-              <grid id="89146" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="0" left="0" bottom="0" right="0"/>
-                <constraints>
-                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
                   <grid id="56647" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="4" left="4" bottom="4" right="4"/>
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                     <border type="etched" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="EditTokenDialog.title.terrain.mod"/>
                     <children>
                       <component id="7ac74" class="javax.swing.JList">
                         <constraints>
-                          <grid row="1" column="1" row-span="2" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <name value="terrainModifiersIgnored"/>
@@ -1382,16 +1401,16 @@
                           <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="EditTokenDialog.label.terrain.mod.tooltip"/>
                         </properties>
                       </component>
+                      <vspacer id="32458">
+                        <constraints>
+                          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </vspacer>
                     </children>
                   </grid>
-                  <hspacer id="9f461">
-                    <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                  </hspacer>
                 </children>
               </grid>
-              <grid id="6ff85" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="6ff85" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="4" left="4" bottom="4" right="4"/>
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -1432,7 +1451,7 @@
               </grid>
               <vspacer id="e7c74">
                 <constraints>
-                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                 </constraints>
               </vspacer>
             </children>
