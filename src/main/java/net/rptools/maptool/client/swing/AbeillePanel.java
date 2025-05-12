@@ -105,14 +105,20 @@ public class AbeillePanel<T> extends JPanel {
 
   public void replaceComponent(String panelName, String name, Component replacement) {
     var placeHolder = getComponent(name);
-    var container = (JPanel) getComponent(panelName);
+    var container = (Container) getComponent(panelName);
     Object constraints = null;
     var layout = container.getLayout();
-    if (layout instanceof GridLayoutManager gridLayoutManager) {
-      constraints = gridLayoutManager.getConstraintsForComponent(placeHolder);
-    } else {
-      throw new RuntimeException(
-          "Replacement of components not implemented for layout: " + layout.getClass().getName());
+    switch (layout) {
+      case GridLayoutManager gridLayoutManager -> {
+        constraints = gridLayoutManager.getConstraintsForComponent(placeHolder);
+      }
+      case ScrollPaneLayout scrollPaneLayout -> {
+        /* Nothing to do. */
+      }
+      default -> {
+        throw new RuntimeException(
+            "Replacement of components not implemented for layout: " + layout.getClass().getName());
+      }
     }
 
     container.remove(placeHolder);
