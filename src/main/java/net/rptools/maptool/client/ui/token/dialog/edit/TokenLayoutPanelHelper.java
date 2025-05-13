@@ -605,8 +605,14 @@ class TokenLayoutPanelHelper {
   private void initSliders() {
     getAnchorXSlider().setModel(new DefaultBoundedRangeModel(0, gridSize, -gridSize, gridSize));
     getAnchorYSlider().setModel(new DefaultBoundedRangeModel(0, gridSize, -gridSize, gridSize));
-    getScaleSlider().setModel(new DefaultBoundedRangeModel(0, 0, -200, 200));
-    getZoomSlider().setModel(new DefaultBoundedRangeModel(0, 0, -200, 200));
+    getScaleSlider()
+        .setModel(
+            new DefaultBoundedRangeModel(
+                0, 0, getScaleSlider().getMinimum(), getScaleSlider().getMaximum()));
+    getZoomSlider()
+        .setModel(
+            new DefaultBoundedRangeModel(
+                0, 0, getZoomSlider().getMinimum(), getZoomSlider().getMaximum()));
 
     class VertLabel extends VerticalLabel {
       private double divisor = 1;
@@ -654,18 +660,6 @@ class TokenLayoutPanelHelper {
 
     getScaleSlider().setLabelTable(pctLabels);
     getZoomSlider().setLabelTable(pctLabels);
-
-    setupSlider(getAnchorXSlider(), 50, 25);
-    setupSlider(getAnchorYSlider(), 50, 25);
-    setupSlider(getScaleSlider(), 100, 20);
-    setupSlider(getZoomSlider(), 100, 20);
-  }
-
-  private void setupSlider(JSlider slider, int majorTick, int minorTick) {
-    slider.setMajorTickSpacing(majorTick);
-    slider.setMinorTickSpacing(minorTick);
-    slider.setPaintTicks(true);
-    slider.setPaintLabels(true);
   }
 
   /** Set controls to match token values */
