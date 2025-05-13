@@ -14,19 +14,7 @@
  */
 package net.rptools.maptool.client.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.Transparency;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -129,12 +117,48 @@ public class SwingUtil {
    * @param outerWindow window to be centered over
    */
   public static void centerOver(Window innerWindow, Window outerWindow) {
+    // how big can it be?
+    GraphicsConfiguration gc = outerWindow.getGraphicsConfiguration();
+    Insets insets = outerWindow.getToolkit().getScreenInsets(gc);
+    Rectangle bounds = gc.getDevice().getDefaultConfiguration().getBounds();
+    System.out.println(bounds);
+    System.out.println(insets);
+    bounds =
+        new Rectangle(
+            insets.left,
+            insets.top,
+            bounds.width - insets.left - insets.right,
+            bounds.height - insets.top - insets.bottom);
+    System.out.println(bounds);
+    Dimension maxSize = bounds.getSize();
+
+    // what sizes are involved?
     Dimension innerSize = innerWindow.getSize();
     Dimension outerSize = outerWindow.getSize();
 
+    // make sure it fits
+    if (maxSize.width < innerSize.width || maxSize.height < innerSize.height) {
+      innerSize.setSize(
+          Math.min(maxSize.width, innerSize.width), Math.min(maxSize.height, innerSize.height));
+      innerWindow.setPreferredSize(innerSize);
+      innerWindow.setMaximumSize(innerSize);
+      innerWindow.revalidate();
+    }
+    // centre it
     int x = outerWindow.getLocation().x + (outerSize.width - innerSize.width) / 2;
     int y = outerWindow.getLocation().y + (outerSize.height - innerSize.height) / 2;
 
+    // just to make sure it doesn't cover UI elements
+    x = Math.max(x, insets.left);
+    y = Math.max(y, insets.top);
+    x =
+        x + innerSize.width > insets.left + bounds.width
+            ? insets.left + bounds.width - x + innerSize.width
+            : x;
+    y =
+        y + innerSize.height > insets.top + bounds.height
+            ? insets.top + bounds.height - y + innerSize.height
+            : y;
     // Jamz: For multiple monitor's, x & y can be negative values...
     innerWindow.setLocation(x, y);
   }
