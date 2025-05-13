@@ -896,6 +896,7 @@ public class PreferencesDialog extends JDialog {
     File appCfgFile = AppUtil.getAppCfgFile();
     if (appCfgFile != null) {
       cfgFilePath.setText(appCfgFile.toString());
+      cfgFilePath.setCaretPosition(0);
     } else {
       cfgFilePath.setText("");
     }

@@ -34,8 +34,6 @@ public class PreferencesDialogView {
    */
   private JPanel mainPanel;
 
-  private JTextField configFile;
-
   /**
    * Returns the root component of the preferences dialog view.
    *
