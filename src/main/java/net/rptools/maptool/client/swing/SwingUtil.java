@@ -118,19 +118,18 @@ public class SwingUtil {
    */
   public static void centerOver(Window innerWindow, Window outerWindow) {
     // how big can it be?
+    // screen area minus OS bits like taskbars
     GraphicsConfiguration gc = outerWindow.getGraphicsConfiguration();
     Insets insets = outerWindow.getToolkit().getScreenInsets(gc);
-    Rectangle bounds = gc.getDevice().getDefaultConfiguration().getBounds();
-    System.out.println(bounds);
-    System.out.println(insets);
-    bounds =
+    Rectangle usableScreenArea = gc.getDevice().getDefaultConfiguration().getBounds();
+    usableScreenArea =
         new Rectangle(
-            insets.left,
-            insets.top,
-            bounds.width - insets.left - insets.right,
-            bounds.height - insets.top - insets.bottom);
-    System.out.println(bounds);
-    Dimension maxSize = bounds.getSize();
+            usableScreenArea.x + insets.left,
+            usableScreenArea.y + insets.top,
+            usableScreenArea.width - insets.left - insets.right,
+            usableScreenArea.height - insets.top - insets.bottom);
+
+    Dimension maxSize = usableScreenArea.getSize();
 
     // what sizes are involved?
     Dimension innerSize = innerWindow.getSize();
@@ -148,17 +147,19 @@ public class SwingUtil {
     int x = outerWindow.getLocation().x + (outerSize.width - innerSize.width) / 2;
     int y = outerWindow.getLocation().y + (outerSize.height - innerSize.height) / 2;
 
-    // just to make sure it doesn't cover UI elements
-    x = Math.max(x, insets.left);
-    y = Math.max(y, insets.top);
-    x =
-        x + innerSize.width > insets.left + bounds.width
-            ? insets.left + bounds.width - x + innerSize.width
-            : x;
-    y =
-        y + innerSize.height > insets.top + bounds.height
-            ? insets.top + bounds.height - y + innerSize.height
-            : y;
+    // just to make sure it doesn't cover UI elements, i.e. encroach on Screen Insets
+    // Left-hand side
+    x = (int) Math.max(x, usableScreenArea.getMinX());
+    // top side
+    y = (int) Math.max(y, usableScreenArea.getMinY());
+    // Right-hand side
+    if (x + innerSize.width > usableScreenArea.getMaxX()) {
+      x = (int) (usableScreenArea.getMaxX() - innerSize.width - x);
+    }
+    // Bottom
+    if (y + innerSize.height > usableScreenArea.getMaxY()) {
+      y = (int) (usableScreenArea.getMaxY() - innerSize.height - y);
+    }
     // Jamz: For multiple monitor's, x & y can be negative values...
     innerWindow.setLocation(x, y);
   }

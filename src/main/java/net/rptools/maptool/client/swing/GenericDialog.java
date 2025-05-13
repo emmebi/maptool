@@ -16,6 +16,7 @@ package net.rptools.maptool.client.swing;
 
 import static com.formdev.flatlaf.FlatClientProperties.*;
 
+import com.formdev.flatlaf.ui.FlatRootPaneUI;
 import com.jidesoft.swing.JideBoxLayout;
 import java.awt.*;
 import java.awt.event.*;
@@ -33,7 +34,11 @@ public class GenericDialog extends JDialog {
     super(parent, title, modal);
 
     setResizable(true);
-    getRootPane().setBorder(BorderFactory.createEmptyBorder(0, 4, 4, 4));
+    getRootPane()
+        .setBorder(
+            BorderFactory.createCompoundBorder(
+                new FlatRootPaneUI.FlatWindowBorder(),
+                BorderFactory.createEmptyBorder(0, 4, 4, 3)));
 
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
@@ -81,15 +86,10 @@ public class GenericDialog extends JDialog {
 
   @Override
   public Dimension getPreferredSize() {
-    Dimension contentPref = getContentPane().getPreferredSize();
-    System.out.println(getContentPane().getInsets());
-    System.out.println(contentPref);
-    int scrollBarWidth = UIManager.getDefaults().getInt("ScrollBar.width");
-    System.out.println(scrollBarWidth);
+    Dimension superPref = super.getPreferredSize();
     Dimension screenMax = getMaxScreenSize();
     return new Dimension(
-        Math.min(contentPref.width + 4 * scrollBarWidth, screenMax.width),
-        Math.min(contentPref.height, screenMax.height));
+        Math.min(superPref.width, screenMax.width), Math.min(superPref.height, screenMax.height));
   }
 
   @Override
