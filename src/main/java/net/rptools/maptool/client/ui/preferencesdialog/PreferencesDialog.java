@@ -400,6 +400,8 @@ public class PreferencesDialog extends JDialog {
   /** Label for displaying startup information. */
   private final JTextField cfgFilePath;
 
+  private final AbstractButton copyCfgFilePathButton;
+
   private final JLabel configFileWarningLabel;
 
   private final JLabel startupInfoLabel;
@@ -733,6 +735,13 @@ public class PreferencesDialog extends JDialog {
 
     startupInfoLabel = panel.getLabel("startupInfoLabel");
     cfgFilePath = panel.getTextField("cfgFilePath");
+    copyCfgFilePathButton = panel.getButton("copyCfgPath");
+    copyCfgFilePathButton.addActionListener(
+        e -> {
+          Toolkit.getDefaultToolkit()
+              .getSystemClipboard()
+              .setContents(new StringSelection(cfgFilePath.getText()), null);
+        });
 
     pcTokenLabelFG = (ColorWell) panel.getComponent("pcTokenLabelFG");
     pcTokenLabelFG.setColor(AppPreferences.pcMapLabelForeground.get());
