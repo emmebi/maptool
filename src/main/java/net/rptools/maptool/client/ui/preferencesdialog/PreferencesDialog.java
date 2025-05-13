@@ -904,9 +904,7 @@ public class PreferencesDialog extends JDialog {
     // jpackage config files can't be written to. Show a warning to the user describing the
     // situation.
     if (appCfgFile != null) {
-      var warning = I18N.getText("startup.preferences.info.manualCopy");
-      configFileWarningLabel.setText(
-          String.format("<html>%s</html>", warning.replace("\n", "<br>")));
+      configFileWarningLabel.setText(I18N.getText("startup.preferences.info.manualCopy"));
       configFileWarningLabel.setVisible(true);
     } else {
       configFileWarningLabel.setText(null);

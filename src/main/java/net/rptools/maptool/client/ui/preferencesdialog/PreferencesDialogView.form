@@ -2765,9 +2765,6 @@
                           <text resource-bundle="net/rptools/maptool/language/i18n" key="startup.preferences.info.manualCopy"/>
                           <visible value="true"/>
                         </properties>
-                        <clientProperties>
-                          <html.disable class="java.lang.Boolean" value="false"/>
-                        </clientProperties>
                       </component>
                       <component id="b1a1f" class="javax.swing.JButton" default-binding="true">
                         <constraints>
