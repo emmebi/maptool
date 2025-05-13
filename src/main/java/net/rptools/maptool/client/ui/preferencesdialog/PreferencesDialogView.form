@@ -3,7 +3,7 @@
   <grid id="3f87d" binding="mainPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="5" left="5" bottom="5" right="5"/>
     <constraints>
-      <xy x="10" y="10" width="1063" height="841"/>
+      <xy x="10" y="10" width="1746" height="841"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -2471,7 +2471,7 @@
               </hspacer>
             </children>
           </grid>
-          <grid id="d083" layout-manager="GridLayoutManager" row-count="6" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="d083" layout-manager="GridLayoutManager" row-count="7" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="5" left="5" bottom="5" right="5"/>
             <constraints>
               <tabbedpane title-resource-bundle="net/rptools/maptool/language/i18n" title-key="Label.startup"/>
@@ -2707,7 +2707,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="261e4" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="261e4" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="0" column="2" row-span="5" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -2719,15 +2719,6 @@
                   <color color="-6710887"/>
                 </border>
                 <children>
-                  <component id="bde4e" class="javax.swing.JLabel">
-                    <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <name value="startupInfoLabel"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="startup.preferences.info"/>
-                    </properties>
-                  </component>
                   <component id="5bcba" class="javax.swing.JLabel">
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -2748,6 +2739,38 @@
                       <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.cfgFilePath.tooltip"/>
                     </properties>
                   </component>
+                  <scrollpane id="4c948">
+                    <constraints>
+                      <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <horizontalScrollBarPolicy value="31"/>
+                    </properties>
+                    <border type="none"/>
+                    <children>
+                      <component id="bde4e" class="javax.swing.JLabel">
+                        <constraints/>
+                        <properties>
+                          <name value="startupInfoLabel"/>
+                          <text resource-bundle="net/rptools/maptool/language/i18n" key="startup.preferences.info"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                  <component id="38eef" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <iconTextGap value="8"/>
+                      <name value="configFileWarningLabel"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="startup.preferences.info.manualCopy"/>
+                      <visible value="true"/>
+                    </properties>
+                    <clientProperties>
+                      <html.disable class="java.lang.Boolean" value="false"/>
+                    </clientProperties>
+                  </component>
                 </children>
               </grid>
               <vspacer id="23f1f">
@@ -2757,12 +2780,12 @@
               </vspacer>
               <vspacer id="9203f">
                 <constraints>
-                  <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                  <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                 </constraints>
               </vspacer>
-              <hspacer id="22367">
+              <hspacer id="8e63a">
                 <constraints>
-                  <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                  <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
               </hspacer>
             </children>
