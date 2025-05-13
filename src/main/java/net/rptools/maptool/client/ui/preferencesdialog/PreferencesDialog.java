@@ -397,6 +397,8 @@ public class PreferencesDialog extends JDialog {
   private final JComboBox<String> jamLanguageOverrideComboBox;
 
   /** Label for displaying startup information. */
+  private final JTextField cfgFilePath;
+
   private final JLabel startupInfoLabel;
 
   /** Flag indicating if JVM values have been changed. */
@@ -723,6 +725,7 @@ public class PreferencesDialog extends JDialog {
     jamLanguageOverrideComboBox.setToolTipText(I18N.getText("prefs.language.override.tooltip"));
 
     startupInfoLabel = panel.getLabel("startupInfoLabel");
+    cfgFilePath = panel.getTextField("cfgFilePath");
 
     pcTokenLabelFG = (ColorWell) panel.getComponent("pcTokenLabelFG");
     pcTokenLabelFG.setColor(AppPreferences.pcMapLabelForeground.get());
@@ -875,9 +878,15 @@ public class PreferencesDialog extends JDialog {
     }
 
     File appCfgFile = AppUtil.getAppCfgFile();
+    if (appCfgFile != null) {
+      cfgFilePath.setText(appCfgFile.toString());
+    } else {
+      cfgFilePath.setText("");
+    }
+
     String copyInfo = "";
     if (appCfgFile != null) { // Don't try to display message if running from dev.
-      copyInfo = I18N.getText("startup.preferences.info.manualCopy", appCfgFile.toString());
+      copyInfo = I18N.getText("startup.preferences.info.manualCopy");
     }
     String startupInfoMsg = I18N.getText("startup.preferences.info", copyInfo);
     startupInfoLabel.setText(startupInfoMsg);
