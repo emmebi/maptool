@@ -110,6 +110,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       RessourceManager.getBigIcon(Icons.EDIT_TOKEN_REFRESH_ON);
   private static final ImageIcon REFRESH_ICON_OFF =
       RessourceManager.getBigIcon(Icons.EDIT_TOKEN_REFRESH_OFF);
+
+  private final TokenPropertiesDialog view;
   private final RSyntaxTextArea xmlStatblockRSyntaxTextArea = new RSyntaxTextArea(2, 2);
   private final RSyntaxTextArea textStatblockRSyntaxTextArea = new RSyntaxTextArea(2, 2);
   private final WordWrapCellRenderer propertyCellRenderer = new WordWrapCellRenderer();
@@ -123,10 +125,15 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   private AutoGenerateTopologySwingWorker autoGenerateTopologySwingWorker =
       new AutoGenerateTopologySwingWorker(false, Color.BLACK);
 
+  private EditTokenDialog(TokenPropertiesDialog view) {
+    super(view.getRootComponent());
+    this.view = view;
+    panelInit();
+  }
+
   /** Create a new token notes dialog. */
   public EditTokenDialog() {
-    super(new TokenPropertiesDialog().getRootComponent());
-    panelInit();
+    this(new TokenPropertiesDialog());
   }
 
   public void initGMNotesEditorPane() {
@@ -234,7 +241,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
     setLibTokenPaneEnabled(token.isLibToken());
-    validateLibTokenURIAccess(getNameField().getName());
+    validateLibTokenURIAccess(getNameField().getText());
     var combo = getStatSheetCombo();
     combo.removeAllItems();
     /* Default Entry */
@@ -258,27 +265,22 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       getLibTokenURIErrorLabel()
           .setText(I18N.getText("EditTokenDialog.libTokenURI.error.notLibToken", name));
       getAllowURLAccess().setEnabled(false);
-      return;
+    } else if (libraryManager.usesReservedPrefix(name.substring(4))) {
+      getLibTokenURIErrorLabel()
+          .setText(
+              I18N.getText(
+                  "macro.setAllowsURIAccess.reservedPrefix",
+                  libraryManager.getReservedPrefix(name.substring(4))));
+      getAllowURLAccess().setEnabled(false);
+    } else if (libraryManager.usesReservedName(name.substring(4))) {
+      getLibTokenURIErrorLabel()
+          .setText(I18N.getText("EditTokenDialog.libTokenURI.error.reserved", name));
+
+      getAllowURLAccess().setEnabled(false);
     } else {
-      if (libraryManager.usesReservedPrefix(name.substring(4))) {
-        getLibTokenURIErrorLabel()
-            .setText(
-                I18N.getText(
-                    "macro.setAllowsURIAccess.reservedPrefix",
-                    libraryManager.getReservedPrefix(name.substring(4))));
-        getAllowURLAccess().setEnabled(false);
-        return;
-      } else if (libraryManager.usesReservedName(name.substring(4))) {
-        getLibTokenURIErrorLabel()
-            .setText(I18N.getText("EditTokenDialog.libTokenURI.error.reserved", name));
-
-        getAllowURLAccess().setEnabled(false);
-        return;
-      }
+      getAllowURLAccess().setEnabled(true);
+      getLibTokenURIErrorLabel().setText(" ");
     }
-
-    getAllowURLAccess().setEnabled(true);
-    getLibTokenURIErrorLabel().setText(" ");
   }
 
   @Override
@@ -303,14 +305,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     updateImageTableCombo();
 
     /* STATES */
-    Component barPanel = null;
     updateStatesPanel();
     Component[] statePanels = getStatesPanel().getComponents();
     for (Component statePanel : statePanels) {
-      if ("bar".equals(statePanel.getName())) {
-        barPanel = statePanel;
-        continue;
-      }
       Component[] states = ((Container) statePanel).getComponents();
       for (Component component : states) {
         JCheckBox state = (JCheckBox) component;
@@ -319,30 +316,29 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
 
     /* BARS */
-    if (barPanel != null) {
-      Component[] barComponents = ((Container) barPanel).getComponents();
-      JCheckBox cb = null;
-      JSlider bar = null;
-      for (var tokenBarPanel : barComponents) {
-        for (var component : ((Container) tokenBarPanel).getComponents()) {
-          if (component instanceof JCheckBox) {
-            cb = (JCheckBox) component;
-          } else if (component instanceof JSlider) {
-            bar = (JSlider) component;
-          }
+    var barsPanel = getBarsPanel();
+    Component[] barComponents = ((Container) barsPanel).getComponents();
+    JCheckBox cb = null;
+    JSlider bar = null;
+    for (var tokenBarPanel : barComponents) {
+      for (var component : ((Container) tokenBarPanel).getComponents()) {
+        if (component instanceof JCheckBox) {
+          cb = (JCheckBox) component;
+        } else if (component instanceof JSlider) {
+          bar = (JSlider) component;
         }
-        if (token.getState(bar.getName()) == null) {
-          cb.setSelected(true);
-          bar.setEnabled(false);
-          bar.setValue(100);
-        } else {
-          cb.setSelected(false);
-          bar.setEnabled(true);
-          bar.setValue(
-              (int)
-                  (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
-                      * 100));
-        }
+      }
+      if (token.getState(bar.getName()) == null) {
+        cb.setSelected(true);
+        bar.setEnabled(false);
+        bar.setValue(100);
+      } else {
+        cb.setSelected(false);
+        bar.setEnabled(true);
+        bar.setValue(
+            (int)
+                (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
+                    * 100));
       }
     }
 
@@ -540,16 +536,18 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   private void setGmNotesEnabled(boolean enabled) {
-    JTabbedPane tabbedPane = getTabbedPane();
-    String libTokenTile = I18N.getString("EditTokenDialog.tab.gmnotes");
-    tabbedPane.setEnabledAt(tabbedPane.indexOfTab(libTokenTile), enabled);
+    JTabbedPane tabbedPane = view.getNotesTabbedPane();
+    var index = tabbedPane.indexOfComponent(view.getGmNotesPanel());
+    tabbedPane.setEnabledAt(index, enabled);
+    if (!enabled) {
+      tabbedPane.setSelectedIndex(tabbedPane.indexOfComponent(view.getPlayerNotesPanel()));
+    }
+
     getGMNotesEditor().setEnabled(enabled);
   }
 
   private void setLibTokenPaneEnabled(boolean show) {
-    JTabbedPane tabbedPane = getTabbedPane();
-    String libTokenTile = I18N.getString("EditTokenDialog.tab.libToken");
-    tabbedPane.setEnabledAt(tabbedPane.indexOfTab(libTokenTile), show);
+    getLibTokenProperties().setEnabled(show);
     getAllowURLAccess().setEnabled(show);
   }
 
@@ -615,7 +613,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       imagePanel = new ImageAssetPanel();
 
       imagePanel.setAllowEmptyImage(false);
-      replaceComponent("mainPanel", "tokenImage", imagePanel);
+      replaceComponent("imagePanel", "tokenImage", imagePanel);
     }
     return imagePanel;
   }
@@ -851,12 +849,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
     /* Get the states */
     Component[] stateComponents = getStatesPanel().getComponents();
-    Container barPanel = null;
     for (Component stateComponent : stateComponents) {
-      if ("bar".equals(stateComponent.getName())) {
-        barPanel = (Container) stateComponent;
-        continue;
-      }
       Component[] components = ((Container) stateComponent).getComponents();
       for (Component component : components) {
         JCheckBox cb = (JCheckBox) component;
@@ -866,21 +859,20 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
 
     /* BARS */
-    if (barPanel != null) {
-      for (var barContainer : barPanel.getComponents()) {
-        var barComponents = ((Container) barContainer).getComponents();
+    var barsPanel = getBarsPanel();
+    for (var barContainer : barsPanel.getComponents()) {
+      var barComponents = ((Container) barContainer).getComponents();
 
-        JSlider bar = (JSlider) barComponents[1];
-        JCheckBox cb = (JCheckBox) barComponents[2];
+      JSlider bar = (JSlider) barComponents[1];
+      JCheckBox cb = (JCheckBox) barComponents[2];
 
-        BigDecimal value =
-            cb.isSelected() ? null : new BigDecimal(bar.getValue()).divide(new BigDecimal(100));
-        token.setState(bar.getName(), value);
-        bar.setValue(
-            (int)
-                (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
-                    * 100));
-      }
+      BigDecimal value =
+          cb.isSelected() ? null : new BigDecimal(bar.getValue()).divide(new BigDecimal(100));
+      token.setState(bar.getName(), value);
+      bar.setValue(
+          (int)
+              (TokenBarFunction.getBigDecimalValue(token.getState(bar.getName())).doubleValue()
+                  * 100));
     }
     /* OWNERSHIP */
     /* If the token is owned by all and we are a player don't alter the ownership list. */
@@ -1001,57 +993,61 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   private void updateStatesPanel() {
+    JPanel statesPanel = getStatesPanel();
+    statesPanel.setLayout(new MigLayout("wrap", "[fill,grow]"));
+    statesPanel.removeAll();
     /* Group the states first into individual panels */
     List<BooleanTokenOverlay> overlays =
         new ArrayList<BooleanTokenOverlay>(MapTool.getCampaign().getTokenStatesMap().values());
-    Map<String, JPanel> groups = new TreeMap<String, JPanel>();
-    var noGroupPanel =
-        new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
-    noGroupPanel.setName("no group");
-    groups.put("", noGroupPanel);
-    for (BooleanTokenOverlay overlay : overlays) {
-      String group = overlay.getGroup();
-      if (group != null && !(group = group.trim()).isEmpty()) {
-        JPanel panel = groups.get(group);
-        if (panel == null) {
-          panel =
-              new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
-          panel.setName(group);
-          panel.setBorder(BorderFactory.createTitledBorder(group));
-          groups.put(group, panel);
+    if (overlays.isEmpty()) {
+      statesPanel.setVisible(false);
+    } else {
+      statesPanel.setVisible(true);
+      Map<String, JPanel> groups = new TreeMap<String, JPanel>();
+      var noGroupPanel =
+          new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
+      noGroupPanel.setName("no group");
+      groups.put("", noGroupPanel);
+      for (BooleanTokenOverlay overlay : overlays) {
+        String group = overlay.getGroup();
+        if (group != null && !(group = group.trim()).isEmpty()) {
+          JPanel panel = groups.get(group);
+          if (panel == null) {
+            panel =
+                new JPanel(new MigLayout("wrap 4", "[fill,grow][fill,grow][fill,grow][fill,grow]"));
+            panel.setName(group);
+            panel.setBorder(BorderFactory.createTitledBorder(group));
+            groups.put(group, panel);
+          }
         }
       }
-    }
 
-    /* Add the group panels and bar panel to the states panel */
-    JPanel statesPanel = getStatesPanel();
-    MigLayout layout = new MigLayout("wrap", "[fill,grow]");
-    statesPanel.setLayout(layout);
-    statesPanel.removeAll();
-
-    /* Add the individual check boxes. */
-    for (BooleanTokenOverlay state : overlays) {
-      String group = state.getGroup();
-      var panel = groups.get("");
-      if (group != null && !(group = group.trim()).isEmpty()) {
-        panel = groups.get(group);
+      /* Add the individual check boxes. */
+      for (BooleanTokenOverlay state : overlays) {
+        String group = state.getGroup();
+        var panel = groups.get("");
+        if (group != null && !(group = group.trim()).isEmpty()) {
+          panel = groups.get(group);
+        }
+        panel.add(new JCheckBox(state.getName()));
       }
-      panel.add(new JCheckBox(state.getName()));
+
+      /* Add the group panels to the states panel */
+      for (JPanel gPanel : groups.values()) {
+        if (gPanel.getComponentCount() == 0) continue;
+
+        statesPanel.add(gPanel);
+      }
     }
 
-    for (JPanel gPanel : groups.values()) {
-      if (gPanel.getComponentCount() == 0) continue;
-
-      statesPanel.add(gPanel);
-    }
-
-    JPanel barPanel = new JPanel(new MigLayout("wrap 2", "[fill,grow][fill,grow]"));
-    barPanel.setName("bar");
     /* Add sliders to the bar panel */
-    if (!MapTool.getCampaign().getTokenBarsMap().isEmpty()) {
-      barPanel.setBorder(
-          BorderFactory.createTitledBorder(I18N.getText("CampaignPropertiesDialog.tab.bars")));
-
+    var barsPanel = getBarsPanel();
+    barsPanel.setLayout(new MigLayout("wrap 1", "[fill,grow]"));
+    barsPanel.removeAll();
+    if (MapTool.getCampaign().getTokenBarsMap().isEmpty()) {
+      barsPanel.setVisible(false);
+    } else {
+      barsPanel.setVisible(true);
       for (BarTokenOverlay bar : MapTool.getCampaign().getTokenBarsMap().values()) {
         JSlider slider = new JSlider(0, 100);
         JCheckBox hide = new JCheckBox(I18N.getString("EditTokenDialog.checkbox.state.hide"));
@@ -1072,9 +1068,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         tokenbarPanel.add(new JLabel(bar.getName() + ":"));
         tokenbarPanel.add(slider, "span 1 2 align right");
         tokenbarPanel.add(hide);
-        barPanel.add(tokenbarPanel);
+        barsPanel.add(tokenbarPanel);
       }
-      statesPanel.add(barPanel);
     }
   }
 
@@ -1087,6 +1082,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   public JPanel getStatesPanel() {
     return (JPanel) getComponent("statesPanel");
+  }
+
+  public JPanel getBarsPanel() {
+    return (JPanel) getComponent("barsPanel");
   }
 
   public JTable getSpeechTable() {
@@ -1209,6 +1208,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     return (JSpinner) getComponent("visibilityToleranceSpinner");
   }
 
+  public JPanel getLibTokenProperties() {
+    return (JPanel) getComponent("panel.libToken");
+  }
+
   public JCheckBox getAllowURLAccess() {
     return (JCheckBox) getComponent("@allowURIAccess");
   }
@@ -1243,13 +1246,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   public void initOwnershipPanel() {
     CheckBoxListWithSelectable list = new CheckBoxListWithSelectable();
     list.setName("ownerList");
-    replaceComponent(
-        "ownershipPanel",
-        "ownershipList",
-        new JScrollPane(
-            list,
-            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+    replaceComponent("ownershipPanel", "ownershipList", list);
   }
 
   public void initPropertiesPanel() {
