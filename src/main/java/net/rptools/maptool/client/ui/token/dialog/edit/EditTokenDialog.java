@@ -2105,7 +2105,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  class OpacitySliderListener implements ChangeListener {
+  private class OpacitySliderListener implements ChangeListener {
 
     public void stateChanged(ChangeEvent e) {
       JSlider source = (JSlider) e.getSource();
