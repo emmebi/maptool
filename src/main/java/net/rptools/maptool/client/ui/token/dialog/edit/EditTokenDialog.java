@@ -50,7 +50,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Position.Bias;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
@@ -2144,52 +2143,6 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       label.setHorizontalTextPosition(JLabel.LEFT);
       label.setFont(font);
       return label;
-    }
-  }
-
-  /* HANDLER */
-  public static class MouseHandler extends MouseAdapter {
-
-    HtmlEditorSplit source;
-
-    public MouseHandler(HtmlEditorSplit source) {
-      this.source = source;
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      if (SwingUtilities.isRightMouseButton(e)) {
-        JPopupMenu menu = new JPopupMenu();
-        JMenuItem sendToChatItem =
-            new JMenuItem(I18N.getString("EditTokenDialog.menu.notes.sendChat"));
-        sendToChatItem.addActionListener(
-            e12 -> {
-              String selectedText = source.getSelectedText();
-              if (selectedText == null) {
-                selectedText = source.getText();
-              }
-              JTextComponent commandArea =
-                  MapTool.getFrame().getCommandPanel().getCommandTextArea();
-
-              commandArea.setText(commandArea.getText() + selectedText);
-              commandArea.requestFocusInWindow();
-            });
-        menu.add(sendToChatItem);
-
-        JMenuItem sendAsEmoteItem =
-            new JMenuItem(I18N.getString("EditTokenDialog.menu.notes.sendEmit"));
-        sendAsEmoteItem.addActionListener(
-            e1 -> {
-              String selectedText = source.getSelectedText();
-              if (selectedText == null) {
-                selectedText = source.getText();
-              }
-              MapTool.getFrame().getCommandPanel().commitCommand("/emit " + selectedText);
-              MapTool.getFrame().getCommandPanel().getCommandTextArea().requestFocusInWindow();
-            });
-        menu.add(sendAsEmoteItem);
-        menu.show((JComponent) e.getSource(), e.getX(), e.getY());
-      }
     }
   }
 
