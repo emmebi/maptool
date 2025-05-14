@@ -472,6 +472,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     String heroLabTitle = I18N.getString("EditTokenDialog.tab.hero");
 
     if (heroLabData != null) {
+      getHeroLabImagesList().setCellRenderer(new HeroLabImageListRenderer(heroLabData));
+
       boolean isDirty = heroLabData.isDirty() && heroLabData.getPortfolioFile().exists();
       JButton refreshDataButton = (JButton) getComponent("refreshDataButton");
 
@@ -516,6 +518,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
       EventQueue.invokeLater(this::loadHeroLabImageList);
     } else {
+      getHeroLabImagesList().setCellRenderer(new DefaultListCellRenderer());
+
       tabbedPane.setEnabledAt(tabbedPane.indexOfTab(heroLabTitle), false);
       if (tabbedPane.getSelectedIndex() == tabbedPane.indexOfTab(heroLabTitle)) {
         tabbedPane.setSelectedIndex(6);
@@ -1571,10 +1575,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   /*
    * Initialize the Hero Lab Images tab
    */
-  @SuppressWarnings("unchecked")
   public void initHeroLabImageList() {
-    getHeroLabImagesList().setCellRenderer(new HeroLabImageListRenderer());
-
     JButton setTokenImage = (JButton) getComponent("setAsImageButton");
     setTokenImage.addActionListener(
         e -> {
@@ -2130,10 +2131,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  public class HeroLabImageListRenderer extends DefaultListCellRenderer {
+  private static class HeroLabImageListRenderer extends DefaultListCellRenderer {
+    private final Font font = new Font("helvitica", Font.BOLD, 24);
+    private final HeroLabData heroLabData;
 
-    private static final long serialVersionUID = 7113815213979044509L;
-    Font font = new Font("helvitica", Font.BOLD, 24);
+    public HeroLabImageListRenderer(HeroLabData heroLabData) {
+      this.heroLabData = heroLabData;
+    }
 
     @Override
     public Component getListCellRendererComponent(
