@@ -112,9 +112,6 @@ public class AbeillePanel<T> extends JPanel {
       case GridLayoutManager gridLayoutManager -> {
         constraints = gridLayoutManager.getConstraintsForComponent(placeHolder);
       }
-      case ScrollPaneLayout scrollPaneLayout -> {
-        /* Nothing to do. */
-      }
       default -> {
         throw new RuntimeException(
             "Replacement of components not implemented for layout: " + layout.getClass().getName());
