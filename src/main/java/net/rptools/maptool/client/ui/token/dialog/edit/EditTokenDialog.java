@@ -16,12 +16,12 @@ package net.rptools.maptool.client.ui.token.dialog.edit;
 
 import com.jidesoft.combobox.MultilineStringExComboBox;
 import com.jidesoft.combobox.PopupPanel;
-import com.jidesoft.grid.AbstractPropertyTableModel;
 import com.jidesoft.grid.MultilineStringCellEditor;
 import com.jidesoft.grid.NavigableModel;
 import com.jidesoft.grid.Property;
 import com.jidesoft.grid.PropertyPane;
 import com.jidesoft.grid.PropertyTable;
+import com.jidesoft.grid.PropertyTableModel;
 import com.jidesoft.plaf.basic.BasicExComboBoxUI;
 import com.jidesoft.swing.CheckBoxListWithSelectable;
 import com.jidesoft.swing.DefaultSelectable;
@@ -43,12 +43,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.Position.Bias;
 import javax.swing.text.html.HTMLDocument;
@@ -363,7 +365,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
     /* If index == 0, the itemStateChanged event wasn't triggered, so we update. Fix #1504 */
     if (getPropertyTypeCombo().getSelectedIndex() == 0) {
-      updatePropertiesTable((String) getPropertyTypeCombo().getSelectedItem());
+      updatePropertiesTable(token, (String) getPropertyTypeCombo().getSelectedItem());
     }
 
     getSightTypeCombo()
@@ -631,7 +633,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         .addItemListener(
             e -> {
               if (e.getStateChange() == ItemEvent.SELECTED) {
-                updatePropertiesTable((String) getPropertyTypeCombo().getSelectedItem());
+                updatePropertiesTable(
+                    getModel(), (String) getPropertyTypeCombo().getSelectedItem());
               }
             });
   }
@@ -665,11 +668,19 @@ public class EditTokenDialog extends AbeillePanel<Token> {
    *
    * @param propertyType the property type of the token (unused).
    */
-  private void updatePropertiesTable(final String propertyType) {
+  private void updatePropertiesTable(@Nullable Token token, final String propertyType) {
     EventQueue.invokeLater(
         () -> {
           PropertyTable pp = getPropertyTable();
-          pp.setModel(new TokenPropertyTableModel());
+          if (token != null) {
+            var propertyList = MapTool.getCampaign().getTokenPropertyList(propertyType);
+
+            pp.setModel(
+                new TokenPropertyTableModel(
+                    token, propertyType, propertyList, propertyCellRenderer));
+          } else {
+            pp.setModel(new DefaultTableModel());
+          }
           pp.expandAll();
         });
   }
@@ -2147,45 +2158,41 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   /* MODELS */
-  private class TokenPropertyTableModel
-      extends AbstractPropertyTableModel<TokenPropertyTableModel.EditTokenProperty>
+  private static class TokenPropertyTableModel
+      extends PropertyTableModel<TokenPropertyTableModel.EditTokenProperty>
       implements NavigableModel {
+    private final List<TokenProperty> propertyList;
+    private final Map<String, String> propertyMap;
 
-    private static final long serialVersionUID = 2822797264738675580L;
+    public TokenPropertyTableModel(
+        Token model,
+        String propertyType,
+        List<TokenProperty> propertyList,
+        TableCellRenderer propertyCellRenderer) {
+      this.propertyList = propertyList;
 
-    private Map<String, String> propertyMap;
-    private List<TokenProperty> propertyList;
-
-    private Map<String, String> getPropertyMap() {
-      Token token = getModel();
-
-      if (propertyMap == null) {
-        propertyMap = new HashMap<String, String>();
-
-        List<TokenProperty> propertyList = getPropertyList();
-        for (TokenProperty property : propertyList) {
-          String value = (String) token.getProperty(property.getName());
-          if (value == null) {
-            value = property.getDefaultValue();
-          }
-          propertyMap.put(property.getName(), value);
+      this.propertyMap = new HashMap<>();
+      for (TokenProperty property : propertyList) {
+        String value = (String) model.getProperty(property.getName());
+        if (value == null) {
+          value = property.getDefaultValue();
         }
+        this.propertyMap.put(property.getName(), value);
       }
-      return propertyMap;
-    }
 
-    private List<TokenProperty> getPropertyList() {
-      if (propertyList == null) {
-        propertyList =
-            MapTool.getCampaign()
-                .getTokenPropertyList((String) getPropertyTypeCombo().getSelectedItem());
+      var gridProperties = new ArrayList<EditTokenProperty>();
+      for (var tokenProperty : propertyList) {
+        var gridProperty = new EditTokenProperty(tokenProperty.getName(), propertyType);
+        gridProperty.setTableCellRenderer(propertyCellRenderer);
+        gridProperty.setCellEditor(new MTMultilineStringCellEditor());
+        gridProperties.add(gridProperty);
       }
-      return propertyList;
+      setOriginalProperties(gridProperties);
     }
 
     public void applyTo(Token token) {
-      for (TokenProperty property : getPropertyList()) {
-        String value = getPropertyMap().get(property.getName());
+      for (TokenProperty property : propertyList) {
+        String value = propertyMap.get(property.getName());
         if (property.getDefaultValue() != null && property.getDefaultValue().equals(value)) {
           token.setProperty(property.getName(), null); // Clear original value
           continue;
@@ -2205,41 +2212,24 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       return true;
     }
 
-    @Override
-    public EditTokenProperty getProperty(int index) {
-      return new EditTokenProperty(getPropertyList().get(index).getName());
-    }
-
-    @Override
-    public int getPropertyCount() {
-      return getPropertyList() != null ? getPropertyList().size() : 0;
-    }
-
     class EditTokenProperty extends Property {
-
-      private static final long serialVersionUID = 4129033551005743554L;
-      private final String key;
-
-      public EditTokenProperty(String key) {
-        super(key, key, String.class, (String) getPropertyTypeCombo().getSelectedItem());
-        this.setTableCellRenderer(propertyCellRenderer);
-        this.key = key;
-        setCellEditor(new MTMultilineStringCellEditor());
+      public EditTokenProperty(String key, String propertyType) {
+        super(key, key, String.class, propertyType);
       }
 
       @Override
       public Object getValue() {
-        return getPropertyMap().get(key);
+        return propertyMap.get(getName());
       }
 
       @Override
       public void setValue(Object value) {
-        getPropertyMap().put(key, (String) value);
+        propertyMap.put(getName(), (String) value);
       }
 
       @Override
       public boolean hasValue() {
-        return getPropertyMap().get(key) != null;
+        return propertyMap.get(getName()) != null;
       }
     }
   }
