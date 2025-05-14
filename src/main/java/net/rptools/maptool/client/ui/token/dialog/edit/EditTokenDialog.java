@@ -342,7 +342,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
 
     /* OWNER LIST */
-    EventQueue.invokeLater(() -> getOwnerList().setModel(new OwnerListModel()));
+    EventQueue.invokeLater(() -> getOwnerList().setModel(new OwnerListModel(token)));
 
     /* SPEECH TABLE */
     EventQueue.invokeLater(() -> getSpeechTable().setModel(new SpeechTableModel(token)));
@@ -2244,14 +2244,14 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  private class OwnerListModel extends AbstractListModel {
+  private static final class OwnerListModel extends AbstractListModel<Selectable> {
 
     private static final long serialVersionUID = 2375600545516097234L;
 
     List<Selectable> ownerList = new ArrayList<Selectable>();
 
-    public OwnerListModel() {
-      Set<String> ownerSet = getModel().getOwners();
+    public OwnerListModel(Token model) {
+      Set<String> ownerSet = model.getOwners();
       List<String> list = new ArrayList<String>(ownerSet);
 
       List<Player> playerList = MapTool.getPlayerList();
@@ -2271,7 +2271,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       }
     }
 
-    public Object getElementAt(int index) {
+    public Selectable getElementAt(int index) {
       return ownerList.get(index);
     }
 
