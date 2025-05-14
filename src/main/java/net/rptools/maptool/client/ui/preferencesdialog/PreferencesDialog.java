@@ -17,6 +17,7 @@ package net.rptools.maptool.client.ui.preferencesdialog;
 import static net.rptools.maptool.util.UserJvmOptions.getLanguages;
 import static net.rptools.maptool.util.UserJvmOptions.setJvmOption;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -397,6 +398,12 @@ public class PreferencesDialog extends JDialog {
   private final JComboBox<String> jamLanguageOverrideComboBox;
 
   /** Label for displaying startup information. */
+  private final JTextField cfgFilePath;
+
+  private final AbstractButton copyCfgFilePathButton;
+
+  private final JLabel configFileWarningLabel;
+
   private final JLabel startupInfoLabel;
 
   /** Flag indicating if JVM values have been changed. */
@@ -722,7 +729,19 @@ public class PreferencesDialog extends JDialog {
     jamLanguageOverrideComboBox = panel.getComboBox("jvmLanguageOverideComboBox");
     jamLanguageOverrideComboBox.setToolTipText(I18N.getText("prefs.language.override.tooltip"));
 
+    configFileWarningLabel = panel.getLabel("configFileWarningLabel");
+    configFileWarningLabel.setIcon(
+        new FlatSVGIcon("net/rptools/maptool/client/image/warning.svg", 16, 16));
+
     startupInfoLabel = panel.getLabel("startupInfoLabel");
+    cfgFilePath = panel.getTextField("cfgFilePath");
+    copyCfgFilePathButton = panel.getButton("copyCfgPath");
+    copyCfgFilePathButton.addActionListener(
+        e -> {
+          Toolkit.getDefaultToolkit()
+              .getSystemClipboard()
+              .setContents(new StringSelection(cfgFilePath.getText()), null);
+        });
 
     pcTokenLabelFG = (ColorWell) panel.getComponent("pcTokenLabelFG");
     pcTokenLabelFG.setColor(AppPreferences.pcMapLabelForeground.get());
@@ -875,11 +894,24 @@ public class PreferencesDialog extends JDialog {
     }
 
     File appCfgFile = AppUtil.getAppCfgFile();
-    String copyInfo = "";
-    if (appCfgFile != null) { // Don't try to display message if running from dev.
-      copyInfo = I18N.getText("startup.preferences.info.manualCopy", appCfgFile.toString());
+    if (appCfgFile != null) {
+      cfgFilePath.setText(appCfgFile.toString());
+      cfgFilePath.setCaretPosition(0);
+    } else {
+      cfgFilePath.setText("");
     }
-    String startupInfoMsg = I18N.getText("startup.preferences.info", copyInfo);
+
+    // jpackage config files can't be written to. Show a warning to the user describing the
+    // situation.
+    if (appCfgFile != null) {
+      configFileWarningLabel.setText(I18N.getText("startup.preferences.info.manualCopy"));
+      configFileWarningLabel.setVisible(true);
+    } else {
+      configFileWarningLabel.setText(null);
+      configFileWarningLabel.setVisible(false);
+    }
+
+    String startupInfoMsg = I18N.getText("startup.preferences.info");
     startupInfoLabel.setText(startupInfoMsg);
 
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
