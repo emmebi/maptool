@@ -116,7 +116,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private final List<TokenPosition> markerPositionList = new ArrayList<>();
   private final List<Token> showPathList = new ArrayList<>();
 
-
   // Optimizations
   final Map<GUID, BufferedImage> labelRenderingCache = new HashMap<>();
   private final Map<Token, BufferedImage> flipImageMap = new HashMap<>();
@@ -492,7 +491,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             moveTimer.start("onMultipleTokensMove");
             // Multiple tokens, the list of tokens, and call onMultipleTokensMove() macro function.
             if (filteredTokens.size() > 1) {
-              // now determine if the macro returned false and if so, revert each token's move to the last path.
+              // now determine if the macro returned false and if so, revert each token's move to
+              // the last path.
               boolean moveDenied = TokenMoveFunctions.callForMultiTokenMoveVeto(filteredTokens);
               if (moveDenied) {
                 for (GUID tokenGUID : filteredTokens) {
@@ -586,7 +586,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @param token the token to flush
    */
   public void flush(Token token) {
-    // This method can be called from a non-EDT thread so if that happens, make sure we synchronize with the EDT.
+    // This method can be called from a non-EDT thread so if that happens, make sure we synchronize
+    // with the EDT.
     synchronized (tokenPositionCache) {
       tokenPositionCache.remove(token);
     }
@@ -992,7 +993,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.start("drawableObjects");
       renderDrawableOverlay(g2d, drawableRenderers.get(Layer.OBJECT), view, drawables);
       timer.stop("drawableObjects");
-
     }
     timer.start("grid");
 
@@ -1044,7 +1044,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       renderDrawableOverlay(g2d, drawableRenderers.get(Layer.TOKEN), view, drawables);
       timer.stop("drawableTokens");
 
-
       if (shouldRenderLayer(Zone.Layer.GM, view)) {
         drawables = zone.getDrawnElements(Layer.GM);
 
@@ -1079,7 +1078,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     if (shouldRenderLayer(Zone.Layer.TOKEN, view)) {
       // Jamz: If there is fog or vision we may need to re-render vision-blocking type tokens
-      // For example. this allows a "door" stamp to block vision but still allow you to see the door.
+      // For example. this allows a "door" stamp to block vision but still allow you to see the
+      // door.
       List<Token> vblTokens = zone.getTokensAlwaysVisible();
       if (!vblTokens.isEmpty()) {
         timer.start("tokens - always visible");
@@ -1951,7 +1951,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     // Always assume tokens, for now
     List<TokenPosition> tokenPositionListCopy =
-            new ArrayList<>(getTokenPositions(getActiveLayer()));
+        new ArrayList<>(getTokenPositions(getActiveLayer()));
     for (TokenPosition location : tokenPositionListCopy) {
       list.add(location.token);
     }
@@ -2029,7 +2029,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     // calculations
     boolean calculateStacks =
-        !tokenList.isEmpty() && tokenList.getFirst().getLayer().isTokenLayer() && tokenStackMap == null;
+        !tokenList.isEmpty()
+            && tokenList.getFirst().getLayer().isTokenLayer()
+            && tokenStackMap == null;
     if (calculateStacks) {
       tokenStackMap = new HashMap<>();
     }
@@ -2471,7 +2473,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           clippedG.rotate(
               Math.toRadians(token.getFacingInDegrees()),
               width / 2 - (token.getAnchor().x * scale),
-              height / 2 - (token.getAnchor().y * scale)); // facing defaults to down, or -90  degrees
+              height / 2
+                  - (token.getAnchor().y * scale)); // facing defaults to down, or -90  degrees
           selectedBorder.paintAround(clippedG, 0, 0, (int) width, (int) height);
 
           clippedG.setTransform(oldTransform);
@@ -2786,8 +2789,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @return the token
    */
   public Token getTokenAt(int x, int y) {
-    List<TokenPosition> positionList =
-            new ArrayList<>(getTokenPositions(getActiveLayer()));
+    List<TokenPosition> positionList = new ArrayList<>(getTokenPositions(getActiveLayer()));
     Collections.reverse(positionList);
     for (TokenPosition location : positionList) {
       if (location.bounds.contains(x, y)) {
@@ -2902,7 +2904,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     repaintDebouncer.dispatch();
     return super.imageUpdate(img, infoFlags, x, y, w, h);
   }
-
 
   // DROP TARGET LISTENER
   /*
@@ -3043,15 +3044,15 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         }
       } else {
         /* Player dropped, ensure it's a PC token
-         (Why? Couldn't a Player drop an RPTOK that represents an NPC, such as for a summoned monster?
-         Unfortunately, we can't know at this point whether the original input was an RPTOK or not.)
-         */
+        (Why? Couldn't a Player drop an RPTOK that represents an NPC, such as for a summoned monster?
+        Unfortunately, we can't know at this point whether the original input was an RPTOK or not.)
+        */
         token.setType(Token.Type.PC);
 
-         /* For Players, check to see if the name is already in use. If it is already in use, make
-         sure the current Player owns the token being duplicated (to avoid subtle ways of manipulating someone else's
-         token!).
-          */
+        /* For Players, check to see if the name is already in use. If it is already in use, make
+        sure the current Player owns the token being duplicated (to avoid subtle ways of manipulating someone else's
+        token!).
+         */
         Token tokenNameUsed = zone.getTokenByName(token.getName());
         if (tokenNameUsed != null) {
           if (!AppUtil.playerOwns(tokenNameUsed)) {
@@ -3359,7 +3360,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       // Create a larger BufferedImage to hold both the existing cursor and a token name.
 
-      // Use the largest of the image width or string width, and the height of the image + the height
+      // Use the largest of the image width or string width, and the height of the image + the
+      // height
       // of the string to represent the bounding box of the 'arrow+tokenName'
       Rectangle bounds =
           new Rectangle(Math.max(img.getWidth(), textBox.width), img.getHeight() + textBox.height);
@@ -3401,7 +3403,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   /**
-   * Returns the seed value used to generate the noise that is applied to the background repeating images.
+   * Returns the seed value used to generate the noise that is applied to the background repeating
+   * images.
    *
    * @return the seed value used to generate the noise.
    */
