@@ -154,11 +154,11 @@ public class SwingUtil {
     y = (int) Math.max(y, usableScreenArea.getMinY());
     // Right-hand side
     if (x + innerSize.width > usableScreenArea.getMaxX()) {
-      x = (int) (usableScreenArea.getMaxX() - innerSize.width - x);
+      x = (int) (usableScreenArea.getMaxX() - innerSize.width);
     }
     // Bottom
     if (y + innerSize.height > usableScreenArea.getMaxY()) {
-      y = (int) (usableScreenArea.getMaxY() - innerSize.height - y);
+      y = (int) (usableScreenArea.getMaxY() - innerSize.height);
     }
     // Jamz: For multiple monitor's, x & y can be negative values...
     innerWindow.setLocation(x, y);
