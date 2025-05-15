@@ -18,32 +18,35 @@ import com.google.common.eventbus.Subscribe;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.swing.*;
 import net.rptools.lib.CodeTimer;
+import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
+import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.zones.GridChanged;
+import net.rptools.maptool.model.zones.TokensChanged;
+import net.rptools.maptool.util.ImageManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 public class TokenRenderer {
-  public static final String GRAPHICS = "graphics";
-  public static final String POSITION = "position";
-  public static final String OPACITY = "opacity";
-  public static final String CLIP = "clip";
   private static final Logger log = LogManager.getLogger(TokenRenderer.class);
   private final CodeTimer timer;
+  private static final Map<String, Map<Integer, BufferedImage>> imageTableMap =
+      Collections.synchronizedMap(new HashMap<>());
   private final Map<Token, BufferedImage> renderImageMap = new HashMap<>();
   private final Map<Token, TokenState> tokenStateMap = new HashMap<>();
-  private Graphics2D g2d;
   private TokenPosition position;
   private Token token;
   private float opacity = 1f;
-  private Area clip = null;
   private ZoneRenderer renderer;
   private Grid grid;
   private double scale;
@@ -59,8 +62,8 @@ public class TokenRenderer {
     timer = CodeTimer.get();
   }
 
-  public boolean isInitialised() {
-    return initialised;
+  public boolean notInitialised() {
+    return !initialised;
   }
 
   public void setRenderer(ZoneRenderer zoneRenderer) {
@@ -70,72 +73,80 @@ public class TokenRenderer {
     grid = zone.getGrid();
 
     scale = renderer.getScale();
-    initialised = true;
+    initialised = grid != null && renderer != null;
     timer.stop("TokenRenderer-init");
   }
 
-  public void renderToken(Token token, Map<String, Object> renderInfo) {
+  public void renderToken(Token token, TokenPosition position, Graphics2D g2d, Float opacity) {
+    if (!initialised) {
+      log.info("TokenRenderer: Not yet initialised.");
+      return;
+    }
     timer.start("TokenRenderer-renderToken");
     this.token = token;
-    if (haveSufficientRenderInfo(renderInfo)) {
-      compareStates();
-      paintTokenImage();
-    } else {
-      log.debug("Not enough render info in " + renderInfo);
-    }
+    this.position = position;
+    this.opacity = opacity * token.getTokenOpacity();
+    compareStates();
+    paintTokenImage(g2d);
     timer.stop("TokenRenderer-renderToken");
   }
 
-  private boolean haveSufficientRenderInfo(Map<String, Object> renderInfo) {
-    try {
-      // has minimum keys required
-      if (!(renderInfo.containsKey(GRAPHICS) && renderInfo.containsKey(POSITION))) {
-        return false;
-      }
-      g2d = (Graphics2D) renderInfo.get(GRAPHICS);
-      position = (TokenPosition) renderInfo.get(POSITION);
-      if (renderInfo.containsKey(OPACITY)) {
-        opacity = (float) renderInfo.get(OPACITY);
-      } else {
-        opacity = 1f;
-      }
-      if (renderInfo.containsKey(CLIP)) {
-        clip = (Area) renderInfo.get(CLIP);
-      } else {
-        clip = null;
-      }
-    } catch (ClassCastException cce) {
-      log.debug(cce.getLocalizedMessage(), cce);
-      return false;
-    }
-    return true;
-  }
-
   private void compareStates() {
-    TokenState currentState = createRecord(token);
+    TokenState currentState = createRecord(token); // for comparing apples to apples
+    boolean updateStoredImage = true;
+    if (token.getHasImageTable() && !imageTableMap.containsKey(token.getImageTableName())) {
+      (new CacheTableImagesWorker(token.getImageTableName())).execute();
+    }
+    if (tokenStateMap.containsKey(token)) {
+      // exists, is it equal
+      if (!tokenStateMap.get(token).equals(currentState)) {
+        // not equal, replace
+        tokenStateMap.put(token, currentState);
+      } else {
+        // is equal, only update if we have nothing stored.
+        updateStoredImage = !renderImageMap.containsKey(token);
+      }
+    }
+    if (updateStoredImage) {
+      renderImage = getRenderImage();
+      renderImageMap.put(token, renderImage);
+    } else {
+      renderImage = renderImageMap.get(token);
+    }
+    // set these whilst we have the information handy
     isoFigure =
         grid.isIsometric()
             && !currentState.flippedIso
             && currentState.shape.equals(Token.TokenShape.FIGURE);
     canSpin = currentState.shape.equals(Token.TokenShape.TOP_DOWN);
-    boolean updateStoredImage;
-    if (!tokenStateMap.containsKey(token)) {
-      updateStoredImage = true;
-    } else {
-      updateStoredImage = !tokenStateMap.get(token).equals(currentState);
-    }
-    tokenStateMap.put(token, currentState);
-    if (updateStoredImage || !renderImageMap.containsKey(token)) {
-      renderImage = ImageUtil.getTokenRenderImage(token, renderer);
-      renderImageMap.put(token, renderImage);
-    } else {
-      renderImage = renderImageMap.get(token);
-    }
   }
 
-  private void paintTokenImage() {
+  private BufferedImage getRenderImage() {
+    BufferedImage bi = ImageManager.BROKEN_IMAGE;
+    if (token.getHasImageTable() && imageTableMap.containsKey(token.getImageTableName())) {
+      Map<Integer, BufferedImage> imageTable = imageTableMap.get(token.getImageTableName());
+      int max = imageTable.keySet().stream().max(Integer::compareTo).orElse(Integer.MAX_VALUE);
+      if (max != Integer.MAX_VALUE) {
+        int useValue = (360 + token.getFacingInDegrees()) % max;
+        bi =
+            imageTable.get(
+                imageTable.keySet().stream()
+                    .sorted()
+                    .filter(integer -> integer >= useValue)
+                    .toList()
+                    .getFirst());
+        if (bi != null) {
+          bi = ImageUtil.getTokenRenderImage(token, bi, renderer);
+        }
+      }
+    } else {
+      bi = ImageUtil.getTokenRenderImage(token, renderer);
+    }
+    return bi;
+  }
+
+  private void paintTokenImage(Graphics2D g2d) {
     timer.start("TokenRenderer-paintTokenImage");
-    Shape oldClip = g2d.getClip();
     AffineTransform oldAT = g2d.getTransform();
     Composite oldComposite = g2d.getComposite();
     // centre image
@@ -145,9 +156,6 @@ public class TokenRenderer {
         AffineTransform.getTranslateInstance(
             imageCx + token.getAnchorX() * scale, imageCy + token.getAnchorY() * scale);
 
-    if (clip != null) {
-      g2d.setClip(clip);
-    }
     g2d.translate(position.x + position.scaledWidth / 2d, position.y + position.scaledHeight / 2d);
 
     if (token.hasFacing() && canSpin) {
@@ -162,11 +170,45 @@ public class TokenRenderer {
 
     g2d.setComposite(oldComposite);
     g2d.setTransform(oldAT);
-    g2d.setClip(oldClip);
     timer.stop("TokenRenderer-paintTokenImage");
   }
 
-  private TokenState createRecord(Token token) {
+  public void paintFacingArrow(
+      Graphics2D tokenG, Token token, Rectangle footprintBounds, TokenPosition position) {
+    if (!facingArrowRenderer.isInitialised()) {
+      facingArrowRenderer.setRenderer(renderer);
+    }
+    facingArrowRenderer.paintArrow(tokenG, token, footprintBounds, position, renderer);
+  }
+
+  public void zoomChanged() {
+    if (initialised) {
+      renderImageMap.clear();
+      scale = renderer.getScale();
+      facingArrowRenderer.setScale(scale);
+    }
+  }
+
+  @Subscribe
+  private void onGridChanged(GridChanged event) {
+    if (initialised && event.zone() != null) {
+      renderImageMap.clear();
+      this.grid = event.zone().getGrid();
+    }
+  }
+
+  @Subscribe
+  private void onTokensChanged(TokensChanged event) {
+    if (initialised) {
+      for (Token t : event.tokens()) {
+        if (t != null) {
+          tokenStateMap.remove(t);
+        }
+      }
+    }
+  }
+
+  protected TokenState createRecord(Token token) {
     return new TokenState(
         token.getFacing(),
         token.getScaleX(),
@@ -180,31 +222,7 @@ public class TokenRenderer {
         token.getFootprint(grid));
   }
 
-  public void zoomChanged() {
-    if (initialised) {
-      renderImageMap.clear();
-      scale = renderer.getScale();
-      facingArrowRenderer.setScale(scale);
-    }
-  }
-
-  @Subscribe
-  private void onGridChanged(GridChanged event) {
-    if (this.initialised) {
-      setRenderer(this.renderer);
-      facingArrowRenderer.setRenderer(this.renderer);
-    }
-  }
-
-  public void paintFacingArrow(
-      Graphics2D tokenG, Token token, Rectangle footprintBounds, TokenPosition position) {
-    if (!facingArrowRenderer.isInitialised()) {
-      facingArrowRenderer.setRenderer(renderer);
-    }
-    facingArrowRenderer.paintArrow(tokenG, token, footprintBounds, position, renderer);
-  }
-
-  private record TokenState(
+  protected record TokenState(
       int facing,
       double scaleX,
       double scaleY,
@@ -215,4 +233,48 @@ public class TokenRenderer {
       Token.TokenShape shape,
       boolean snapToScale,
       TokenFootprint footprint) {}
+
+  private static Map<Integer, BufferedImage> cacheImageTable(String tableName) {
+    LookupTable lookupTable = MapTool.getCampaign().getLookupTableMap().get(tableName);
+    if (lookupTable != null) {
+      BufferedImage broken = ImageManager.BROKEN_IMAGE;
+      Map<Integer, BufferedImage> tmp = new HashMap<>();
+      List<LookupTable.LookupEntry> entries = lookupTable.getEntryList();
+      for (LookupTable.LookupEntry entry : entries) {
+        MD5Key asset = entry.getImageId();
+        if (asset != null) {
+          BufferedImage bi = ImageManager.getImageAndWait(asset);
+          if (!bi.equals(broken)) {
+            tmp.put(entry.getMax(), bi);
+          }
+        }
+      }
+      if (!tmp.isEmpty()) {
+        return tmp;
+      }
+    }
+    return null;
+  }
+
+  private static class CacheTableImagesWorker
+      extends SwingWorker<Map<Integer, BufferedImage>, String> {
+    String tableName;
+
+    public CacheTableImagesWorker(String tableName) {
+      this.tableName = tableName;
+    }
+
+    @Override
+    public Map<Integer, BufferedImage> doInBackground() {
+      return cacheImageTable(tableName);
+    }
+
+    @Override
+    protected void done() {
+      try {
+        imageTableMap.put(tableName, get());
+      } catch (Exception ignore) {
+      }
+    }
+  }
 }
