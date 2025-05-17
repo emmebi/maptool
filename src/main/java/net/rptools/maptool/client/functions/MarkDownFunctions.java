@@ -58,6 +58,28 @@ public class MarkDownFunctions extends AbstractFunction {
     super(0, 3, "markdownToHTML");
   }
 
+  public enum FlexExtensionsEnum {
+    ASIDE("ASIDE", AsideExtension.create()),
+    ATTRIBUTES("ATTRIBUTES", AttributesExtension.create()),
+    DEFINITION("DEFINITION", DefinitionExtension.create()),
+    INS("INS", InsExtension.create()),
+    STRIKETHROUGH("STRIKETHROUGH", StrikethroughExtension.create()),
+    STRIKETHROUGHSUBSCRIPT("STRIKETHROUGHSUBSCRIPT", StrikethroughSubscriptExtension.create()),
+    SUBSCRIPT("SUBSCRIPT", SubscriptExtension.create()),
+    SUPERSCRIPT("SUPERSCRIPT", SuperscriptExtension.create()),
+    TASKLIST("TASKLIST", TaskListExtension.create()),
+    TABLES("TABLES", TablesExtension.create()),
+    TOC("TOC", TocExtension.create());
+
+    private final String name;
+    private final Extension extensionInstance;
+
+    FlexExtensionsEnum(String name, Extension extensionInstance) {
+      this.name = name;
+      this.extensionInstance = extensionInstance;
+    }
+  }
+
   @Override
   public Object childEvaluate(
       Parser parser, VariableResolver resolver, String functionName, List<Object> args)
@@ -75,10 +97,10 @@ public class MarkDownFunctions extends AbstractFunction {
     MutableDataHolder options = new MutableDataSet();
 
     if (profile == ParserEmulationProfile.GITHUB_DOC) {
-      extensions.add(DefinitionExtension.create());
-      extensions.add(TablesExtension.create());
-      extensions.add(TaskListExtension.create());
-      extensions.add(TocExtension.create());
+      extensions.add(FlexExtensionsEnum.DEFINITION.extensionInstance);
+      extensions.add(FlexExtensionsEnum.TABLES.extensionInstance);
+      extensions.add(FlexExtensionsEnum.TASKLIST.extensionInstance);
+      extensions.add(FlexExtensionsEnum.TOC.extensionInstance);
       options
           .set(com.vladsch.flexmark.parser.Parser.SPACE_IN_LINK_URLS, true)
           .setFrom(ParserEmulationProfile.GITHUB_DOC)
@@ -96,55 +118,30 @@ public class MarkDownFunctions extends AbstractFunction {
 
     if (!optionalExtensionsList.isEmpty()) {
       if (optionalExtensionsList.contains("*")) {
-        // Add all optional extensions.
-        extensions.add(AsideExtension.create());
-        extensions.add(AttributesExtension.create());
-        extensions.add(DefinitionExtension.create());
-        extensions.add(InsExtension.create());
-        extensions.add(StrikethroughSubscriptExtension.create());
-        extensions.add(SuperscriptExtension.create());
-        extensions.add(TablesExtension.create());
-        extensions.add(TaskListExtension.create());
-        extensions.add(TocExtension.create());
+        // Add all optional extensions
+        for (FlexExtensionsEnum flexExtension : FlexExtensionsEnum.values()) {
+          extensions.add(flexExtension.extensionInstance);
+        }
       } else {
         // Add user selected optional extensions
-        if (optionalExtensionsList.contains("ASIDE")) {
-          extensions.add(AsideExtension.create());
-        }
-        if (optionalExtensionsList.contains("ATTRIBUTES")) {
-          extensions.add(AttributesExtension.create());
-        }
-        if (optionalExtensionsList.contains("DEFINITION")) {
-          extensions.add(DefinitionExtension.create());
-        }
-        if (optionalExtensionsList.contains("INS")) {
-          extensions.add(InsExtension.create());
-        }
-        // Can only add the one Strikethrough and/or Subscript extension, so work out which one.
-        if (optionalExtensionsList.contains("STRIKETHROUGH")
-            && optionalExtensionsList.contains("SUBSCRIPT")) {
-          extensions.add(StrikethroughSubscriptExtension.create());
-        } else if (optionalExtensionsList.contains("STRIKETHROUGH")) {
-          extensions.add(StrikethroughExtension.create());
-        } else if (optionalExtensionsList.contains("SUBSCRIPT")) {
-          extensions.add(SubscriptExtension.create());
-        }
-        if (optionalExtensionsList.contains("SUPERSCRIPT")) {
-          extensions.add(SuperscriptExtension.create());
-        }
-        if (optionalExtensionsList.contains("TABLES")) {
-          extensions.add(TablesExtension.create());
-        }
-        if (optionalExtensionsList.contains("TASKLIST")) {
-          extensions.add(TaskListExtension.create());
-        }
-        if (optionalExtensionsList.contains("TOC")) {
-          extensions.add(TocExtension.create());
+        for (FlexExtensionsEnum flexExtension : FlexExtensionsEnum.values()) {
+          if (optionalExtensionsList.contains(flexExtension.name)) {
+            extensions.add(flexExtension.extensionInstance);
+          }
         }
       }
     }
 
     if (!extensions.isEmpty()) {
+      // If the extensions list contains both STRIKETHROUGH and SUBSCRIPT extension instances,
+      // remove them and ensure we have one for STRIKETHROUGHSUBSCRIPT instead.  This is a
+      // highlander limitation of the package: `com.vladsch.flexmark.ext.gfm.strikethrough`
+      if (extensions.contains(FlexExtensionsEnum.STRIKETHROUGH.extensionInstance)
+          && extensions.contains(FlexExtensionsEnum.SUBSCRIPT.extensionInstance)) {
+        extensions.remove(FlexExtensionsEnum.STRIKETHROUGH.extensionInstance);
+        extensions.remove(FlexExtensionsEnum.SUBSCRIPT.extensionInstance);
+        extensions.add(FlexExtensionsEnum.STRIKETHROUGHSUBSCRIPT.extensionInstance);
+      }
       options.set(com.vladsch.flexmark.parser.Parser.EXTENSIONS, extensions);
     }
 
