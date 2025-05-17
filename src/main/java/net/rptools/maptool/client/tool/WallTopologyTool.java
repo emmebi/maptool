@@ -211,11 +211,6 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     return getWallHalfWidth() * 1.5;
   }
 
-  private void setWallPropertiesFromConfigPanel(Wall wall) {
-    var current = controlPanel.getModel();
-    wall.setData(current);
-  }
-
   private void setSelectedWall(@Nullable WallTopologyRig.MovableWall wall) {
     selectedWall = wall;
     if (selectedWall != null) {
@@ -883,7 +878,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
     @Override
     public void activate() {
-      tool.setWallPropertiesFromConfigPanel(wall.getSource());
+      wall.getSource().setData(tool.controlPanel.getModel());
       tool.setSelectedWall(wall);
     }
 
@@ -943,7 +938,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
         }
         wall = newWall;
 
-        tool.setWallPropertiesFromConfigPanel(newWall.getSource());
+        newWall.getSource().setData(tool.controlPanel.getModel());
         tool.setSelectedWall(newWall);
       }
       if (SwingUtilities.isLeftMouseButton(event)) {
