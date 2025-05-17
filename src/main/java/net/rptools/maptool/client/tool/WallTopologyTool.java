@@ -76,7 +76,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
               if (selectedWall != null) {
                 selectedWall.getSource().setData(newData);
-                MapTool.serverCommand().updateWall(getZone(), selectedWall.getSource());
+                mode.onWallChanged(selectedWall);
               }
             });
   }
@@ -332,6 +332,13 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     void delete();
 
     /**
+     * Called when a wall is changed from outside this tool mode.
+     *
+     * @param wall The modified wall.
+     */
+    void onWallChanged(WallTopologyRig.MovableWall wall);
+
+    /**
      * Handles a mouse move.
      *
      * <p><strong>Note:</strong> if the mouse is dragged, {@link #mouseDragged(Point2D, Snap,
@@ -409,6 +416,9 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     public void delete() {}
 
     @Override
+    public void onWallChanged(WallTopologyRig.MovableWall wall) {}
+
+    @Override
     public void mouseMoved(Point2D point, Snap snapMode, MouseEvent event) {}
 
     @Override
@@ -465,6 +475,16 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
                 wall.delete();
                 MapTool.serverCommand().replaceWalls(tool.getZone(), rig.commit());
               });
+    }
+
+    /**
+     * Applies the default behaviour of syncing the changed wall.
+     *
+     * @param wall The modified wall.
+     */
+    @Override
+    public void onWallChanged(WallTopologyRig.MovableWall wall) {
+      MapTool.serverCommand().updateWall(tool.getZone(), wall.getSource());
     }
 
     @Override
@@ -883,6 +903,14 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
       tool.setSelectedWall(null);
       tool.changeToolMode(new BasicToolMode(tool, rig));
       return true;
+    }
+
+    @Override
+    public void onWallChanged(WallTopologyRig.MovableWall changedWall) {
+      // The wall we're drawing is temporary, so don't try to sync such changes.
+      if (!changedWall.isForSameElement(wall)) {
+        super.onWallChanged(changedWall);
+      }
     }
 
     @Override
