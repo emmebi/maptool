@@ -58,13 +58,28 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
   private Point2D currentPosition =
       new Point2D.Double(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
 
-  private final WallConfigurationController controlPanel = new WallConfigurationController();
+  private final WallConfigurationController controlPanel;
   private @Nullable WallTopologyRig.MovableWall selectedWall;
 
   /** The current tool behaviour. Each operation enters a distinct mode so we don't cross-talk. */
   private ToolMode mode = new NilToolMode();
 
   private final TopologyTool.MaskOverlay maskOverlay = new TopologyTool.MaskOverlay();
+
+  public WallTopologyTool() {
+    super();
+
+    controlPanel =
+        new WallConfigurationController(
+            event -> {
+              var newData = (Wall.Data) event.getNewValue();
+
+              if (selectedWall != null) {
+                selectedWall.getSource().setData(newData);
+                MapTool.serverCommand().updateWall(getZone(), selectedWall.getSource());
+              }
+            });
+  }
 
   @Override
   public String getTooltip() {
@@ -113,7 +128,6 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
   protected void detachFrom(ZoneRenderer renderer) {
     new MapToolEventBus().getMainEventBus().unregister(this);
 
-    controlPanel.unbind();
     MapTool.getFrame().removeControlPanel();
 
     changeToolMode(new NilToolMode());
@@ -199,15 +213,13 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
   private void setWallPropertiesFromConfigPanel(Wall wall) {
     var current = controlPanel.getModel();
-    wall.copyDataFrom(current);
+    wall.setData(current);
   }
 
   private void setSelectedWall(@Nullable WallTopologyRig.MovableWall wall) {
     selectedWall = wall;
-    if (selectedWall == null) {
-      controlPanel.unbind();
-    } else {
-      controlPanel.bind(getZone(), selectedWall.getSource());
+    if (selectedWall != null) {
+      controlPanel.bind(selectedWall.getSource().data());
     }
   }
 
@@ -593,13 +605,13 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
           g2.setTransform(preTransform);
         }
-        if (wall.getSource().direction() != Wall.Direction.Both) {
+        if (wall.getSource().data().direction() != Wall.Direction.Both) {
           // Draw an arrow through the midpoint of the wall to indicate its direction.
           var preTransform = g2.getTransform();
           var wallMidpoint = asSegment.midPoint();
           g2.translate(wallMidpoint.getX(), wallMidpoint.getY());
           g2.rotate(angle);
-          if (wall.getSource().direction() == Wall.Direction.Left) {
+          if (wall.getSource().data().direction() == Wall.Direction.Left) {
             g2.scale(-1, -1);
           }
 
