@@ -445,6 +445,16 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
     @Override
     public void delete() {}
 
+    protected void deleteSelectedWall() {
+      tool.getSelectedWall()
+          .ifPresent(
+              wall -> {
+                tool.setSelectedWall(null);
+                wall.delete();
+                MapTool.serverCommand().replaceWalls(tool.getZone(), rig.commit());
+              });
+    }
+
     @Override
     public void mouseMoved(Point2D point, Snap snapMode, MouseEvent event) {}
 
@@ -696,7 +706,7 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
 
     @Override
     public void delete() {
-      tool.getSelectedWall().ifPresent(selected -> selected.delete());
+      deleteSelectedWall();
     }
 
     @Override
@@ -735,8 +745,6 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
           case null -> {
             // Hit blank space. Start a new wall.
             var newWall = rig.addDegenerateWall(snapMode.snap(point));
-            tool.setWallPropertiesFromConfigPanel(newWall.getSource());
-            tool.setSelectedWall(newWall);
             tool.changeToolMode(new DrawingWallToolMode(tool, rig, newWall));
           }
           case WallTopologyRig.MovableVertex movableVertex -> {
@@ -777,8 +785,6 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
             .ifPresent(
                 mergeCandidate -> {
                   var newWall = rig.addConnectedWall(mergeCandidate);
-                  tool.setWallPropertiesFromConfigPanel(newWall.getSource());
-                  tool.setSelectedWall(newWall);
                   tool.changeToolMode(new DrawingWallToolMode(tool, rig, newWall));
                 });
       }
@@ -841,6 +847,12 @@ public class WallTopologyTool extends DefaultTool implements ZoneOverlay {
         WallTopologyTool tool, WallTopologyRig rig, WallTopologyRig.MovableWall wall) {
       super(tool, rig);
       this.wall = wall;
+    }
+
+    @Override
+    public void activate() {
+      tool.setWallPropertiesFromConfigPanel(wall.getSource());
+      tool.setSelectedWall(wall);
     }
 
     private void findConnectToHandle(InputEvent event) {
