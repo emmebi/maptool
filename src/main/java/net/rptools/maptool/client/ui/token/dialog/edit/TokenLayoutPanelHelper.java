@@ -24,6 +24,7 @@ import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.MathUtil;
@@ -113,7 +114,7 @@ class TokenLayoutPanelHelper {
   private static final CellPoint ORIGIN = new CellPoint(0, 0);
   private Token originalToken, mirrorToken;
   private BufferedImage tokenImage;
-  private TokenFootprint footprint;
+  private @Nullable TokenFootprint footprint;
   private ArrayList<Point2D> cellCentres;
   protected boolean isIsoFigure = false;
   protected Rectangle2D footprintBounds;
@@ -323,7 +324,12 @@ class TokenLayoutPanelHelper {
         @Override
         public void itemStateChanged(ItemEvent e) {
           if (mirrorToken != null) {
-            setFootprint((TokenFootprint) getSizeCombo().getSelectedItem());
+            final var selected = getSizeCombo().getSelectedItem();
+            if (selected instanceof TokenFootprint tmpFP) {
+              setFootprint(tmpFP);
+            } else {
+              setFootprint(null);
+            }
           }
         }
       };
@@ -376,9 +382,11 @@ class TokenLayoutPanelHelper {
     }
 
     if (mirrorToken.getFootprint(grid) != getSizeCombo().getSelectedItem()) {
-      TokenFootprint tmpFP = (TokenFootprint) getSizeCombo().getSelectedItem();
-      if (tmpFP != null) {
-        mirrorToken.setFootprint(grid, grid.getFootprint(tmpFP.getId()));
+      var selected = getSizeCombo().getSelectedItem();
+      switch (selected) {
+        case TokenFootprint tmpFP ->
+            mirrorToken.setFootprint(grid, grid.getFootprint(tmpFP.getId()));
+        case null, default -> mirrorToken.setSnapToScale(false);
       }
     }
 
@@ -390,7 +398,11 @@ class TokenLayoutPanelHelper {
     /* the image to manipulate */
     tokenImage = ImageManager.getImage(mirrorToken.getImageAssetId());
 
-    setFootprint(mirrorToken.getFootprint(grid));
+    if (mirrorToken.isSnapToScale()) {
+      setFootprint(mirrorToken.getFootprint(grid));
+    } else {
+      setFootprint(null);
+    }
 
     /* set slider values to realistic values based on footprint. */
     getAnchorXSlider().setMinimum((int) -Math.ceil(footprintBounds.getWidth()));
@@ -447,10 +459,12 @@ class TokenLayoutPanelHelper {
    *
    * @param fp token's grid footprint
    */
-  private void setFootprint(TokenFootprint fp) {
+  private void setFootprint(@Nullable TokenFootprint fp) {
     this.footprint = fp;
     setCentredFootprintBounds();
-    Set<CellPoint> occupiedCells = footprint.getOccupiedCells(ORIGIN);
+
+    Set<CellPoint> occupiedCells =
+        footprint == null ? Collections.emptySet() : footprint.getOccupiedCells(ORIGIN);
     Rectangle2D aggregateBounds = new Rectangle2D.Double();
     cellCentres = new ArrayList<>(occupiedCells.size());
     for (CellPoint cp : occupiedCells) {
@@ -466,7 +480,11 @@ class TokenLayoutPanelHelper {
     if (grid == null) {
       return;
     }
-    if (!noGrid) {
+    if (footprint == null) {
+      var width = mirrorToken.getWidth();
+      var height = mirrorToken.getHeight();
+      footprintBounds = new Rectangle2D.Double(-width / 2d, -height / 2d, width, height);
+    } else if (!noGrid) {
       footprintBounds = footprint.getBounds(grid, ORIGIN);
       footprintBounds =
           new Rectangle2D.Double(
@@ -881,12 +899,13 @@ class TokenLayoutPanelHelper {
       /* used with no grid. A set of rings and radial lines. */
       TokenFootprint fp = mirrorToken.getFootprint(grid);
       Rectangle2D fpCellBounds = fp.getBounds(grid, ORIGIN);
+      double footprintScale = footprint == null ? 1 : footprint.getScale();
       fpCellBounds =
           new Rectangle2D.Double(
               0,
               0,
-              fpCellBounds.getWidth() * footprint.getScale(),
-              fpCellBounds.getHeight() * footprint.getScale());
+              fpCellBounds.getWidth() * footprintScale,
+              fpCellBounds.getHeight() * footprintScale);
 
       double cx = viewBounds.getCenterX() + viewOffset.getX();
       double cy = viewBounds.getCenterY() + viewOffset.getY();
@@ -1026,7 +1045,7 @@ class TokenLayoutPanelHelper {
       g2d.setStroke(new BasicStroke(1f));
       g2d.setColor(COLOURS[4]);
 
-      double footprintScale = footprint.getScale();
+      double footprintScale = footprint == null ? 1 : footprint.getScale();
       double yCorrection =
           isIsoFigure ? footprintScale * footprintBounds.getHeight() / 2d * zoomFactor : 0;
 

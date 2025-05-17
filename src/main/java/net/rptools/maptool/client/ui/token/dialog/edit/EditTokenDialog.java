@@ -16,12 +16,12 @@ package net.rptools.maptool.client.ui.token.dialog.edit;
 
 import com.jidesoft.combobox.MultilineStringExComboBox;
 import com.jidesoft.combobox.PopupPanel;
-import com.jidesoft.grid.AbstractPropertyTableModel;
 import com.jidesoft.grid.MultilineStringCellEditor;
 import com.jidesoft.grid.NavigableModel;
 import com.jidesoft.grid.Property;
 import com.jidesoft.grid.PropertyPane;
 import com.jidesoft.grid.PropertyTable;
+import com.jidesoft.grid.PropertyTableModel;
 import com.jidesoft.plaf.basic.BasicExComboBoxUI;
 import com.jidesoft.swing.CheckBoxListWithSelectable;
 import com.jidesoft.swing.DefaultSelectable;
@@ -43,14 +43,15 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.Position.Bias;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
@@ -343,7 +344,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
 
     /* OWNER LIST */
-    EventQueue.invokeLater(() -> getOwnerList().setModel(new OwnerListModel()));
+    EventQueue.invokeLater(() -> getOwnerList().setModel(new OwnerListModel(token)));
 
     /* SPEECH TABLE */
     EventQueue.invokeLater(() -> getSpeechTable().setModel(new SpeechTableModel(token)));
@@ -364,7 +365,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
     /* If index == 0, the itemStateChanged event wasn't triggered, so we update. Fix #1504 */
     if (getPropertyTypeCombo().getSelectedIndex() == 0) {
-      updatePropertiesTable((String) getPropertyTypeCombo().getSelectedItem());
+      updatePropertiesTable(token, (String) getPropertyTypeCombo().getSelectedItem());
     }
 
     getSightTypeCombo()
@@ -471,6 +472,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     String heroLabTitle = I18N.getString("EditTokenDialog.tab.hero");
 
     if (heroLabData != null) {
+      getHeroLabImagesList().setCellRenderer(new HeroLabImageListRenderer(heroLabData));
+
       boolean isDirty = heroLabData.isDirty() && heroLabData.getPortfolioFile().exists();
       JButton refreshDataButton = (JButton) getComponent("refreshDataButton");
 
@@ -515,6 +518,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
       EventQueue.invokeLater(this::loadHeroLabImageList);
     } else {
+      getHeroLabImagesList().setCellRenderer(new DefaultListCellRenderer());
+
       tabbedPane.setEnabledAt(tabbedPane.indexOfTab(heroLabTitle), false);
       if (tabbedPane.getSelectedIndex() == tabbedPane.indexOfTab(heroLabTitle)) {
         tabbedPane.setSelectedIndex(6);
@@ -632,7 +637,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         .addItemListener(
             e -> {
               if (e.getStateChange() == ItemEvent.SELECTED) {
-                updatePropertiesTable((String) getPropertyTypeCombo().getSelectedItem());
+                updatePropertiesTable(
+                    getModel(), (String) getPropertyTypeCombo().getSelectedItem());
               }
             });
   }
@@ -666,11 +672,19 @@ public class EditTokenDialog extends AbeillePanel<Token> {
    *
    * @param propertyType the property type of the token (unused).
    */
-  private void updatePropertiesTable(final String propertyType) {
+  private void updatePropertiesTable(@Nullable Token token, final String propertyType) {
     EventQueue.invokeLater(
         () -> {
           PropertyTable pp = getPropertyTable();
-          pp.setModel(new TokenPropertyTableModel());
+          if (token != null) {
+            var propertyList = MapTool.getCampaign().getTokenPropertyList(propertyType);
+
+            pp.setModel(
+                new TokenPropertyTableModel(
+                    token, propertyType, propertyList, propertyCellRenderer));
+          } else {
+            pp.setModel(new DefaultTableModel());
+          }
           pp.expandAll();
         });
   }
@@ -1246,7 +1260,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   public void initOwnershipPanel() {
     CheckBoxListWithSelectable list = new CheckBoxListWithSelectable();
     list.setName("ownerList");
-    replaceComponent("ownershipPanel", "ownershipList", list);
+    replaceComponent(
+        "ownershipPanel",
+        "ownershipList",
+        new JScrollPane(
+            list,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
   }
 
   public void initPropertiesPanel() {
@@ -1555,10 +1575,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   /*
    * Initialize the Hero Lab Images tab
    */
-  @SuppressWarnings("unchecked")
   public void initHeroLabImageList() {
-    getHeroLabImagesList().setCellRenderer(new HeroLabImageListRenderer());
-
     JButton setTokenImage = (JButton) getComponent("setAsImageButton");
     setTokenImage.addActionListener(
         e -> {
@@ -2100,7 +2117,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  class OpacitySliderListener implements ChangeListener {
+  private class OpacitySliderListener implements ChangeListener {
 
     public void stateChanged(ChangeEvent e) {
       JSlider source = (JSlider) e.getSource();
@@ -2114,10 +2131,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  public class HeroLabImageListRenderer extends DefaultListCellRenderer {
+  private static class HeroLabImageListRenderer extends DefaultListCellRenderer {
+    private final Font font = new Font("helvitica", Font.BOLD, 24);
+    private final HeroLabData heroLabData;
 
-    private static final long serialVersionUID = 7113815213979044509L;
-    Font font = new Font("helvitica", Font.BOLD, 24);
+    public HeroLabImageListRenderer(HeroLabData heroLabData) {
+      this.heroLabData = heroLabData;
+    }
 
     @Override
     public Component getListCellRendererComponent(
@@ -2141,92 +2161,42 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     }
   }
 
-  /* HANDLER */
-  public static class MouseHandler extends MouseAdapter {
-
-    HtmlEditorSplit source;
-
-    public MouseHandler(HtmlEditorSplit source) {
-      this.source = source;
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-      if (SwingUtilities.isRightMouseButton(e)) {
-        JPopupMenu menu = new JPopupMenu();
-        JMenuItem sendToChatItem =
-            new JMenuItem(I18N.getString("EditTokenDialog.menu.notes.sendChat"));
-        sendToChatItem.addActionListener(
-            e12 -> {
-              String selectedText = source.getSelectedText();
-              if (selectedText == null) {
-                selectedText = source.getText();
-              }
-              JTextComponent commandArea =
-                  MapTool.getFrame().getCommandPanel().getCommandTextArea();
-
-              commandArea.setText(commandArea.getText() + selectedText);
-              commandArea.requestFocusInWindow();
-            });
-        menu.add(sendToChatItem);
-
-        JMenuItem sendAsEmoteItem =
-            new JMenuItem(I18N.getString("EditTokenDialog.menu.notes.sendEmit"));
-        sendAsEmoteItem.addActionListener(
-            e1 -> {
-              String selectedText = source.getSelectedText();
-              if (selectedText == null) {
-                selectedText = source.getText();
-              }
-              MapTool.getFrame().getCommandPanel().commitCommand("/emit " + selectedText);
-              MapTool.getFrame().getCommandPanel().getCommandTextArea().requestFocusInWindow();
-            });
-        menu.add(sendAsEmoteItem);
-        menu.show((JComponent) e.getSource(), e.getX(), e.getY());
-      }
-    }
-  }
-
   /* MODELS */
-  private class TokenPropertyTableModel
-      extends AbstractPropertyTableModel<TokenPropertyTableModel.EditTokenProperty>
+  private static class TokenPropertyTableModel
+      extends PropertyTableModel<TokenPropertyTableModel.EditTokenProperty>
       implements NavigableModel {
+    private final List<TokenProperty> propertyList;
+    private final Map<String, String> propertyMap;
 
-    private static final long serialVersionUID = 2822797264738675580L;
+    public TokenPropertyTableModel(
+        Token model,
+        String propertyType,
+        List<TokenProperty> propertyList,
+        TableCellRenderer propertyCellRenderer) {
+      this.propertyList = propertyList;
 
-    private Map<String, String> propertyMap;
-    private List<TokenProperty> propertyList;
-
-    private Map<String, String> getPropertyMap() {
-      Token token = getModel();
-
-      if (propertyMap == null) {
-        propertyMap = new HashMap<String, String>();
-
-        List<TokenProperty> propertyList = getPropertyList();
-        for (TokenProperty property : propertyList) {
-          String value = (String) token.getProperty(property.getName());
-          if (value == null) {
-            value = property.getDefaultValue();
-          }
-          propertyMap.put(property.getName(), value);
+      this.propertyMap = new HashMap<>();
+      for (TokenProperty property : propertyList) {
+        String value = (String) model.getProperty(property.getName());
+        if (value == null) {
+          value = property.getDefaultValue();
         }
+        this.propertyMap.put(property.getName(), value);
       }
-      return propertyMap;
-    }
 
-    private List<TokenProperty> getPropertyList() {
-      if (propertyList == null) {
-        propertyList =
-            MapTool.getCampaign()
-                .getTokenPropertyList((String) getPropertyTypeCombo().getSelectedItem());
+      var gridProperties = new ArrayList<EditTokenProperty>();
+      for (var tokenProperty : propertyList) {
+        var gridProperty = new EditTokenProperty(tokenProperty.getName(), propertyType);
+        gridProperty.setTableCellRenderer(propertyCellRenderer);
+        gridProperty.setCellEditor(new MTMultilineStringCellEditor());
+        gridProperties.add(gridProperty);
       }
-      return propertyList;
+      setOriginalProperties(gridProperties);
     }
 
     public void applyTo(Token token) {
-      for (TokenProperty property : getPropertyList()) {
-        String value = getPropertyMap().get(property.getName());
+      for (TokenProperty property : propertyList) {
+        String value = propertyMap.get(property.getName());
         if (property.getDefaultValue() != null && property.getDefaultValue().equals(value)) {
           token.setProperty(property.getName(), null); // Clear original value
           continue;
@@ -2246,53 +2216,36 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       return true;
     }
 
-    @Override
-    public EditTokenProperty getProperty(int index) {
-      return new EditTokenProperty(getPropertyList().get(index).getName());
-    }
-
-    @Override
-    public int getPropertyCount() {
-      return getPropertyList() != null ? getPropertyList().size() : 0;
-    }
-
     class EditTokenProperty extends Property {
-
-      private static final long serialVersionUID = 4129033551005743554L;
-      private final String key;
-
-      public EditTokenProperty(String key) {
-        super(key, key, String.class, (String) getPropertyTypeCombo().getSelectedItem());
-        this.setTableCellRenderer(propertyCellRenderer);
-        this.key = key;
-        setCellEditor(new MTMultilineStringCellEditor());
+      public EditTokenProperty(String key, String propertyType) {
+        super(key, key, String.class, propertyType);
       }
 
       @Override
       public Object getValue() {
-        return getPropertyMap().get(key);
+        return propertyMap.get(getName());
       }
 
       @Override
       public void setValue(Object value) {
-        getPropertyMap().put(key, (String) value);
+        propertyMap.put(getName(), (String) value);
       }
 
       @Override
       public boolean hasValue() {
-        return getPropertyMap().get(key) != null;
+        return propertyMap.get(getName()) != null;
       }
     }
   }
 
-  private class OwnerListModel extends AbstractListModel {
+  private static final class OwnerListModel extends AbstractListModel<Selectable> {
 
     private static final long serialVersionUID = 2375600545516097234L;
 
     List<Selectable> ownerList = new ArrayList<Selectable>();
 
-    public OwnerListModel() {
-      Set<String> ownerSet = getModel().getOwners();
+    public OwnerListModel(Token model) {
+      Set<String> ownerSet = model.getOwners();
       List<String> list = new ArrayList<String>(ownerSet);
 
       List<Player> playerList = MapTool.getPlayerList();
@@ -2312,7 +2265,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       }
     }
 
-    public Object getElementAt(int index) {
+    public Selectable getElementAt(int index) {
       return ownerList.get(index);
     }
 
