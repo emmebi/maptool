@@ -147,7 +147,7 @@ public class FacingArrowRenderer {
 
       tokenG.setTransform(oldAT);
     } catch (Exception e) {
-      log.error(e);
+      log.error("Failed to paint facing arrow.");
     }
     timer.stop("ArrowRenderer-paintArrow");
   }
