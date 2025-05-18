@@ -545,7 +545,19 @@ public class ImageUtil {
    */
   public static BufferedImage getTokenRenderImage(Token token, ZoneRenderer zr) {
     BufferedImage image = getTokenImage(token, zr);
+    return getTokenRenderImage(token, image, zr);
+  }
 
+  /**
+   * Applies flipping, scaling, and image rotation, but not facing.
+   *
+   * @param token Token
+   * @param image Image to transform
+   * @param zr ZoneRenderer
+   * @return modified image
+   */
+  public static BufferedImage getTokenRenderImage(
+      Token token, BufferedImage image, ZoneRenderer zr) {
     AppConstants.FLIP_DIRECTION flipDirection =
         AppConstants.FLIP_DIRECTION.getFlipDirection(
             token.isFlippedX(), token.isFlippedY(), token.getIsFlippedIso());
@@ -570,10 +582,7 @@ public class ImageUtil {
   public static BufferedImage getTokenImage(Token token, ZoneRenderer zr) {
     BufferedImage image = null;
     // Get the basic image
-    if (token.getHasImageTable()
-        && token.hasFacing()
-        && token.getImageTableName() != null
-        && zr.getZone().getGrid().isIsometric()) {
+    if (token.getHasImageTable() && token.hasFacing() && token.getImageTableName() != null) {
       LookupTable lookupTable =
           MapTool.getCampaign().getLookupTableMap().get(token.getImageTableName());
       if (lookupTable != null) {

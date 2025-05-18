@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client.ui.zone.renderer.tokenRender;
 
+import com.google.common.eventbus.Subscribe;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
@@ -25,9 +26,9 @@ import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.events.MapToolEventBus;
-import net.rptools.maptool.model.Grid;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.model.zones.GridChanged;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -77,72 +78,77 @@ public class FacingArrowRenderer {
       ZoneRenderer zoneRenderer) {
     if (!renderer.equals(zoneRenderer)) {
       setRenderer(zoneRenderer);
-    }
-    tokenType = token.getShape();
-    if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
       return;
     }
-    if (tokenType.equals(Token.TokenShape.FIGURE)
-        && token.getHasImageTable()
-        && !AppPreferences.forceFacingArrow.get()) {
-      return;
-    }
-
-    timer.start("ArrowRenderer-paintArrow");
-    AffineTransform oldAT = tokenG.getTransform();
-    Grid grid = renderer.getZone().getGrid();
-    footprintBounds = footprintBounds_;
-    double facing = token.getFacing();
-    facing = isIsometric ? facing + 45 : facing;
-    while (facing < 0) {
-      facing += 360;
-    }
-    if (facing > 360) {
-      facing %= 360;
-    }
-    double radFacing = Math.toRadians(facing);
-    double cx = position.x + position.scaledWidth / 2d;
-    double cy = position.y + position.scaledHeight / 2d;
-
-    Shape facingArrow = getArrow(token);
-
-    facingArrow = AffineTransform.getRotateInstance(-radFacing).createTransformedShape(facingArrow);
-    facingArrow =
-        AffineTransform.getScaleInstance(getScale(), isIsometric ? getScale() / 2d : getScale())
-            .createTransformedShape(facingArrow);
-
-    if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
-      double xp = position.scaledWidth / 2;
-      double yp = position.scaledHeight / 2;
-      if (facing >= 45 && facing <= 135 || facing >= 225 && facing <= 315) {
-        xp = yp / Math.tan(Math.toRadians(facing));
-        if (facing > 180) {
-          xp = -xp;
-          yp = -yp;
-        }
-      } else {
-        yp = xp * Math.tan(Math.toRadians(facing));
-        if (facing > 90 && facing < 270) {
-          xp = -xp;
-          yp = -yp;
-        }
+    try {
+      tokenType = token.getShape();
+      if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
+        return;
       }
-      cx += xp;
-      cy -= yp;
+      if (tokenType.equals(Token.TokenShape.FIGURE)
+          && token.getHasImageTable()
+          && !AppPreferences.forceFacingArrow.get()) {
+        return;
+      }
+
+      timer.start("ArrowRenderer-paintArrow");
+      AffineTransform oldAT = tokenG.getTransform();
+      footprintBounds = footprintBounds_;
+      double facing = token.getFacing();
+      facing = isIsometric ? facing + 45 : facing;
+      while (facing < 0) {
+        facing += 360;
+      }
+      if (facing > 360) {
+        facing %= 360;
+      }
+      double radFacing = Math.toRadians(facing);
+      double cx = position.x + position.scaledWidth / 2d;
+      double cy = position.y + position.scaledHeight / 2d;
+
+      Shape facingArrow = getArrow(token);
+
+      facingArrow =
+          AffineTransform.getRotateInstance(-radFacing).createTransformedShape(facingArrow);
+      facingArrow =
+          AffineTransform.getScaleInstance(getScale(), isIsometric ? getScale() / 2d : getScale())
+              .createTransformedShape(facingArrow);
+
+      if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
+        double xp = position.scaledWidth / 2;
+        double yp = position.scaledHeight / 2;
+        if (facing >= 45 && facing <= 135 || facing >= 225 && facing <= 315) {
+          xp = yp / Math.tan(Math.toRadians(facing));
+          if (facing > 180) {
+            xp = -xp;
+            yp = -yp;
+          }
+        } else {
+          yp = xp * Math.tan(Math.toRadians(facing));
+          if (facing > 90 && facing < 270) {
+            xp = -xp;
+            yp = -yp;
+          }
+        }
+        cx += xp;
+        cy -= yp;
+      }
+      tokenG.translate(cx, cy);
+
+      if (tokenType.equals(Token.TokenShape.FIGURE) && facing <= 180) {
+        tokenG.setColor(fillColours.get((int) facing));
+      } else {
+        tokenG.setColor(fillColour);
+      }
+
+      tokenG.fill(facingArrow);
+      tokenG.setColor(borderColour);
+      tokenG.draw(facingArrow);
+
+      tokenG.setTransform(oldAT);
+    } catch (Exception e) {
+      log.error("Failed to paint facing arrow.");
     }
-    tokenG.translate(cx, cy);
-
-    if (tokenType.equals(Token.TokenShape.FIGURE) && facing <= 180) {
-      tokenG.setColor(fillColours.get((int) facing));
-    } else {
-      tokenG.setColor(fillColour);
-    }
-
-    tokenG.fill(facingArrow);
-    tokenG.setColor(borderColour);
-    tokenG.draw(facingArrow);
-
-    tokenG.setTransform(oldAT);
     timer.stop("ArrowRenderer-paintArrow");
   }
 
@@ -230,5 +236,12 @@ public class FacingArrowRenderer {
     ISOMETRIC,
     SQUARE,
     NONE
+  }
+
+  @Subscribe
+  private void onGridChanged(GridChanged event) {
+    if (this.initialised && event.zone() != null) {
+      isIsometric = event.zone().getGrid().isIsometric();
+    }
   }
 }
