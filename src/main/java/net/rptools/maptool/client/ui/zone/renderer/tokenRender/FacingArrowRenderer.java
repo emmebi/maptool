@@ -26,7 +26,6 @@ import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.events.MapToolEventBus;
-import net.rptools.maptool.model.Grid;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.zones.GridChanged;
@@ -77,11 +76,11 @@ public class FacingArrowRenderer {
       Rectangle footprintBounds_,
       TokenPosition position,
       ZoneRenderer zoneRenderer) {
-    timer.start("ArrowRenderer-paintArrow");
+    if (!renderer.equals(zoneRenderer)) {
+      setRenderer(zoneRenderer);
+      return;
+    }
     try {
-      if (!renderer.equals(zoneRenderer)) {
-        setRenderer(zoneRenderer);
-      }
       tokenType = token.getShape();
       if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
         return;
@@ -92,8 +91,8 @@ public class FacingArrowRenderer {
         return;
       }
 
+      timer.start("ArrowRenderer-paintArrow");
       AffineTransform oldAT = tokenG.getTransform();
-      Grid grid = renderer.getZone().getGrid();
       footprintBounds = footprintBounds_;
       double facing = token.getFacing();
       facing = isIsometric ? facing + 45 : facing;
@@ -148,7 +147,7 @@ public class FacingArrowRenderer {
 
       tokenG.setTransform(oldAT);
     } catch (Exception e) {
-      log.debug(e);
+      log.error(e);
     }
     timer.stop("ArrowRenderer-paintArrow");
   }
