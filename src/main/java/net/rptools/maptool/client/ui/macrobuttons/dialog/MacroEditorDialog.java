@@ -653,11 +653,11 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class ShowFindDialogAction extends AppActions.ClientAction {
-    MacroEditorDialog callingDialog;
+  private class ShowFindDialogAction extends AppActions.TranslatedClientAction {
+    private final MacroEditorDialog callingDialog;
 
     public ShowFindDialogAction(MacroEditorDialog macroButtonDialog) {
-      init("action.macroEditor.searchFind");
+      super("action.macroEditor.searchFind");
       callingDialog = macroButtonDialog;
     }
 
@@ -671,11 +671,11 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class ShowReplaceDialogAction extends AppActions.ClientAction {
-    MacroEditorDialog callingDialog;
+  private class ShowReplaceDialogAction extends AppActions.TranslatedClientAction {
+    private final MacroEditorDialog callingDialog;
 
     public ShowReplaceDialogAction(MacroEditorDialog macroButtonDialog) {
-      init("action.macroEditor.searchReplace");
+      super("action.macroEditor.searchReplace");
       callingDialog = macroButtonDialog;
     }
 
@@ -689,9 +689,9 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class GoToLineAction extends AppActions.ClientAction {
+  private class GoToLineAction extends AppActions.TranslatedClientAction {
     public GoToLineAction() {
-      init("action.macroEditor.gotoLine");
+      super("action.macroEditor.gotoLine");
     }
 
     @Override

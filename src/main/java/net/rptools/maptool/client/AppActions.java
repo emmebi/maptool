@@ -88,11 +88,10 @@ import org.apache.logging.log4j.Logger;
  * application. Most of these are added to the main frame menu, but some are added dynamically as
  * needed, sometimes to the frame menu but also to the context menu (the "right-click menu").
  *
- * <p>Each object instantiated from {@link ClientAction} should have an initializer that calls
- * {@link ClientAction#init(String)} and passes the base message key from the properties file. This
- * base message key will be used to locate the text that should appear on the menu item as well as
- * the accelerator, mnemonic, and short description strings. (See the {@link I18N} class for more
- * details on how the key is used.
+ * <p>Each object instantiated from {@link ClientAction} should pass the base message key from the
+ * properties file to the parent constructor. This base message key will be used to locate the text
+ * that should appear on the menu item as well as the accelerator, mnemonic, and short description
+ * strings. (See the {@link I18N} class for more details on how the key is used.
  *
  * <p>In addition, each object should override {@link ClientAction#isAvailable()} and return true if
  * the application is in a state where the Action should be enabled. (The default is <code>true
@@ -133,11 +132,7 @@ public class AppActions {
 
   /** This action will rotate through the PC tokens owned by the player. */
   public static final Action NEXT_TOKEN =
-      new ZoneClientAction() {
-        {
-          init("action.nextToken");
-        }
-
+      new ZoneClientAction("action.nextToken") {
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
           Token chosenOne = null;
@@ -179,11 +174,7 @@ public class AppActions {
       };
 
   public static final Action MRU_LIST =
-      new ClientAction() {
-        {
-          init("menu.recent");
-        }
-
+      new TranslatedClientAction("menu.recent") {
         @Override
         public boolean isAvailable() {
           return MapTool.isHostingServer() || MapTool.isPersonalServer();
@@ -196,11 +187,7 @@ public class AppActions {
       };
 
   public static final ClientAction EXPORT_SCREENSHOT =
-      new ZoneClientAction() {
-        {
-          init("action.exportScreenShotAs");
-        }
-
+      new ZoneClientAction("action.exportScreenShotAs") {
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
           try {
@@ -214,11 +201,7 @@ public class AppActions {
       };
 
   public static final Action EXPORT_SCREENSHOT_LAST_LOCATION =
-      new ZoneClientAction() {
-        {
-          init("action.exportScreenShot");
-        }
-
+      new ZoneClientAction("action.exportScreenShot") {
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
           ExportDialog d = MapTool.getCampaign().getExportDialog();
@@ -236,11 +219,7 @@ public class AppActions {
       };
 
   public static final Action EXPORT_CAMPAIGN_REPO =
-      new ClientAction() {
-
-        {
-          init("admin.exportCampaignRepo");
-        }
+      new TranslatedClientAction("admin.exportCampaignRepo") {
 
         @Override
         public boolean isAvailable() {
@@ -357,11 +336,7 @@ public class AppActions {
 
   /** This is the menu option that forces clients to display the GM's current map. */
   public static final Action ENFORCE_ZONE =
-      new ZoneClientAction() {
-
-        {
-          init("action.enforceZone");
-        }
+      new ZoneClientAction("action.enforceZone") {
 
         @Override
         public boolean isAvailable() {
@@ -375,11 +350,7 @@ public class AppActions {
       };
 
   public static final Action RESTORE_DEFAULT_IMAGES =
-      new ClientAction() {
-
-        {
-          init("action.restoreDefaultImages");
-        }
+      new TranslatedClientAction("action.restoreDefaultImages") {
 
         @Override
         protected void executeAction() {
@@ -398,11 +369,7 @@ public class AppActions {
       };
 
   public static final Action ADD_DEFAULT_TABLES =
-      new ClientAction() {
-
-        {
-          init("action.addDefaultTables");
-        }
+      new TranslatedClientAction("action.addDefaultTables") {
 
         @Override
         protected void executeAction() {
@@ -433,11 +400,7 @@ public class AppActions {
       };
 
   public static final Action RENAME_ZONE =
-      new ZoneClientAction() {
-
-        {
-          init("action.renameMap");
-        }
+      new ZoneClientAction("action.renameMap") {
 
         @Override
         public boolean isAvailable() {
@@ -462,11 +425,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_FULLSCREEN =
-      new ClientAction() {
-
-        {
-          init("action.fullscreen");
-        }
+      new TranslatedClientAction("action.fullscreen") {
 
         @Override
         protected void executeAction() {
@@ -480,10 +439,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_FULLSCREEN_TOOLS =
-      new ClientAction() {
-        {
-          init("action.toggleFullScreenTools");
-        }
+      new TranslatedClientAction("action.toggleFullScreenTools") {
 
         @Override
         public boolean isSelected() {
@@ -507,10 +463,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_CONNECTION_INFO =
-      new ClientAction() {
-        {
-          init("action.showConnectionInfo");
-        }
+      new TranslatedClientAction("action.showConnectionInfo") {
 
         @Override
         public boolean isAvailable() {
@@ -528,10 +481,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_PREFERENCES =
-      new ClientAction() {
-        {
-          init("action.preferences");
-        }
+      new TranslatedClientAction("action.preferences") {
 
         @Override
         protected void executeAction() {
@@ -543,10 +493,7 @@ public class AppActions {
       };
 
   public static final Action SAVE_MESSAGE_HISTORY =
-      new ClientAction() {
-        {
-          init("action.saveMessageHistory");
-        }
+      new TranslatedClientAction("action.saveMessageHistory") {
 
         @Override
         protected void executeAction() {
@@ -575,9 +522,8 @@ public class AppActions {
       };
 
   public static final ClientAction UNDO_PER_MAP =
-      new ZoneClientAction() {
+      new ZoneClientAction("action.undoDrawing") {
         {
-          init("action.undoDrawing");
           isAvailable();
         }
 
@@ -606,9 +552,8 @@ public class AppActions {
       };
 
   public static final ClientAction REDO_PER_MAP =
-      new ZoneClientAction() {
+      new ZoneClientAction("action.redoDrawing") {
         {
-          init("action.redoDrawing");
           isAvailable();
         }
 
@@ -637,10 +582,7 @@ public class AppActions {
       };
 
   public static final ClientAction CLEAR_DRAWING =
-      new ZoneClientAction() {
-        {
-          init("action.clearDrawing");
-        }
+      new ZoneClientAction("action.clearDrawing") {
 
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
@@ -653,10 +595,7 @@ public class AppActions {
       };
 
   public static final ClientAction CUT_TOKENS =
-      new ZoneClientAction() {
-        {
-          init("action.cutTokens");
-        }
+      new ZoneClientAction("action.cutTokens") {
 
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
@@ -741,10 +680,7 @@ public class AppActions {
   }
 
   public static final ClientAction COPY_TOKENS =
-      new ZoneClientAction() {
-        {
-          init("action.copyTokens");
-        }
+      new ZoneClientAction("action.copyTokens") {
 
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
@@ -886,10 +822,7 @@ public class AppActions {
   }
 
   public static final ClientAction PASTE_TOKENS =
-      new ZoneClientAction() {
-        {
-          init("action.pasteTokens");
-        }
+      new ZoneClientAction("action.pasteTokens") {
 
         @Override
         public boolean isAvailable() {
@@ -1051,10 +984,7 @@ public class AppActions {
   }
 
   public static final Action REMOVE_ASSET_ROOT =
-      new ClientAction() {
-        {
-          init("action.removeAssetRoot");
-        }
+      new TranslatedClientAction("action.removeAssetRoot") {
 
         @Override
         protected void executeAction() {
@@ -1076,10 +1006,7 @@ public class AppActions {
 
   // Jamz: Force a directory to rescan
   public static final Action RESCAN_NODE =
-      new ClientAction() {
-        {
-          init("action.rescanNode");
-        }
+      new TranslatedClientAction("action.rescanNode") {
 
         @Override
         protected void executeAction() {
@@ -1096,10 +1023,7 @@ public class AppActions {
       };
 
   public static final Action WHISPER_PLAYER =
-      new ClientAction() {
-        {
-          init("whisper.command");
-        }
+      new TranslatedClientAction("whisper.command") {
 
         @Override
         protected void executeAction() {
@@ -1127,10 +1051,7 @@ public class AppActions {
       };
 
   public static final Action BOOT_CONNECTED_PLAYER =
-      new ClientAction() {
-        {
-          init("action.bootConnectedPlayer");
-        }
+      new TranslatedClientAction("action.bootConnectedPlayer") {
 
         @Override
         public boolean isAvailable() {
@@ -1167,10 +1088,7 @@ public class AppActions {
    * This is the menu item that lets the GM override the typing notification toggle on the clients
    */
   public static final Action TOGGLE_ENFORCE_NOTIFICATION =
-      new ClientAction() {
-        {
-          init("action.enforceNotification");
-        }
+      new TranslatedClientAction("action.enforceNotification") {
 
         @Override
         public boolean isAvailable() {
@@ -1191,10 +1109,7 @@ public class AppActions {
 
   /** This is the menu option that forces the player view to continuously track the GM view. */
   public static final Action TOGGLE_LINK_PLAYER_VIEW =
-      new ClientAction() {
-        {
-          init("action.linkPlayerView");
-        }
+      new TranslatedClientAction("action.linkPlayerView") {
 
         @Override
         public boolean isAvailable() {
@@ -1215,10 +1130,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_PLAYER_VIEW =
-      new ClientAction() {
-        {
-          init("action.showPlayerView");
-        }
+      new TranslatedClientAction("action.showPlayerView") {
 
         @Override
         public boolean isAvailable() {
@@ -1239,10 +1151,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_LIGHT_SOURCES =
-      new ClientAction() {
-        {
-          init("action.showLightSources");
-        }
+      new TranslatedClientAction("action.showLightSources") {
 
         @Override
         public boolean isAvailable() {
@@ -1263,10 +1172,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_COLLECT_PROFILING_DATA =
-      new ClientAction() {
-        {
-          init("action.collectPerformanceData");
-        }
+      new TranslatedClientAction("action.collectPerformanceData") {
 
         @Override
         public boolean isSelected() {
@@ -1281,10 +1187,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_LOG_CONSOLE =
-      new ClientAction() {
-        {
-          init("action.openLogConsole");
-        }
+      new TranslatedClientAction("action.openLogConsole") {
 
         @Override
         public boolean isSelected() {
@@ -1298,10 +1201,7 @@ public class AppActions {
         }
       };
   public static final Action TOGGLE_SHOW_TEXT_LABELS =
-      new ClientAction() {
-        {
-          init("action.showTextLabels");
-        }
+      new TranslatedClientAction("action.showTextLabels") {
 
         @Override
         public boolean isSelected() {
@@ -1319,10 +1219,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_MOVEMENT_MEASUREMENTS =
-      new ClientAction() {
-        {
-          init("action.showMovementMeasures");
-        }
+      new TranslatedClientAction("action.showMovementMeasures") {
 
         @Override
         public boolean isSelected() {
@@ -1340,10 +1237,7 @@ public class AppActions {
       };
 
   public static final Action COPY_ZONE =
-      new ZoneClientAction() {
-        {
-          init("action.copyZone");
-        }
+      new ZoneClientAction("action.copyZone") {
 
         @Override
         public boolean isAvailable() {
@@ -1369,10 +1263,7 @@ public class AppActions {
       };
 
   public static final Action REMOVE_ZONE =
-      new ZoneClientAction() {
-        {
-          init("action.removeZone");
-        }
+      new ZoneClientAction("action.removeZone") {
 
         @Override
         public boolean isAvailable() {
@@ -1389,10 +1280,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_ABOUT =
-      new ClientAction() {
-        {
-          init("action.showAboutDialog");
-        }
+      new TranslatedClientAction("action.showAboutDialog") {
 
         @Override
         protected void executeAction() {
@@ -1402,10 +1290,7 @@ public class AppActions {
 
   /** This is the menu option that warps all clients views to the current GM's view. */
   public static final Action ENFORCE_ZONE_VIEW =
-      new ZoneClientAction() {
-        {
-          init("action.enforceView");
-        }
+      new ZoneClientAction("action.enforceView") {
 
         @Override
         public boolean isAvailable() {
@@ -1420,10 +1305,7 @@ public class AppActions {
 
   /** This is the menu option turns the lumens overlay on and off. */
   public static final Action TOGGLE_LUMENS_OVERLAY =
-      new ClientAction() {
-        {
-          init("action.showLumensOverlay");
-        }
+      new TranslatedClientAction("action.showLumensOverlay") {
 
         @Override
         public boolean isSelected() {
@@ -1439,10 +1321,7 @@ public class AppActions {
 
   /** This is the menu option turns the lumens overlay on and off. */
   public static final Action TOGGLE_SHOW_LIGHTS =
-      new ClientAction() {
-        {
-          init("action.showLights");
-        }
+      new TranslatedClientAction("action.showLights") {
 
         @Override
         public boolean isSelected() {
@@ -1457,13 +1336,8 @@ public class AppActions {
       };
 
   /** Start entering text into the chat field */
-  public static final String CHAT_COMMAND_ID = "action.sendChat";
-
   public static final Action CHAT_COMMAND =
-      new ClientAction() {
-        {
-          init(CHAT_COMMAND_ID);
-        }
+      new TranslatedClientAction("action.sendChat") {
 
         @Override
         protected void executeAction() {
@@ -1484,10 +1358,7 @@ public class AppActions {
   public static final String ENTER_COMMAND_ID = "action.runMacro";
 
   public static final Action ENTER_COMMAND =
-      new ClientAction() {
-        {
-          init(ENTER_COMMAND_ID, false);
-        }
+      new TranslatedClientAction(ENTER_COMMAND_ID, false) {
 
         @Override
         protected void executeAction() {
@@ -1499,10 +1370,7 @@ public class AppActions {
   public static final String COMMIT_COMMAND_ID = "action.commitCommand";
 
   public static final Action COMMIT_COMMAND =
-      new ClientAction() {
-        {
-          init(COMMIT_COMMAND_ID);
-        }
+      new TranslatedClientAction(COMMIT_COMMAND_ID) {
 
         @Override
         protected void executeAction() {
@@ -1514,10 +1382,7 @@ public class AppActions {
   public static final String CANCEL_COMMAND_ID = "action.cancelCommand";
 
   public static final Action CANCEL_COMMAND =
-      new ClientAction() {
-        {
-          init(CANCEL_COMMAND_ID);
-        }
+      new TranslatedClientAction(CANCEL_COMMAND_ID) {
 
         @Override
         protected void executeAction() {
@@ -1529,10 +1394,7 @@ public class AppActions {
   public static final String NEWLINE_COMMAND_ID = "action.newlineCommand";
 
   public static final Action NEWLINE_COMMAND =
-      new ClientAction() {
-        {
-          init(NEWLINE_COMMAND_ID);
-        }
+      new TranslatedClientAction(NEWLINE_COMMAND_ID) {
 
         @Override
         protected void executeAction() {
@@ -1541,10 +1403,7 @@ public class AppActions {
       };
 
   public static final Action ADJUST_GRID =
-      new ZoneClientAction() {
-        {
-          init("action.adjustGrid");
-        }
+      new ZoneClientAction("action.adjustGrid") {
 
         @Override
         public boolean isAvailable() {
@@ -1558,10 +1417,7 @@ public class AppActions {
       };
 
   public static final Action ADJUST_BOARD =
-      new ZoneClientAction() {
-        {
-          init("action.adjustBoard");
-        }
+      new ZoneClientAction("action.adjustBoard") {
 
         @Override
         public boolean isAvailable() {
@@ -1581,10 +1437,7 @@ public class AppActions {
 
   private static TransferProgressDialog transferProgressDialog;
   public static final Action SHOW_TRANSFER_WINDOW =
-      new ClientAction() {
-        {
-          init("msg.info.showTransferWindow");
-        }
+      new TranslatedClientAction("msg.info.showTransferWindow") {
 
         @Override
         protected void executeAction() {
@@ -1602,9 +1455,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_GRID =
-      new ClientAction() {
+      new TranslatedClientAction("action.showGrid") {
         {
-          init("action.showGrid");
           putValue(Action.SMALL_ICON, RessourceManager.getSmallIcon(Icons.MENU_SHOW_GRIDS));
         }
 
@@ -1623,10 +1475,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_COORDINATES =
-      new ClientAction() {
-        {
-          init("action.showCoordinates");
-        }
+      new TranslatedClientAction("action.showCoordinates") {
 
         @Override
         public boolean isAvailable() {
@@ -1650,9 +1499,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_ZOOM_LOCK =
-      new ClientAction() {
+      new TranslatedClientAction("action.zoomLock") {
         {
-          init("action.zoomLock");
           putValue(Action.SHORT_DESCRIPTION, getValue(Action.NAME));
         }
 
@@ -1675,10 +1523,7 @@ public class AppActions {
       };
 
   public static final ClientAction TOGGLE_FOG =
-      new ZoneClientAction() {
-        {
-          init("action.enableFogOfWar");
-        }
+      new ZoneClientAction("action.enableFogOfWar") {
 
         @Override
         public boolean isAvailable() {
@@ -1708,10 +1553,7 @@ public class AppActions {
 
   // Lee: this sets the revealing of FoW only at waypoints.
   public static final ClientAction TOGGLE_WAYPOINT_FOG_REVEAL =
-      new ZoneClientAction() {
-        {
-          init("action.revealFogAtWaypoints");
-        }
+      new ZoneClientAction("action.revealFogAtWaypoints") {
 
         @Override
         public boolean isAvailable() {
@@ -1736,10 +1578,7 @@ public class AppActions {
       };
 
   public static final Action RESTORE_FOG =
-      new ZoneClientAction() {
-        {
-          init("action.restoreFogOfWar");
-        }
+      new ZoneClientAction("action.restoreFogOfWar") {
 
         @Override
         public boolean isAvailable() {
@@ -1761,8 +1600,8 @@ public class AppActions {
     private final VisionType visionType;
 
     public SetVisionType(VisionType visionType) {
+      super("visionType." + visionType.name());
       this.visionType = visionType;
-      init("visionType." + visionType.name());
     }
 
     @Override
@@ -1796,9 +1635,8 @@ public class AppActions {
   }
 
   public static final Action TOGGLE_SHOW_TOKEN_NAMES =
-      new ClientAction() {
+      new TranslatedClientAction("action.showNames") {
         {
-          init("action.showNames");
           putValue(Action.SMALL_ICON, RessourceManager.getSmallIcon(Icons.MENU_SHOW_TOKEN_NAMES));
         }
 
@@ -1813,11 +1651,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_LANDING_MAP =
-      new ZoneClientAction() {
-
-        {
-          init("action.toggleLandingMap");
-        }
+      new ZoneClientAction("action.toggleLandingMap") {
 
         @Override
         public boolean isAvailable() {
@@ -1853,11 +1687,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_CURRENT_ZONE_VISIBILITY =
-      new ZoneClientAction() {
-
-        {
-          init("action.hideMap");
-        }
+      new ZoneClientAction("action.hideMap") {
 
         @Override
         public boolean isAvailable() {
@@ -1885,10 +1715,7 @@ public class AppActions {
       };
 
   public static final Action NEW_CAMPAIGN =
-      new ClientAction() {
-        {
-          init("action.newCampaign");
-        }
+      new TranslatedClientAction("action.newCampaign") {
 
         @Override
         public boolean isAvailable() {
@@ -1944,11 +1771,15 @@ public class AppActions {
         }
       };
 
-  public static final Action ZOOM_IN =
-      new ClientAction() {
-        {
-          init("action.zoomIn", false);
-        }
+  /**
+   * Note that the ZOOM actions are defined as ClientAction types. This allows the {@link
+   * ClientAction#getKeyStroke()} method to be invoked where otherwise it couldn't be.
+   *
+   * <p>(Well, it <i>could be</i> if we cast this object to the right type everywhere else but
+   * that's just tedious. And what is tedious is error-prone. :))
+   */
+  public static final ClientAction ZOOM_IN =
+      new TranslatedClientAction("action.zoomIn", false) {
 
         @Override
         public boolean isAvailable() {
@@ -1966,11 +1797,8 @@ public class AppActions {
         }
       };
 
-  public static final Action ZOOM_OUT =
-      new ClientAction() {
-        {
-          init("action.zoomOut", false);
-        }
+  public static final ClientAction ZOOM_OUT =
+      new TranslatedClientAction("action.zoomOut", false) {
 
         @Override
         public boolean isAvailable() {
@@ -1988,13 +1816,9 @@ public class AppActions {
         }
       };
 
-  public static final Action ZOOM_RESET =
-      new ClientAction() {
+  public static final ClientAction ZOOM_RESET =
+      new TranslatedClientAction("action.zoom100", false) {
         private Double lastZoom;
-
-        {
-          init("action.zoom100", false);
-        }
 
         @Override
         public boolean isAvailable() {
@@ -2024,10 +1848,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_MOVEMENT_LOCK =
-      new ClientAction() {
-        {
-          init("action.toggleMovementLock");
-        }
+      new TranslatedClientAction("action.toggleMovementLock") {
 
         @Override
         public boolean isAvailable() {
@@ -2053,10 +1874,7 @@ public class AppActions {
 
   /** Toggle to enable / disable player use of the token editor. */
   public static final Action TOGGLE_TOKEN_EDITOR_LOCK =
-      new ClientAction() {
-        {
-          init("action.toggleTokenEditorLock");
-        }
+      new TranslatedClientAction("action.toggleTokenEditorLock") {
 
         @Override
         public boolean isAvailable() {
@@ -2081,10 +1899,7 @@ public class AppActions {
       };
 
   public static final Action START_SERVER =
-      new ClientAction() {
-        {
-          init("action.serverStart");
-        }
+      new TranslatedClientAction("action.serverStart") {
 
         @Override
         public boolean isAvailable() {
@@ -2305,10 +2120,7 @@ public class AppActions {
   }
 
   public static final Action CONNECT_TO_SERVER =
-      new ClientAction() {
-        {
-          init("action.clientConnect");
-        }
+      new TranslatedClientAction("action.clientConnect") {
 
         @Override
         public boolean isAvailable() {
@@ -2338,10 +2150,7 @@ public class AppActions {
       };
 
   public static final Action DISCONNECT_FROM_SERVER =
-      new ClientAction() {
-        {
-          init("action.clientDisconnect");
-        }
+      new TranslatedClientAction("action.clientDisconnect") {
 
         @Override
         public boolean isAvailable() {
@@ -2389,10 +2198,7 @@ public class AppActions {
   }
 
   public static final Action PLAYER_DATABASE =
-      new ClientAction() {
-        {
-          init("action.playerDatabase");
-        }
+      new TranslatedClientAction("action.playerDatabase") {
 
         @Override
         public boolean isAvailable() {
@@ -2406,10 +2212,7 @@ public class AppActions {
       };
 
   public static final Action LOAD_CAMPAIGN =
-      new ClientAction() {
-        {
-          init("action.loadCampaign");
-        }
+      new TranslatedClientAction("action.loadCampaign") {
 
         @Override
         public boolean isAvailable() {
@@ -2559,10 +2362,7 @@ public class AppActions {
   }
 
   public static final Action SAVE_CAMPAIGN =
-      new ClientAction() {
-        {
-          init("action.saveCampaign");
-        }
+      new TranslatedClientAction("action.saveCampaign") {
 
         @Override
         public boolean isAvailable() {
@@ -2576,10 +2376,7 @@ public class AppActions {
       };
 
   public static final Action SAVE_CAMPAIGN_AS =
-      new ClientAction() {
-        {
-          init("action.saveCampaignAs");
-        }
+      new TranslatedClientAction("action.saveCampaignAs") {
 
         @Override
         public boolean isAvailable() {
@@ -2718,10 +2515,7 @@ public class AppActions {
   }
 
   public static final Action SAVE_MAP_AS =
-      new ClientAction() {
-        {
-          init("action.saveMapAs");
-        }
+      new TranslatedClientAction("action.saveMapAs") {
 
         @Override
         public boolean isAvailable() {
@@ -2777,10 +2571,7 @@ public class AppActions {
    * @author FJE
    */
   public static final Action LOAD_MAP =
-      new ClientAction() {
-        {
-          init("action.loadMap");
-        }
+      new TranslatedClientAction("action.loadMap") {
 
         @Override
         public boolean isAvailable() {
@@ -2806,10 +2597,7 @@ public class AppActions {
       };
 
   public static final ClientAction IMPORT_DUNGEON_DRAFT_MAP =
-      new ClientAction() {
-        {
-          init("action.import.dungeondraft");
-        }
+      new TranslatedClientAction("action.import.dungeondraft") {
 
         @Override
         public boolean isAvailable() {
@@ -2905,10 +2693,7 @@ public class AppActions {
   }
 
   public static final Action CAMPAIGN_PROPERTIES =
-      new ClientAction() {
-        {
-          init("action.campaignProperties");
-        }
+      new TranslatedClientAction("action.campaignProperties") {
 
         @Override
         public boolean isAvailable() {
@@ -2999,10 +2784,7 @@ public class AppActions {
   }
 
   public static final Action NEW_MAP =
-      new ClientAction() {
-        {
-          init("action.newMap");
-        }
+      new TranslatedClientAction("action.newMap") {
 
         @Override
         public boolean isAvailable() {
@@ -3025,10 +2807,7 @@ public class AppActions {
       };
 
   public static final Action EDIT_MAP =
-      new ZoneClientAction() {
-        {
-          init("action.editMap");
-        }
+      new ZoneClientAction("action.editMap") {
 
         @Override
         public boolean isAvailable() {
@@ -3050,10 +2829,7 @@ public class AppActions {
       };
 
   public static final Action GATHER_DEBUG_INFO =
-      new ClientAction() {
-        {
-          init("action.gatherDebugInfo");
-        }
+      new TranslatedClientAction("action.gatherDebugInfo") {
 
         @Override
         protected void executeAction() {
@@ -3062,10 +2838,7 @@ public class AppActions {
       };
 
   public static final Action ADD_RESOURCE_TO_LIBRARY =
-      new ClientAction() {
-        {
-          init("action.addIconSelector");
-        }
+      new TranslatedClientAction("action.addIconSelector") {
 
         @Override
         protected void executeAction() {
@@ -3075,10 +2848,7 @@ public class AppActions {
       };
 
   public static final Action VIEW_ADD_ON_LIBRARIES =
-      new ClientAction() {
-        {
-          init("action.addOnLibraries");
-        }
+      new TranslatedClientAction("action.addOnLibraries") {
 
         @Override
         public boolean isAvailable() {
@@ -3096,10 +2866,7 @@ public class AppActions {
       };
 
   public static final Action EXIT =
-      new ClientAction() {
-        {
-          init("action.exit");
-        }
+      new TranslatedClientAction("action.exit") {
 
         @Override
         protected void executeAction() {
@@ -3113,10 +2880,7 @@ public class AppActions {
 
   /** Toggle the drawing of measurements. */
   public static final Action TOGGLE_DRAW_MEASUREMENTS =
-      new ClientAction() {
-        {
-          init("action.toggleDrawMeasurements");
-        }
+      new TranslatedClientAction("action.toggleDrawMeasurements") {
 
         @Override
         public boolean isSelected() {
@@ -3132,10 +2896,7 @@ public class AppActions {
 
   /** Toggle drawing straight lines at double width on the line tool. */
   public static final Action TOGGLE_DOUBLE_WIDE =
-      new ClientAction() {
-        {
-          init("action.toggleDoubleWide");
-        }
+      new TranslatedClientAction("action.toggleDoubleWide") {
 
         @Override
         public boolean isSelected() {
@@ -3176,13 +2937,13 @@ public class AppActions {
     }
   }
 
-  public static class ToggleWindowAction extends ClientAction {
+  public static class ToggleWindowAction extends TranslatedClientAction {
 
     private final MTFrame mtFrame;
 
     public ToggleWindowAction(MTFrame mtFrame) {
+      super(mtFrame.getPropertyName());
       this.mtFrame = mtFrame;
-      init(mtFrame.getPropertyName());
     }
 
     @Override
@@ -3230,6 +2991,8 @@ public class AppActions {
                   prop); // MapTool doesnt run on version 8 or less of JDK so no need to check that
     }
 
+    protected ClientAction() {}
+
     /**
      * The last time this action was called via accelerator key. This will only ever be set if
      * {@link #NEEDS_GUARD} is <code>true</code> and the menu item is a JMenuCheckBoxItem
@@ -3248,15 +3011,6 @@ public class AppActions {
         }
       }
       executeAction();
-    }
-
-    public void init(String key) {
-      init(key, true);
-    }
-
-    public void init(String key, boolean addMenuShortcut) {
-      I18N.setAction(key, this, addMenuShortcut);
-      getActionList().add(this);
     }
 
     /**
@@ -3288,11 +3042,32 @@ public class AppActions {
     protected abstract void executeAction();
   }
 
+  public abstract static class TranslatedClientAction extends ClientAction {
+    private final String i18nKey;
+
+    protected TranslatedClientAction(String i18nKey) {
+      this(i18nKey, true);
+    }
+
+    protected TranslatedClientAction(String i18nKey, boolean addMenuShortcut) {
+      this.i18nKey = i18nKey;
+      I18N.setAction(i18nKey, this, addMenuShortcut);
+      getActionList().add(this);
+    }
+
+    public final String getI18nKey() {
+      return i18nKey;
+    }
+  }
+
   /**
    * This class simply provides an implementation for <code>isAvailable()</code> that returns <code>
    * true</code> if there is a ZoneRenderer current.
    */
-  public abstract static class ZoneClientAction extends ClientAction {
+  public abstract static class ZoneClientAction extends TranslatedClientAction {
+    protected ZoneClientAction(String i18nKey) {
+      super(i18nKey);
+    }
 
     @Override
     public boolean isAvailable() {
@@ -3311,16 +3086,17 @@ public class AppActions {
   }
 
   /** This class provides an action that displays a url from I18N */
-  public static class OpenUrlAction extends ClientAction {
+  public static class OpenUrlAction extends TranslatedClientAction {
 
     public OpenUrlAction(String key) {
-      // The init() method will load the "key", "key.accel", and "key.description".
+      super(key);
+
+      // The constructor method will load the "key", "key.accel", and "key.description".
       // The value of "key" will be used as the menu text, the accelerator is not
       // used,
       // and the description will be the destination URL. Only the Help menu uses
       // these objects and
       // only the Help menu expects that field to be set...
-      init(key);
     }
 
     @Override
