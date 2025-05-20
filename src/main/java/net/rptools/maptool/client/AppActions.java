@@ -27,8 +27,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -57,8 +55,6 @@ import net.rptools.maptool.client.ui.connecttoserverdialog.ConnectToServerDialog
 import net.rptools.maptool.client.ui.connecttoserverdialog.ConnectToServerDialogPreferences;
 import net.rptools.maptool.client.ui.exportdialog.ExportDialog;
 import net.rptools.maptool.client.ui.htmlframe.HTMLOverlayManager;
-import net.rptools.maptool.client.ui.io.*;
-import net.rptools.maptool.client.ui.io.FTPTransferObject.Direction;
 import net.rptools.maptool.client.ui.mappropertiesdialog.MapPropertiesDialog;
 import net.rptools.maptool.client.ui.players.PlayerDatabaseDialog;
 import net.rptools.maptool.client.ui.preferencesdialog.PreferencesDialog;
@@ -352,149 +348,6 @@ public class AppActions {
           }
 
           MapTool.showInformation("msg.confirm.campaignRepoExported");
-        }
-      };
-
-  public static final Action UPDATE_CAMPAIGN_REPO =
-      new DeveloperClientAction() {
-        {
-          init("admin.updateCampaignRepo");
-        }
-
-        /**
-         * This action performs a repository update by comparing the assets in the current campaign
-         * against all assets in all repositories and uploading assets to one of the repositories
-         * and creating a replacement <b>index.gz</b> which is also uploaded.
-         *
-         * <p>For the purposes of this action, only the FTP protocol is supported. The primary
-         * reason for this has to do with the way images will be uploaded. If HTTP were used and a
-         * single file sent, there would need to be a script on the remote end that knew how to
-         * unpack the file correctly. This cannot be assumed in the general case.
-         *
-         * <p>Using FTP, we can upload individual files to particular directories. While this same
-         * approach could be used for HTTP, once again the user would have to install some kind of
-         * upload script on the server side. This again makes HTTP impractical and FTP more
-         * "user-friendly".
-         *
-         * <p><b>Implementation.</b> This method first makes a list of all known repositories from
-         * the campaign properties. They are presented to the user who then selects one as the
-         * destination for new assets to be uploaded. A list of assets currently used in the
-         * campaign is then generated and compared against the index files of all repositories from
-         * the previous list. Any new assets are aggregated and the user is presented with a summary
-         * of the images to be uploaded, including file size. The user enters FTP connection
-         * information and the upload begins as a separate thread. (Perhaps the Transfer Window can
-         * be used to keep track of the uploading process?)
-         *
-         * <p><b>Optimizations.</b> At some point, creating the list of assets could be spun into
-         * another thread, although there's probably not much value there. Or the FTP information
-         * could be collected at the beginning and as assets are checked they could immediately
-         * begin uploading with the summary including all assets, even those already uploaded.
-         *
-         * <p>My review of FTP client libraries brought me to <a href=
-         * "http://www.javaworld.com/javaworld/jw-04-2003/jw-0404-ftp.html"> this extensive review
-         * of FTP libraries</a> If we're going to do much more with FTP, <b>Globus GridFTP</b> looks
-         * good, but the library itself is 2.7MB.
-         */
-        @Override
-        protected void executeAction() {
-          /*
-           * 1. Ask the user to select repositories which should be considered. 2. Ask the
-           * user for FTP upload information.
-           */
-          UpdateRepoDialog urd;
-
-          Campaign campaign = MapTool.getCampaign();
-          CampaignProperties props = campaign.getCampaignProperties();
-
-          urd =
-              new UpdateRepoDialog(
-                  MapTool.getFrame(),
-                  props.getRemoteRepositoryList(),
-                  MapTool.getCampaign().getExportDialog().getExportLocation());
-          urd.pack();
-          urd.setVisible(true);
-          if (urd.getStatus() == JOptionPane.CANCEL_OPTION) {
-            return;
-          }
-          MapTool.getCampaign().getExportDialog().setExportLocation(urd.getFTPLocation());
-
-          /*
-           * 3. Check all assets against the repository indices and build a new list from
-           * those that are not found.
-           */
-          Map<MD5Key, Asset> missing =
-              AssetManager.findAllAssetsNotInRepositories(urd.getSelectedRepositories());
-
-          /*
-           * 4. Give the user a summary and ask for permission to begin the upload. I'm
-           * going to display a listbox and let the user click on elements of the list in
-           * order to see a preview to the
-           * right. But there's no plan to make it a CheckBoxList. (Wouldn't be _that_
-           * tough, however.)
-           */
-          if (!MapTool.confirm(I18N.getText("msg.confirm.aboutToBeginFTP", missing.size() + 1))) {
-            return;
-          }
-
-          /*
-           * 5. Build the index as we go, but add the images to FTP to a queue handled by
-           * another thread. Add a progress bar of some type or use the Transfer Status
-           * window.
-           */
-          try {
-            File topdir = urd.getDirectory();
-            File dir = new File(urd.isCreateSubdir() ? getFormattedDate(null) : ".");
-
-            Map<String, String> repoEntries = new HashMap<String, String>(missing.size());
-            FTPClient ftp = new FTPClient(urd.getHostname(), urd.getUsername(), urd.getPassword());
-
-            // Enabling this means the upload begins immediately upon the first queued entry
-            ftp.setEnabled(true);
-            ProgressBarList pbl = new ProgressBarList(MapTool.getFrame(), ftp, missing.size() + 1);
-
-            for (Map.Entry<MD5Key, Asset> entry : missing.entrySet()) {
-              String remote = entry.getKey().toString();
-              repoEntries.put(remote, new File(dir, remote).getPath());
-              ftp.addToQueue(
-                  new FTPTransferObject(
-                      Direction.FTP_PUT, entry.getValue().getData(), dir, remote));
-            }
-            // We're done with "missing", so empty it now.
-            missing.clear();
-
-            // Handle the index
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            String saveTo = urd.getSaveToRepository();
-            // When this runs our local 'repoindx' is updated. If the FTP upload later
-            // fails,
-            // it doesn't really matter much because the assets are already there. However,
-            // if our local cache is ever downloaded again, we'll "forget" that the assets
-            // are
-            // on the server. It sounds like it might be nice to have some way to resync
-            // the local system with the FTP server. But it's probably better to let the
-            // user
-            // do it manually.
-            byte[] index = AssetManager.updateRepositoryMap(saveTo, repoEntries);
-            repoEntries.clear();
-            GZIPOutputStream gzout = new GZIPOutputStream(bout);
-            gzout.write(index);
-            gzout.close();
-            ftp.addToQueue(
-                new FTPTransferObject(Direction.FTP_PUT, bout.toByteArray(), topdir, "index.gz"));
-          } catch (IOException ioe) {
-            MapTool.showError("msg.error.failedUpdatingCampaignRepo", ioe);
-            return;
-          }
-        }
-
-        private String getFormattedDate(Date d) {
-          // Use today's date as the directory on the FTP server. This doesn't affect
-          // players'
-          // ability to download it and might help the user determine what was uploaded to
-          // their site and why. It can't hurt. :)
-          SimpleDateFormat df = (SimpleDateFormat) DateFormat.getDateInstance();
-          df.applyPattern("yyyy-MM-dd");
-          return df.format(d == null ? new Date() : d);
         }
       };
 
@@ -2137,24 +1990,6 @@ public class AppActions {
         }
       };
 
-  public static final Action TOGGLE_ZONE_SELECTOR =
-      new DefaultClientAction() {
-        {
-          init("action.showMapSelector");
-        }
-
-        @Override
-        public boolean isSelected() {
-          return MapTool.getFrame().getZoneMiniMapPanel().isVisible();
-        }
-
-        @Override
-        protected void executeAction() {
-          JComponent panel = MapTool.getFrame().getZoneMiniMapPanel();
-          panel.setVisible(!panel.isVisible());
-        }
-      };
-
   public static final Action TOGGLE_MOVEMENT_LOCK =
       new AdminClientAction() {
         {
@@ -3094,44 +2929,6 @@ public class AppActions {
     protected void executeAction() {
       AppState.setGridSize(size);
       MapTool.getFrame().refresh();
-    }
-  }
-
-  public static class DownloadRemoteLibraryAction extends DefaultClientAction {
-
-    private final URL url;
-
-    public DownloadRemoteLibraryAction(URL url) {
-      this.url = url;
-    }
-
-    @Override
-    protected void executeAction() {
-      if (!MapTool.confirm("confirm.downloadRemoteLibrary", url)) {
-        return;
-      }
-      final RemoteFileDownloader downloader = new RemoteFileDownloader(url, MapTool.getFrame());
-      new SwingWorker<Object, Object>() {
-        @Override
-        protected Object doInBackground() {
-          try {
-            File dataFile = downloader.read();
-            if (dataFile == null) {
-              // Canceled
-              return null;
-            }
-            // Success
-            String libraryName = FileUtil.getNameWithoutExtension(url);
-            AppSetup.installLibrary(libraryName, dataFile.toURI().toURL());
-          } catch (IOException e) {
-            log.error("Could not download remote library: " + e, e);
-          }
-          return null;
-        }
-
-        @Override
-        protected void done() {}
-      }.execute();
     }
   }
 
