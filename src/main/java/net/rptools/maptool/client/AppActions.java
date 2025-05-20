@@ -88,10 +88,10 @@ import org.apache.logging.log4j.Logger;
  * application. Most of these are added to the main frame menu, but some are added dynamically as
  * needed, sometimes to the frame menu but also to the context menu (the "right-click menu").
  *
- * <p>Each object instantiated from {@link DefaultClientAction} should have an initializer that
- * calls {@link ClientAction#init(String)} and passes the base message key from the properties file.
- * This base message key will be used to locate the text that should appear on the menu item as well
- * as the accelerator, mnemonic, and short description strings. (See the {@link I18N} class for more
+ * <p>Each object instantiated from {@link ClientAction} should have an initializer that calls
+ * {@link ClientAction#init(String)} and passes the base message key from the properties file. This
+ * base message key will be used to locate the text that should appear on the menu item as well as
+ * the accelerator, mnemonic, and short description strings. (See the {@link I18N} class for more
  * details on how the key is used.
  *
  * <p>In addition, each object should override {@link ClientAction#isAvailable()} and return true if
@@ -180,7 +180,7 @@ public class AppActions {
       };
 
   public static final Action MRU_LIST =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("menu.recent");
         }
@@ -237,10 +237,15 @@ public class AppActions {
       };
 
   public static final Action EXPORT_CAMPAIGN_REPO =
-      new AdminClientAction() {
+      new ClientAction() {
 
         {
           init("admin.exportCampaignRepo");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -353,10 +358,15 @@ public class AppActions {
 
   /** This is the menu option that forces clients to display the GM's current map. */
   public static final Action ENFORCE_ZONE =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
 
         {
           init("action.enforceZone");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -371,7 +381,7 @@ public class AppActions {
       };
 
   public static final Action RESTORE_DEFAULT_IMAGES =
-      new DefaultClientAction() {
+      new ClientAction() {
 
         {
           init("action.restoreDefaultImages");
@@ -394,7 +404,7 @@ public class AppActions {
       };
 
   public static final Action ADD_DEFAULT_TABLES =
-      new DefaultClientAction() {
+      new ClientAction() {
 
         {
           init("action.addDefaultTables");
@@ -429,10 +439,15 @@ public class AppActions {
       };
 
   public static final Action RENAME_ZONE =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
 
         {
           init("action.renameMap");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -453,7 +468,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_FULLSCREEN =
-      new DefaultClientAction() {
+      new ClientAction() {
 
         {
           init("action.fullscreen");
@@ -471,7 +486,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_FULLSCREEN_TOOLS =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.toggleFullScreenTools");
         }
@@ -498,7 +513,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_CONNECTION_INFO =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showConnectionInfo");
         }
@@ -519,7 +534,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_PREFERENCES =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.preferences");
         }
@@ -534,7 +549,7 @@ public class AppActions {
       };
 
   public static final Action SAVE_MESSAGE_HISTORY =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.saveMessageHistory");
         }
@@ -1052,7 +1067,7 @@ public class AppActions {
   }
 
   public static final Action REMOVE_ASSET_ROOT =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.removeAssetRoot");
         }
@@ -1077,7 +1092,7 @@ public class AppActions {
 
   // Jamz: Force a directory to rescan
   public static final Action RESCAN_NODE =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.rescanNode");
         }
@@ -1097,7 +1112,7 @@ public class AppActions {
       };
 
   public static final Action WHISPER_PLAYER =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("whisper.command");
         }
@@ -1128,7 +1143,7 @@ public class AppActions {
       };
 
   public static final Action BOOT_CONNECTED_PLAYER =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.bootConnectedPlayer");
         }
@@ -1168,9 +1183,14 @@ public class AppActions {
    * This is the menu item that lets the GM override the typing notification toggle on the clients
    */
   public static final Action TOGGLE_ENFORCE_NOTIFICATION =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.enforceNotification");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -1187,9 +1207,14 @@ public class AppActions {
 
   /** This is the menu option that forces the player view to continuously track the GM view. */
   public static final Action TOGGLE_LINK_PLAYER_VIEW =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.linkPlayerView");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -1206,9 +1231,14 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_PLAYER_VIEW =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.showPlayerView");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -1225,9 +1255,14 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_LIGHT_SOURCES =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.showLightSources");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -1244,7 +1279,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_COLLECT_PROFILING_DATA =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.collectPerformanceData");
         }
@@ -1262,7 +1297,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_LOG_CONSOLE =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.openLogConsole");
         }
@@ -1279,7 +1314,7 @@ public class AppActions {
         }
       };
   public static final Action TOGGLE_SHOW_TEXT_LABELS =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showTextLabels");
         }
@@ -1300,7 +1335,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_MOVEMENT_MEASUREMENTS =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showMovementMeasures");
         }
@@ -1321,9 +1356,14 @@ public class AppActions {
       };
 
   public static final Action COPY_ZONE =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.copyZone");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1345,9 +1385,14 @@ public class AppActions {
       };
 
   public static final Action REMOVE_ZONE =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.removeZone");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1361,7 +1406,7 @@ public class AppActions {
       };
 
   public static final Action SHOW_ABOUT =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showAboutDialog");
         }
@@ -1374,9 +1419,14 @@ public class AppActions {
 
   /** This is the menu option that warps all clients views to the current GM's view. */
   public static final Action ENFORCE_ZONE_VIEW =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.enforceView");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1431,7 +1481,7 @@ public class AppActions {
   public static final String CHAT_COMMAND_ID = "action.sendChat";
 
   public static final Action CHAT_COMMAND =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init(CHAT_COMMAND_ID);
         }
@@ -1455,7 +1505,7 @@ public class AppActions {
   public static final String ENTER_COMMAND_ID = "action.runMacro";
 
   public static final Action ENTER_COMMAND =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init(ENTER_COMMAND_ID, false);
         }
@@ -1470,7 +1520,7 @@ public class AppActions {
   public static final String COMMIT_COMMAND_ID = "action.commitCommand";
 
   public static final Action COMMIT_COMMAND =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init(COMMIT_COMMAND_ID);
         }
@@ -1485,7 +1535,7 @@ public class AppActions {
   public static final String CANCEL_COMMAND_ID = "action.cancelCommand";
 
   public static final Action CANCEL_COMMAND =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init(CANCEL_COMMAND_ID);
         }
@@ -1500,7 +1550,7 @@ public class AppActions {
   public static final String NEWLINE_COMMAND_ID = "action.newlineCommand";
 
   public static final Action NEWLINE_COMMAND =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init(NEWLINE_COMMAND_ID);
         }
@@ -1512,9 +1562,14 @@ public class AppActions {
       };
 
   public static final Action ADJUST_GRID =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.adjustGrid");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1525,9 +1580,14 @@ public class AppActions {
       };
 
   public static final Action ADJUST_BOARD =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.adjustBoard");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1543,7 +1603,7 @@ public class AppActions {
 
   private static TransferProgressDialog transferProgressDialog;
   public static final Action SHOW_TRANSFER_WINDOW =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("msg.info.showTransferWindow");
         }
@@ -1564,7 +1624,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_GRID =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showGrid");
           putValue(Action.SMALL_ICON, RessourceManager.getSmallIcon(Icons.MENU_SHOW_GRIDS));
@@ -1585,7 +1645,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_COORDINATES =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showCoordinates");
         }
@@ -1612,7 +1672,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_ZOOM_LOCK =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.zoomLock");
           putValue(Action.SHORT_DESCRIPTION, getValue(Action.NAME));
@@ -1636,10 +1696,15 @@ public class AppActions {
         }
       };
 
-  public static final Action TOGGLE_FOG =
-      new ZoneAdminClientAction() {
+  public static final ClientAction TOGGLE_FOG =
+      new ZoneClientAction() {
         {
           init("action.enableFogOfWar");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1670,15 +1735,15 @@ public class AppActions {
       };
 
   // Lee: this sets the revealing of FoW only at waypoints.
-  public static final Action TOGGLE_WAYPOINT_FOG_REVEAL =
-      new ZoneAdminClientAction() {
+  public static final ClientAction TOGGLE_WAYPOINT_FOG_REVEAL =
+      new ZoneClientAction() {
         {
           init("action.revealFogAtWaypoints");
         }
 
         @Override
         public boolean isAvailable() {
-          return ((ZoneAdminClientAction) TOGGLE_FOG).isSelected();
+          return MapTool.getPlayer().isGM() && TOGGLE_FOG.isSelected() && super.isAvailable();
         }
 
         @Override
@@ -1702,9 +1767,14 @@ public class AppActions {
       };
 
   public static final Action RESTORE_FOG =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.restoreFogOfWar");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1717,13 +1787,18 @@ public class AppActions {
         }
       };
 
-  public static class SetVisionType extends ZoneAdminClientAction {
+  public static class SetVisionType extends ZoneClientAction {
 
     private final VisionType visionType;
 
     public SetVisionType(VisionType visionType) {
       this.visionType = visionType;
       init("visionType." + visionType.name());
+    }
+
+    @Override
+    public boolean isAvailable() {
+      return MapTool.getPlayer().isGM() && super.isAvailable();
     }
 
     @Override
@@ -1760,7 +1835,7 @@ public class AppActions {
   }
 
   public static final Action TOGGLE_SHOW_TOKEN_NAMES =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.showNames");
           putValue(Action.SMALL_ICON, RessourceManager.getSmallIcon(Icons.MENU_SHOW_TOKEN_NAMES));
@@ -1777,10 +1852,15 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_LANDING_MAP =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
 
         {
           init("action.toggleLandingMap");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1817,10 +1897,15 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_CURRENT_ZONE_VISIBILITY =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
 
         {
           init("action.hideMap");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -1850,9 +1935,14 @@ public class AppActions {
       };
 
   public static final Action NEW_CAMPAIGN =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.newCampaign");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         /**
@@ -1904,15 +1994,8 @@ public class AppActions {
         }
       };
 
-  /**
-   * Note that the ZOOM actions are defined as DefaultClientAction types. This allows the {@link
-   * ClientAction#getKeyStroke()} method to be invoked where otherwise it couldn't be.
-   *
-   * <p>(Well, it <i>could be</i> if we cast this object to the right type everywhere else but
-   * that's just tedious. And what is tedious is error-prone. :))
-   */
-  public static final DefaultClientAction ZOOM_IN =
-      new DefaultClientAction() {
+  public static final Action ZOOM_IN =
+      new ClientAction() {
         {
           init("action.zoomIn", false);
         }
@@ -1933,8 +2016,8 @@ public class AppActions {
         }
       };
 
-  public static final DefaultClientAction ZOOM_OUT =
-      new DefaultClientAction() {
+  public static final Action ZOOM_OUT =
+      new ClientAction() {
         {
           init("action.zoomOut", false);
         }
@@ -1955,8 +2038,8 @@ public class AppActions {
         }
       };
 
-  public static final DefaultClientAction ZOOM_RESET =
-      new DefaultClientAction() {
+  public static final Action ZOOM_RESET =
+      new ClientAction() {
         private Double lastZoom;
 
         {
@@ -1991,9 +2074,14 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_MOVEMENT_LOCK =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.toggleMovementLock");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -2015,9 +2103,14 @@ public class AppActions {
 
   /** Toggle to enable / disable player use of the token editor. */
   public static final Action TOGGLE_TOKEN_EDITOR_LOCK =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.toggleTokenEditorLock");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -2204,8 +2297,6 @@ public class AppActions {
 
   public static void connectToServer(
       @Nonnull String username, @Nonnull String password, @Nonnull RemoteServerConfig config) {
-    LOAD_MAP.setSeenWarning(false);
-
     MapTool.disconnect();
     MapTool.stopServer();
 
@@ -2334,8 +2425,6 @@ public class AppActions {
       new CampaignManager().clearCampaignData();
     }
 
-    LOAD_MAP.setSeenWarning(false);
-
     MapTool.disconnect();
     MapTool.stopServer();
 
@@ -2350,7 +2439,7 @@ public class AppActions {
   }
 
   public static final Action PLAYER_DATABASE =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.playerDatabase");
         }
@@ -2367,7 +2456,7 @@ public class AppActions {
       };
 
   public static final Action LOAD_CAMPAIGN =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.loadCampaign");
         }
@@ -2520,7 +2609,7 @@ public class AppActions {
   }
 
   public static final Action SAVE_CAMPAIGN =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.saveCampaign");
         }
@@ -2537,7 +2626,7 @@ public class AppActions {
       };
 
   public static final Action SAVE_CAMPAIGN_AS =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.saveCampaignAs");
         }
@@ -2678,8 +2767,8 @@ public class AppActions {
     return file;
   }
 
-  public static final DeveloperClientAction SAVE_MAP_AS =
-      new DeveloperClientAction() {
+  public static final Action SAVE_MAP_AS =
+      new ClientAction() {
         {
           init("action.saveMapAs");
         }
@@ -2728,19 +2817,6 @@ public class AppActions {
         }
       };
 
-  public abstract static class LoadMapAction extends DeveloperClientAction {
-
-    private boolean seenWarning = false;
-
-    public boolean getSeenWarning() {
-      return seenWarning;
-    }
-
-    public void setSeenWarning(boolean s) {
-      seenWarning = s;
-    }
-  }
-
   /**
    * LOAD_MAP is the Action used to implement the loading of an externally stored map into the
    * current campaign. This Action is only available when the current application is either hosting
@@ -2750,8 +2826,8 @@ public class AppActions {
    *
    * @author FJE
    */
-  public static final LoadMapAction LOAD_MAP =
-      new LoadMapAction() {
+  public static final Action LOAD_MAP =
+      new ClientAction() {
         {
           init("action.loadMap");
         }
@@ -2760,8 +2836,7 @@ public class AppActions {
         public boolean isAvailable() {
           // return MapTool.isHostingServer() || MapTool.isPersonalServer();
           // I'd like to be able to use this instead as it's less restrictive, but it's
-          // safer to
-          // disallow for now.
+          // safer to disallow for now.
           return MapTool.isHostingServer()
               || (MapTool.getPlayer() != null && MapTool.getPlayer().isGM());
         }
@@ -2880,7 +2955,7 @@ public class AppActions {
   }
 
   public static final Action CAMPAIGN_PROPERTIES =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.campaignProperties");
         }
@@ -2904,7 +2979,7 @@ public class AppActions {
         }
       };
 
-  public static class GridSizeAction extends DefaultClientAction {
+  public static class GridSizeAction extends ClientAction {
 
     private final int size;
 
@@ -2925,7 +3000,7 @@ public class AppActions {
     }
   }
 
-  public static class QuickMapAction extends AdminClientAction {
+  public static class QuickMapAction extends ClientAction {
 
     private static final int QUICK_MAP_ICON_SIZE = 25;
 
@@ -2959,6 +3034,11 @@ public class AppActions {
     }
 
     @Override
+    public boolean isAvailable() {
+      return MapTool.getPlayer().isGM();
+    }
+
+    @Override
     protected void executeAction() {
       Zone zone = ZoneFactory.createZone();
       zone.setBackgroundPaint(new DrawableTexturePaint(asset.getMD5Key()));
@@ -2969,9 +3049,14 @@ public class AppActions {
   }
 
   public static final Action NEW_MAP =
-      new AdminClientAction() {
+      new ClientAction() {
         {
           init("action.newMap");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM();
         }
 
         @Override
@@ -2990,9 +3075,14 @@ public class AppActions {
       };
 
   public static final Action EDIT_MAP =
-      new ZoneAdminClientAction() {
+      new ZoneClientAction() {
         {
           init("action.editMap");
+        }
+
+        @Override
+        public boolean isAvailable() {
+          return MapTool.getPlayer().isGM() && super.isAvailable();
         }
 
         @Override
@@ -3010,7 +3100,7 @@ public class AppActions {
       };
 
   public static final Action GATHER_DEBUG_INFO =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.gatherDebugInfo");
         }
@@ -3022,7 +3112,7 @@ public class AppActions {
       };
 
   public static final Action ADD_RESOURCE_TO_LIBRARY =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.addIconSelector");
         }
@@ -3035,7 +3125,7 @@ public class AppActions {
       };
 
   public static final Action VIEW_ADD_ON_LIBRARIES =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.addOnLibraries");
         }
@@ -3056,7 +3146,7 @@ public class AppActions {
       };
 
   public static final Action EXIT =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.exit");
         }
@@ -3073,7 +3163,7 @@ public class AppActions {
 
   /** Toggle the drawing of measurements. */
   public static final Action TOGGLE_DRAW_MEASUREMENTS =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.toggleDrawMeasurements");
         }
@@ -3092,7 +3182,7 @@ public class AppActions {
 
   /** Toggle drawing straight lines at double width on the line tool. */
   public static final Action TOGGLE_DOUBLE_WIDE =
-      new DefaultClientAction() {
+      new ClientAction() {
         {
           init("action.toggleDoubleWide");
         }
@@ -3131,11 +3221,6 @@ public class AppActions {
     }
 
     @Override
-    public boolean isAvailable() {
-      return true;
-    }
-
-    @Override
     protected void executeAction() {
       overlayManager.setVisible(!isSelected());
     }
@@ -3153,11 +3238,6 @@ public class AppActions {
     @Override
     public boolean isSelected() {
       return !MapTool.getFrame().getFrame(mtFrame).isHidden();
-    }
-
-    @Override
-    public boolean isAvailable() {
-      return true;
     }
 
     @Override
@@ -3241,7 +3321,9 @@ public class AppActions {
       return (KeyStroke) getValue(Action.ACCELERATOR_KEY);
     }
 
-    public abstract boolean isAvailable();
+    public boolean isAvailable() {
+      return true;
+    }
 
     public boolean isSelected() {
       return false;
@@ -3258,30 +3340,6 @@ public class AppActions {
 
   /**
    * This class simply provides an implementation for <code>isAvailable()</code> that returns <code>
-   * true</code> if the current player is a GM.
-   */
-  public abstract static class AdminClientAction extends ClientAction {
-
-    @Override
-    public boolean isAvailable() {
-      return MapTool.getPlayer().isGM();
-    }
-  }
-
-  /**
-   * This class simply provides an implementation for <code>isAvailable()</code> that returns <code>
-   * true</code> if the current player is a GM and there is a ZoneRenderer current.
-   */
-  public abstract static class ZoneAdminClientAction extends AdminClientAction {
-
-    @Override
-    public boolean isAvailable() {
-      return super.isAvailable() && MapTool.getFrame().getCurrentZoneRenderer() != null;
-    }
-  }
-
-  /**
-   * This class simply provides an implementation for <code>isAvailable()</code> that returns <code>
    * true</code> if there is a ZoneRenderer current.
    */
   public abstract static class ZoneClientAction extends ClientAction {
@@ -3292,20 +3350,8 @@ public class AppActions {
     }
   }
 
-  /**
-   * This class simply provides an implementation for <code>isAvailable()</code> that returns <code>
-   * true</code>.
-   */
-  public abstract static class DefaultClientAction extends ClientAction {
-
-    @Override
-    public boolean isAvailable() {
-      return true;
-    }
-  }
-
   /** This class provides an action that displays a url from I18N */
-  public static class OpenUrlAction extends DefaultClientAction {
+  public static class OpenUrlAction extends ClientAction {
 
     public OpenUrlAction(String key) {
       // The init() method will load the "key", "key.accel", and "key.description".
@@ -3322,23 +3368,6 @@ public class AppActions {
       if (getValue(Action.SHORT_DESCRIPTION) != null) {
         MapTool.showDocument((String) getValue(Action.SHORT_DESCRIPTION));
       }
-    }
-  }
-
-  /**
-   * This class simply provides an implementation for <code>isAvailable()</code> that returns <code>
-   * true</code> if the system property MAPTOOL_DEV is not set to "false". This allows it to contain
-   * the version number of the compatible build for debugging purposes. For example, if I'm working
-   * on a patch to 1.3.b54, I can set MAPTOOL_DEV to 1.3.b54 in order to test it against a 1.3.b54
-   * client.
-   */
-  @SuppressWarnings("serial")
-  public abstract static class DeveloperClientAction extends ClientAction {
-
-    @Override
-    public boolean isAvailable() {
-      return System.getProperty("MAPTOOL_DEV") != null
-          && !"false".equals(System.getProperty("MAPTOOL_DEV"));
     }
   }
 

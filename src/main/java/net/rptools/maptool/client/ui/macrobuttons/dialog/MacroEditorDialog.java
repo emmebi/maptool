@@ -653,7 +653,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class ShowFindDialogAction extends AppActions.DefaultClientAction {
+  private class ShowFindDialogAction extends AppActions.ClientAction {
     MacroEditorDialog callingDialog;
 
     public ShowFindDialogAction(MacroEditorDialog macroButtonDialog) {
@@ -671,7 +671,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class ShowReplaceDialogAction extends AppActions.DefaultClientAction {
+  private class ShowReplaceDialogAction extends AppActions.ClientAction {
     MacroEditorDialog callingDialog;
 
     public ShowReplaceDialogAction(MacroEditorDialog macroButtonDialog) {
@@ -689,7 +689,7 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class GoToLineAction extends AppActions.DefaultClientAction {
+  private class GoToLineAction extends AppActions.ClientAction {
     public GoToLineAction() {
       init("action.macroEditor.gotoLine");
     }
