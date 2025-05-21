@@ -995,7 +995,7 @@ public class Zone {
 
     existingWall.ifPresentOrElse(
         existing -> {
-          existing.copyDataFrom(wall);
+          existing.setData(wall.data());
 
           new MapToolEventBus().getMainEventBus().post(new WallTopologyChanged(this));
         },

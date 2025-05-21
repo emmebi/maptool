@@ -340,8 +340,8 @@ public final class WallTopology implements Topology {
     var newVertex = addNewVertex();
     var newWall1 = new Wall(removed.from(), newVertex.id());
     var newWall2 = new Wall(newVertex.id(), removed.to());
-    newWall1.copyDataFrom(wall);
-    newWall2.copyDataFrom(wall);
+    newWall1.setData(wall.data());
+    newWall2.setData(wall.data());
 
     try {
       addWallImpl(newWall1);
@@ -410,7 +410,7 @@ public final class WallTopology implements Topology {
         var newWall =
             new Wall(
                 firstIsSource ? second.id() : neighbour, firstIsSource ? neighbour : second.id());
-        newWall.copyDataFrom(oldWall);
+        newWall.setData(oldWall.data());
         try {
           addWallImpl(newWall);
         } catch (GraphException e) {
@@ -424,7 +424,7 @@ public final class WallTopology implements Topology {
         // If the walls point in opposite directions, flip the one being merged so that they agree
         // on things like direction.
         var wallToMerge = (firstIsSource == secondIsSource) ? oldWall : oldWall.reversed();
-        existingWall.mergeDataFrom(wallToMerge);
+        existingWall.setData(existingWall.data().merge(wallToMerge.data()));
       }
     }
 
@@ -482,9 +482,9 @@ public final class WallTopology implements Topology {
 
               // For directional walls, ensure the origin is on the correct side.
               var direction =
-                  switch (wall.directionModifier(visibilityType)) {
-                    case SameDirection -> wall.direction();
-                    case ReverseDirection -> wall.direction().reversed();
+                  switch (wall.data().directionModifier(visibilityType)) {
+                    case SameDirection -> wall.data().direction();
+                    case ReverseDirection -> wall.data().direction().reversed();
                     case ForceBoth -> Wall.Direction.Both;
                     case Disabled -> null;
                   };
