@@ -14,6 +14,8 @@
  */
 package net.rptools.maptool.client.ui;
 
+import static net.rptools.maptool.client.AppActions.withMenuShortcut;
+
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import net.miginfocom.swing.MigLayout;
+import net.rptools.maptool.client.AppActions.TranslatedClientAction;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolUtil;
@@ -339,43 +342,39 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     }
   }
 
-  private class ExposeVisibleAreaAction extends AbstractAction {
-    private static final long serialVersionUID = 1773049658219864418L;
-
+  private class ExposeVisibleAreaAction extends TranslatedClientAction {
     public ExposeVisibleAreaAction() {
-      I18N.setAction("token.popup.menu.expose.visible", this, true);
+      super("token.popup.menu.expose.visible", withMenuShortcut(KeyStroke.getKeyStroke("I")));
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    protected void executeAction() {
       FogUtil.exposeVisibleArea(getRenderer(), selectedTokenSet, true);
       getRenderer().repaint();
     }
   }
 
-  private class ExposeVisibleAreaOnlyAction extends AbstractAction {
-    private static final long serialVersionUID = 7889640443069061220L;
-
+  private class ExposeVisibleAreaOnlyAction extends TranslatedClientAction {
     public ExposeVisibleAreaOnlyAction() {
-      I18N.setAction("token.popup.menu.expose.currentonly", this, true);
+      super(
+          "token.popup.menu.expose.currentonly",
+          withMenuShortcut(KeyStroke.getKeyStroke("shift O")));
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    protected void executeAction() {
       FogUtil.exposePCArea(getRenderer());
     }
   }
 
-  private class ExposeLastPathAction extends AbstractAction {
-    private static final long serialVersionUID = 6840373835089920277L;
-
+  private class ExposeLastPathAction extends TranslatedClientAction {
     public ExposeLastPathAction() {
-      I18N.setAction("token.popup.menu.expose.lastpath", this, true);
+      super("token.popup.menu.expose.lastpath", withMenuShortcut(KeyStroke.getKeyStroke("P")));
       setEnabled(getTokenUnderMouse().getLastPath() != null);
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    protected void executeAction() {
       FogUtil.exposeLastPath(getRenderer(), selectedTokenSet);
       getRenderer().repaint();
     }
@@ -792,13 +791,13 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     }
   }
 
-  private class ClearStateAction extends AbstractAction {
+  private class ClearStateAction extends TranslatedClientAction {
     public ClearStateAction() {
-      I18N.setAction("defaultTool.stateAction.clear", this, false);
+      super("defaultTool.stateAction.clear");
     }
 
     @Override
-    public void actionPerformed(ActionEvent aE) {
+    protected void executeAction() {
       ZoneRenderer renderer = MapTool.getFrame().getCurrentZoneRenderer();
       for (GUID tokenGUID : selectedTokenSet) {
         Token token = renderer.getZone().getToken(tokenGUID);

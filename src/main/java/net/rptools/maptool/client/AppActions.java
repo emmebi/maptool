@@ -18,6 +18,7 @@ import com.jidesoft.docking.DockableFrame;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -34,6 +35,7 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -130,6 +132,17 @@ public class AppActions {
     return key;
   }
 
+  public static KeyStroke withMenuShortcut(KeyStroke k) {
+    int modifiers = k.getModifiers() | AppActions.menuShortcut;
+    if (k.getKeyCode() != KeyEvent.VK_UNDEFINED) {
+      k = KeyStroke.getKeyStroke(k.getKeyCode(), modifiers);
+    } else {
+      k = KeyStroke.getKeyStroke(k.getKeyChar(), modifiers);
+    }
+
+    return k;
+  }
+
   /** This action will rotate through the PC tokens owned by the player. */
   public static final Action NEXT_TOKEN =
       new ZoneClientAction("action.nextToken") {
@@ -201,7 +214,8 @@ public class AppActions {
       };
 
   public static final Action EXPORT_SCREENSHOT_LAST_LOCATION =
-      new ZoneClientAction("action.exportScreenShot") {
+      new ZoneClientAction(
+          "action.exportScreenShot", withMenuShortcut(KeyStroke.getKeyStroke("shift S"))) {
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
           ExportDialog d = MapTool.getCampaign().getExportDialog();
@@ -336,7 +350,7 @@ public class AppActions {
 
   /** This is the menu option that forces clients to display the GM's current map. */
   public static final Action ENFORCE_ZONE =
-      new ZoneClientAction("action.enforceZone") {
+      new ZoneClientAction("action.enforceZone", withMenuShortcut(KeyStroke.getKeyStroke("E"))) {
 
         @Override
         public boolean isAvailable() {
@@ -425,7 +439,8 @@ public class AppActions {
       };
 
   public static final Action SHOW_FULLSCREEN =
-      new TranslatedClientAction("action.fullscreen") {
+      new TranslatedClientAction(
+          "action.fullscreen", withMenuShortcut(KeyStroke.getKeyStroke("alt ENTER"))) {
 
         @Override
         protected void executeAction() {
@@ -439,7 +454,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_FULLSCREEN_TOOLS =
-      new TranslatedClientAction("action.toggleFullScreenTools") {
+      new TranslatedClientAction(
+          "action.toggleFullScreenTools", withMenuShortcut(KeyStroke.getKeyStroke("alt T"))) {
 
         @Override
         public boolean isSelected() {
@@ -522,7 +538,7 @@ public class AppActions {
       };
 
   public static final ClientAction UNDO_PER_MAP =
-      new ZoneClientAction("action.undoDrawing") {
+      new ZoneClientAction("action.undoDrawing", withMenuShortcut(KeyStroke.getKeyStroke("Z"))) {
         {
           isAvailable();
         }
@@ -552,7 +568,7 @@ public class AppActions {
       };
 
   public static final ClientAction REDO_PER_MAP =
-      new ZoneClientAction("action.redoDrawing") {
+      new ZoneClientAction("action.redoDrawing", withMenuShortcut(KeyStroke.getKeyStroke("R"))) {
         {
           isAvailable();
         }
@@ -582,7 +598,8 @@ public class AppActions {
       };
 
   public static final ClientAction CLEAR_DRAWING =
-      new ZoneClientAction("action.clearDrawing") {
+      new ZoneClientAction(
+          "action.clearDrawing", withMenuShortcut(KeyStroke.getKeyStroke("shift D"))) {
 
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
@@ -595,7 +612,7 @@ public class AppActions {
       };
 
   public static final ClientAction CUT_TOKENS =
-      new ZoneClientAction("action.cutTokens") {
+      new ZoneClientAction("action.cutTokens", withMenuShortcut(KeyStroke.getKeyStroke("X"))) {
 
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
@@ -680,7 +697,7 @@ public class AppActions {
   }
 
   public static final ClientAction COPY_TOKENS =
-      new ZoneClientAction("action.copyTokens") {
+      new ZoneClientAction("action.copyTokens", withMenuShortcut(KeyStroke.getKeyStroke("C"))) {
 
         @Override
         protected void executeAction(@Nonnull ZoneRenderer renderer) {
@@ -822,7 +839,7 @@ public class AppActions {
   }
 
   public static final ClientAction PASTE_TOKENS =
-      new ZoneClientAction("action.pasteTokens") {
+      new ZoneClientAction("action.pasteTokens", withMenuShortcut(KeyStroke.getKeyStroke("V"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1109,7 +1126,8 @@ public class AppActions {
 
   /** This is the menu option that forces the player view to continuously track the GM view. */
   public static final Action TOGGLE_LINK_PLAYER_VIEW =
-      new TranslatedClientAction("action.linkPlayerView") {
+      new TranslatedClientAction(
+          "action.linkPlayerView", withMenuShortcut(KeyStroke.getKeyStroke("shift F"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1130,7 +1148,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_PLAYER_VIEW =
-      new TranslatedClientAction("action.showPlayerView") {
+      new TranslatedClientAction(
+          "action.showPlayerView", withMenuShortcut(KeyStroke.getKeyStroke("shift P"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1151,7 +1170,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_LIGHT_SOURCES =
-      new TranslatedClientAction("action.showLightSources") {
+      new TranslatedClientAction(
+          "action.showLightSources", withMenuShortcut(KeyStroke.getKeyStroke("K"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1219,7 +1239,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_SHOW_MOVEMENT_MEASUREMENTS =
-      new TranslatedClientAction("action.showMovementMeasures") {
+      new TranslatedClientAction(
+          "action.showMovementMeasures", withMenuShortcut(KeyStroke.getKeyStroke("D"))) {
 
         @Override
         public boolean isSelected() {
@@ -1290,7 +1311,7 @@ public class AppActions {
 
   /** This is the menu option that warps all clients views to the current GM's view. */
   public static final Action ENFORCE_ZONE_VIEW =
-      new ZoneClientAction("action.enforceView") {
+      new ZoneClientAction("action.enforceView", withMenuShortcut(KeyStroke.getKeyStroke("F"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1337,7 +1358,8 @@ public class AppActions {
 
   /** Start entering text into the chat field */
   public static final Action CHAT_COMMAND =
-      new TranslatedClientAction("action.sendChat") {
+      new TranslatedClientAction(
+          "action.sendChat", withMenuShortcut(KeyStroke.getKeyStroke("ENTER"))) {
 
         @Override
         protected void executeAction() {
@@ -1351,7 +1373,7 @@ public class AppActions {
       };
 
   public static final TranslatedClientAction ENTER_COMMAND =
-      new TranslatedClientAction("action.runMacro", false) {
+      new TranslatedClientAction("action.runMacro", KeyStroke.getKeyStroke("typed /")) {
 
         @Override
         protected void executeAction() {
@@ -1387,7 +1409,8 @@ public class AppActions {
       };
 
   public static final Action ADJUST_GRID =
-      new ZoneClientAction("action.adjustGrid") {
+      new ZoneClientAction(
+          "action.adjustGrid", withMenuShortcut(KeyStroke.getKeyStroke("shift A"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1439,7 +1462,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_GRID =
-      new TranslatedClientAction("action.showGrid") {
+      new TranslatedClientAction("action.showGrid", withMenuShortcut(KeyStroke.getKeyStroke("G"))) {
         {
           putValue(Action.SMALL_ICON, RessourceManager.getSmallIcon(Icons.MENU_SHOW_GRIDS));
         }
@@ -1507,7 +1530,7 @@ public class AppActions {
       };
 
   public static final ClientAction TOGGLE_FOG =
-      new ZoneClientAction("action.enableFogOfWar") {
+      new ZoneClientAction("action.enableFogOfWar", withMenuShortcut(KeyStroke.getKeyStroke("W"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1537,7 +1560,8 @@ public class AppActions {
 
   // Lee: this sets the revealing of FoW only at waypoints.
   public static final ClientAction TOGGLE_WAYPOINT_FOG_REVEAL =
-      new ZoneClientAction("action.revealFogAtWaypoints") {
+      new ZoneClientAction(
+          "action.revealFogAtWaypoints", withMenuShortcut(KeyStroke.getKeyStroke("shift W"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1562,7 +1586,8 @@ public class AppActions {
       };
 
   public static final Action RESTORE_FOG =
-      new ZoneClientAction("action.restoreFogOfWar") {
+      new ZoneClientAction(
+          "action.restoreFogOfWar", withMenuShortcut(KeyStroke.getKeyStroke("shift R"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1619,7 +1644,8 @@ public class AppActions {
   }
 
   public static final Action TOGGLE_SHOW_TOKEN_NAMES =
-      new TranslatedClientAction("action.showNames") {
+      new TranslatedClientAction(
+          "action.showNames", withMenuShortcut(KeyStroke.getKeyStroke("T"))) {
         {
           putValue(Action.SMALL_ICON, RessourceManager.getSmallIcon(Icons.MENU_SHOW_TOKEN_NAMES));
         }
@@ -1671,7 +1697,7 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_CURRENT_ZONE_VISIBILITY =
-      new ZoneClientAction("action.hideMap") {
+      new ZoneClientAction("action.hideMap", withMenuShortcut(KeyStroke.getKeyStroke("H"))) {
 
         @Override
         public boolean isAvailable() {
@@ -1763,7 +1789,7 @@ public class AppActions {
    * that's just tedious. And what is tedious is error-prone. :))
    */
   public static final ClientAction ZOOM_IN =
-      new TranslatedClientAction("action.zoomIn", false) {
+      new TranslatedClientAction("action.zoomIn", KeyStroke.getKeyStroke("typed =")) {
 
         @Override
         public boolean isAvailable() {
@@ -1782,7 +1808,7 @@ public class AppActions {
       };
 
   public static final ClientAction ZOOM_OUT =
-      new TranslatedClientAction("action.zoomOut", false) {
+      new TranslatedClientAction("action.zoomOut", KeyStroke.getKeyStroke("typed -")) {
 
         @Override
         public boolean isAvailable() {
@@ -1801,7 +1827,7 @@ public class AppActions {
       };
 
   public static final ClientAction ZOOM_RESET =
-      new TranslatedClientAction("action.zoom100", false) {
+      new TranslatedClientAction("action.zoom100", KeyStroke.getKeyStroke("typed +")) {
         private Double lastZoom;
 
         @Override
@@ -1832,7 +1858,8 @@ public class AppActions {
       };
 
   public static final Action TOGGLE_MOVEMENT_LOCK =
-      new TranslatedClientAction("action.toggleMovementLock") {
+      new TranslatedClientAction(
+          "action.toggleMovementLock", withMenuShortcut(KeyStroke.getKeyStroke("shift L"))) {
 
         @Override
         public boolean isAvailable() {
@@ -2196,7 +2223,8 @@ public class AppActions {
       };
 
   public static final Action LOAD_CAMPAIGN =
-      new TranslatedClientAction("action.loadCampaign") {
+      new TranslatedClientAction(
+          "action.loadCampaign", withMenuShortcut(KeyStroke.getKeyStroke("O"))) {
 
         @Override
         public boolean isAvailable() {
@@ -2346,7 +2374,8 @@ public class AppActions {
   }
 
   public static final Action SAVE_CAMPAIGN =
-      new TranslatedClientAction("action.saveCampaign") {
+      new TranslatedClientAction(
+          "action.saveCampaign", withMenuShortcut(KeyStroke.getKeyStroke("S"))) {
 
         @Override
         public boolean isAvailable() {
@@ -2360,7 +2389,8 @@ public class AppActions {
       };
 
   public static final Action SAVE_CAMPAIGN_AS =
-      new TranslatedClientAction("action.saveCampaignAs") {
+      new TranslatedClientAction(
+          "action.saveCampaignAs", withMenuShortcut(KeyStroke.getKeyStroke("A"))) {
 
         @Override
         public boolean isAvailable() {
@@ -2767,7 +2797,7 @@ public class AppActions {
   }
 
   public static final Action NEW_MAP =
-      new TranslatedClientAction("action.newMap") {
+      new TranslatedClientAction("action.newMap", withMenuShortcut(KeyStroke.getKeyStroke("N"))) {
 
         @Override
         public boolean isAvailable() {
@@ -3031,12 +3061,25 @@ public class AppActions {
     private final String i18nKey;
 
     protected TranslatedClientAction(String i18nKey) {
-      this(i18nKey, true);
+      this(i18nKey, null);
     }
 
-    protected TranslatedClientAction(String i18nKey, boolean addMenuShortcut) {
+    protected TranslatedClientAction(String i18nKey, @Nullable KeyStroke accelerator) {
       this.i18nKey = i18nKey;
-      I18N.setAction(i18nKey, this, addMenuShortcut);
+      putValue(Action.NAME, I18N.getText(i18nKey));
+      int mnemonic = I18N.getMnemonic(i18nKey);
+      if (mnemonic >= 0) {
+        putValue(Action.MNEMONIC_KEY, mnemonic);
+      }
+
+      String description = I18N.getDescription(i18nKey);
+      if (description != null) {
+        putValue(Action.SHORT_DESCRIPTION, description);
+      }
+
+      if (accelerator != null) {
+        putValue(Action.ACCELERATOR_KEY, accelerator);
+      }
     }
 
     public final String getI18nKey() {
@@ -3051,6 +3094,10 @@ public class AppActions {
   public abstract static class ZoneClientAction extends TranslatedClientAction {
     protected ZoneClientAction(String i18nKey) {
       super(i18nKey);
+    }
+
+    protected ZoneClientAction(String i18nKey, @Nullable KeyStroke accelerator) {
+      super(i18nKey, accelerator);
     }
 
     @Override
