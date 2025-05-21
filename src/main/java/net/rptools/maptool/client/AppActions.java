@@ -3008,6 +3008,13 @@ public class AppActions {
       getActionList().add(this);
     }
 
+    protected ClientAction(@Nullable KeyStroke accelerator) {
+      this();
+      if (accelerator != null) {
+        putValue(Action.ACCELERATOR_KEY, accelerator);
+      }
+    }
+
     /**
      * The last time this action was called via accelerator key. This will only ever be set if
      * {@link #NEEDS_GUARD} is <code>true</code> and the menu item is a JMenuCheckBoxItem
@@ -3065,6 +3072,8 @@ public class AppActions {
     }
 
     protected TranslatedClientAction(String i18nKey, @Nullable KeyStroke accelerator) {
+      super(accelerator);
+
       this.i18nKey = i18nKey;
       putValue(Action.NAME, I18N.getText(i18nKey));
       int mnemonic = I18N.getMnemonic(i18nKey);
@@ -3075,10 +3084,6 @@ public class AppActions {
       String description = I18N.getDescription(i18nKey);
       if (description != null) {
         putValue(Action.SHORT_DESCRIPTION, description);
-      }
-
-      if (accelerator != null) {
-        putValue(Action.ACCELERATOR_KEY, accelerator);
       }
     }
 
