@@ -785,7 +785,7 @@ public class JSONMacroFunctions extends AbstractFunction {
    */
   public String jsonIndent(JsonElement json, int indent) {
     final Gson gsonPrettyPrinting =
-        new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        new GsonBuilder().setPrettyPrinting().serializeNulls().disableHtmlEscaping().create();
 
     try (final Writer writer = new StringWriter()) {
       final JsonWriter jWriter = gsonPrettyPrinting.newJsonWriter(writer);
