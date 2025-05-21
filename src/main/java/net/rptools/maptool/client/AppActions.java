@@ -2749,7 +2749,6 @@ public class AppActions {
       } catch (IOException ioe) {
         log.error("Error while building Quick Map action", ioe);
       }
-      getActionList().add(this);
     }
 
     @Override
@@ -2975,7 +2974,9 @@ public class AppActions {
                   prop); // MapTool doesnt run on version 8 or less of JDK so no need to check that
     }
 
-    protected ClientAction() {}
+    protected ClientAction() {
+      getActionList().add(this);
+    }
 
     /**
      * The last time this action was called via accelerator key. This will only ever be set if
@@ -3036,7 +3037,6 @@ public class AppActions {
     protected TranslatedClientAction(String i18nKey, boolean addMenuShortcut) {
       this.i18nKey = i18nKey;
       I18N.setAction(i18nKey, this, addMenuShortcut);
-      getActionList().add(this);
     }
 
     public final String getI18nKey() {
