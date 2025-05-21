@@ -1350,15 +1350,8 @@ public class AppActions {
         }
       };
 
-  public static final String COMMAND_UP_ID = "action.commandUp";
-
-  public static final String COMMAND_DOWN_ID = "action.commandDown";
-
-  /** Start entering text into the chat field */
-  public static final String ENTER_COMMAND_ID = "action.runMacro";
-
-  public static final Action ENTER_COMMAND =
-      new TranslatedClientAction(ENTER_COMMAND_ID, false) {
+  public static final TranslatedClientAction ENTER_COMMAND =
+      new TranslatedClientAction("action.runMacro", false) {
 
         @Override
         protected void executeAction() {
@@ -1366,11 +1359,8 @@ public class AppActions {
         }
       };
 
-  /** Action tied to the chat field to commit the command. */
-  public static final String COMMIT_COMMAND_ID = "action.commitCommand";
-
-  public static final Action COMMIT_COMMAND =
-      new TranslatedClientAction(COMMIT_COMMAND_ID) {
+  public static final TranslatedClientAction COMMIT_COMMAND =
+      new TranslatedClientAction("action.commitCommand") {
 
         @Override
         protected void executeAction() {
@@ -1378,11 +1368,8 @@ public class AppActions {
         }
       };
 
-  /** Action tied to the chat field to commit the command. */
-  public static final String CANCEL_COMMAND_ID = "action.cancelCommand";
-
-  public static final Action CANCEL_COMMAND =
-      new TranslatedClientAction(CANCEL_COMMAND_ID) {
+  public static final TranslatedClientAction CANCEL_COMMAND =
+      new TranslatedClientAction("action.cancelCommand") {
 
         @Override
         protected void executeAction() {
@@ -1390,11 +1377,8 @@ public class AppActions {
         }
       };
 
-  /** Action to insert a newline into the chat input field */
-  public static final String NEWLINE_COMMAND_ID = "action.newlineCommand";
-
-  public static final Action NEWLINE_COMMAND =
-      new TranslatedClientAction(NEWLINE_COMMAND_ID) {
+  public static final TranslatedClientAction NEWLINE_COMMAND =
+      new TranslatedClientAction("action.newlineCommand") {
 
         @Override
         protected void executeAction() {
