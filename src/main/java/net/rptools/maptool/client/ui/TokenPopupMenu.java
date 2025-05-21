@@ -44,7 +44,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
-import javax.swing.KeyStroke;
 import net.miginfocom.swing.MigLayout;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
@@ -464,7 +463,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
   protected JMenu createStateMenu() {
     // Create the base menu
     JMenu stateMenu = I18N.createMenu("defaultTool.stateMenu");
-    stateMenu.add(new ChangeStateAction("clear"));
+    stateMenu.add(new ClearStateAction());
     stateMenu.addSeparator();
     List<BooleanTokenOverlay> overlays =
         new ArrayList<BooleanTokenOverlay>(MapTool.getCampaign().getTokenStatesMap().values());
@@ -793,10 +792,27 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     }
   }
 
+  private class ClearStateAction extends AbstractAction {
+    public ClearStateAction() {
+      I18N.setAction("defaultTool.stateAction.clear", this, false);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent aE) {
+      ZoneRenderer renderer = MapTool.getFrame().getCurrentZoneRenderer();
+      for (GUID tokenGUID : selectedTokenSet) {
+        Token token = renderer.getZone().getToken(tokenGUID);
+        for (String state : MapTool.getCampaign().getTokenStatesMap().keySet()) {
+          token.setState(state, null);
+        }
+        MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
+      }
+      renderer.repaint();
+    }
+  }
+
   /** Internal class used to handle token state changes. */
   private class ChangeStateAction extends AbstractAction {
-    private static final long serialVersionUID = 8403066587828844564L;
-
     /**
      * Initialize a state action for a given state.
      *
@@ -804,23 +820,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
      */
     public ChangeStateAction(String state) {
       putValue(ACTION_COMMAND_KEY, state); // Set the state command
-
-      // Load the name, mnemonic, accelerator, and description if
-      // available
-      String key = "defaultTool.stateAction." + state;
-      String name = net.rptools.maptool.language.I18N.getText(key);
-      if (!name.equals(key)) {
-        putValue(NAME, name);
-        int mnemonic = I18N.getMnemonic(key);
-        if (mnemonic != -1) putValue(MNEMONIC_KEY, mnemonic);
-        String accel = I18N.getAccelerator(key);
-        if (accel != null) putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(accel));
-        String description = I18N.getDescription(key);
-        if (description != null) putValue(SHORT_DESCRIPTION, description);
-      } else {
-        // Default name if no I18N set
-        putValue(NAME, state);
-      } // endif
+      putValue(NAME, state);
     }
 
     /**
@@ -832,18 +832,12 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     public void actionPerformed(ActionEvent aE) {
       ZoneRenderer renderer = MapTool.getFrame().getCurrentZoneRenderer();
       for (GUID tokenGUID : selectedTokenSet) {
-
         Token token = renderer.getZone().getToken(tokenGUID);
-        if (aE.getActionCommand().equals("clear")) {
-          for (String state : MapTool.getCampaign().getTokenStatesMap().keySet())
-            token.setState(state, null);
-        } else {
-          token.setState(
-              aE.getActionCommand(),
-              ((JCheckBoxMenuItem) aE.getSource()).isSelected() ? Boolean.TRUE : null);
-        } // endif
+        token.setState(
+            aE.getActionCommand(),
+            ((JCheckBoxMenuItem) aE.getSource()).isSelected() ? Boolean.TRUE : null);
         MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
-      } // endfor
+      }
       renderer.repaint();
     }
   }
