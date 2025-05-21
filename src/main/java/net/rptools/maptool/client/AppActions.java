@@ -42,6 +42,8 @@ import javax.swing.text.BadLocationException;
 import net.rptools.lib.FileUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.swing.SwingUtil;
+import net.rptools.maptool.client.tool.FacingTool;
+import net.rptools.maptool.client.tool.Toolbox;
 import net.rptools.maptool.client.tool.boardtool.BoardTool;
 import net.rptools.maptool.client.tool.gridtool.GridTool;
 import net.rptools.maptool.client.ui.*;
@@ -117,7 +119,7 @@ public class AppActions {
    */
   private static Set<Token> tokenCopySet = null;
 
-  public static final int menuShortcut = getMenuShortcutKeyMask();
+  private static final int menuShortcut = getMenuShortcutKeyMask();
   private static boolean keepIdsOnPaste = false;
 
   private static int getMenuShortcutKeyMask() {
@@ -2922,6 +2924,101 @@ public class AppActions {
           if (MapTool.getFrame() != null && MapTool.getFrame().getCurrentZoneRenderer() != null) {
             MapTool.getFrame().getCurrentZoneRenderer().repaint();
           }
+        }
+      };
+
+  public static final ClientAction SET_FACING_ACTION =
+      new ClientAction(withMenuShortcut(KeyStroke.getKeyStroke("R"))) {
+
+        @Override
+        protected void executeAction() {
+          final var renderer = MapTool.getFrame().getCurrentZoneRenderer();
+          if (renderer == null || renderer.getSelectedTokenSet().isEmpty()) {
+            return;
+          }
+          Toolbox toolbox = MapTool.getFrame().getToolbox();
+
+          FacingTool tool = toolbox.getTool(FacingTool.class);
+          tool.init(
+              renderer.getZone().getToken(renderer.getSelectedTokenSet().iterator().next()),
+              renderer.getSelectedTokenSet());
+
+          toolbox.setSelectedTool(FacingTool.class);
+        }
+      };
+
+  public static final ClientAction EXPOSE_VISIBLE_AREA_ACTION =
+      new ZoneClientAction(
+          "token.popup.menu.expose.visible", withMenuShortcut(KeyStroke.getKeyStroke("I"))) {
+        @Override
+        public boolean isAvailable() {
+          return super.isAvailable()
+              && (MapTool.getPlayer().isGM()
+                  || MapTool.getServerPolicy().getPlayersCanRevealVision());
+        }
+
+        @Override
+        protected void executeAction(@Nonnull ZoneRenderer renderer) {
+          FogUtil.exposeVisibleArea(
+              renderer, renderer.getOwnedTokens(renderer.getSelectedTokenSet()), true);
+        }
+      };
+
+  public static final ClientAction EXPOSE_VISIBLE_AREA_ONLY_ACTION =
+      new ZoneClientAction(
+          "token.popup.menu.expose.currentonly",
+          withMenuShortcut(KeyStroke.getKeyStroke("shift O"))) {
+        @Override
+        public boolean isAvailable() {
+          return super.isAvailable() && MapTool.getPlayer().isGM();
+        }
+
+        @Override
+        protected void executeAction(@Nonnull ZoneRenderer renderer) {
+          FogUtil.exposePCArea(renderer);
+        }
+      };
+
+  public static final ClientAction EXPOSE_LAST_PATH_ACTION =
+      new ZoneClientAction(
+          "token.popup.menu.expose.lastpath", withMenuShortcut(KeyStroke.getKeyStroke("P"))) {
+        @Override
+        public boolean isAvailable() {
+          if (!super.isAvailable()) {
+            return false;
+          }
+          if (!MapTool.getPlayer().isGM()
+              && !MapTool.getServerPolicy().getPlayersCanRevealVision()) {
+            return false;
+          }
+
+          // Only available if one of the tokens has a last path.
+          var renderer = MapTool.getFrame().getCurrentZoneRenderer();
+          return renderer.getOwnedTokens(renderer.getSelectedTokenSet()).stream()
+              .map(id -> renderer.getZone().getToken(id))
+              .filter(Objects::nonNull)
+              .anyMatch(t -> t.getLastPath() != null);
+        }
+
+        @Override
+        protected void executeAction(@Nonnull ZoneRenderer renderer) {
+          FogUtil.exposeLastPath(renderer, renderer.getOwnedTokens(renderer.getSelectedTokenSet()));
+        }
+      };
+
+  public static final ClientAction EXPOSE_ALL_OWNED_ACTION =
+      new ZoneClientAction(
+          "token.popup.menu.expose.allowned", withMenuShortcut(KeyStroke.getKeyStroke("shift F"))) {
+        @Override
+        public boolean isAvailable() {
+          return super.isAvailable()
+              && (MapTool.getPlayer().isGM()
+                  || MapTool.getServerPolicy().getPlayersCanRevealVision());
+        }
+
+        @Override
+        protected void executeAction(@Nonnull ZoneRenderer renderer) {
+          FogUtil.exposeLastPath(renderer, renderer.getOwnedTokens(renderer.getSelectedTokenSet()));
         }
       };
 

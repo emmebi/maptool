@@ -14,8 +14,6 @@
  */
 package net.rptools.maptool.client.ui;
 
-import static net.rptools.maptool.client.AppActions.withMenuShortcut;
-
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import net.miginfocom.swing.MigLayout;
+import net.rptools.maptool.client.AppActions;
 import net.rptools.maptool.client.AppActions.TranslatedClientAction;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
@@ -54,7 +53,6 @@ import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.client.functions.TokenBarFunction;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.token.BooleanTokenOverlay;
-import net.rptools.maptool.client.ui.zone.FogUtil;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.CellPoint;
@@ -182,10 +180,10 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
 
   private JMenu createExposeMenu() {
     JMenu menu = new JMenu(I18N.getText("token.popup.menu.fow.expose"));
-    menu.add(new ExposeVisibleAreaAction());
-    menu.add(new ExposeLastPathAction());
+    menu.add(AppActions.EXPOSE_VISIBLE_AREA_ACTION);
+    menu.add(AppActions.EXPOSE_LAST_PATH_ACTION);
     if (MapTool.getPlayer().getRole() == Role.GM) {
-      menu.add(new ExposeVisibleAreaOnlyAction());
+      menu.add(AppActions.EXPOSE_VISIBLE_AREA_ONLY_ACTION);
     }
     menu.setEnabled(getTokenUnderMouse().getHasSight());
     return menu;
@@ -313,44 +311,6 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
               .updateExposedAreaMeta(zone.getId(), token.getExposedAreaGUID(), meta);
         }
       }
-      getRenderer().repaint();
-    }
-  }
-
-  private class ExposeVisibleAreaAction extends TranslatedClientAction {
-    public ExposeVisibleAreaAction() {
-      super("token.popup.menu.expose.visible", withMenuShortcut(KeyStroke.getKeyStroke("I")));
-    }
-
-    @Override
-    protected void executeAction() {
-      FogUtil.exposeVisibleArea(getRenderer(), selectedTokenSet, true);
-      getRenderer().repaint();
-    }
-  }
-
-  private class ExposeVisibleAreaOnlyAction extends TranslatedClientAction {
-    public ExposeVisibleAreaOnlyAction() {
-      super(
-          "token.popup.menu.expose.currentonly",
-          withMenuShortcut(KeyStroke.getKeyStroke("shift O")));
-    }
-
-    @Override
-    protected void executeAction() {
-      FogUtil.exposePCArea(getRenderer());
-    }
-  }
-
-  private class ExposeLastPathAction extends TranslatedClientAction {
-    public ExposeLastPathAction() {
-      super("token.popup.menu.expose.lastpath", withMenuShortcut(KeyStroke.getKeyStroke("P")));
-      setEnabled(getTokenUnderMouse().getLastPath() != null);
-    }
-
-    @Override
-    protected void executeAction() {
-      FogUtil.exposeLastPath(getRenderer(), selectedTokenSet);
       getRenderer().repaint();
     }
   }
@@ -519,6 +479,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
 
   @Override
   public void showPopup(JComponent component) {
+    AppActions.updateActions();
     show(component, x, y);
   }
 
