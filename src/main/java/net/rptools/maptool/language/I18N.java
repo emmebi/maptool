@@ -198,9 +198,13 @@ public class I18N {
   public static void setAction(String key, Action action) {
     action.putValue(Action.NAME, getText(key));
     int mnemonic = getMnemonic(key);
-    if (mnemonic != -1) action.putValue(Action.MNEMONIC_KEY, mnemonic);
+    if (mnemonic != -1) {
+      action.putValue(Action.MNEMONIC_KEY, mnemonic);
+    }
     String description = getDescription(key);
-    if (description != null) action.putValue(Action.SHORT_DESCRIPTION, description);
+    if (description != null) {
+      action.putValue(Action.SHORT_DESCRIPTION, description);
+    }
   }
 
   /**

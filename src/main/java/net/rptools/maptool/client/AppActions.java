@@ -3170,18 +3170,8 @@ public class AppActions {
 
     protected TranslatedClientAction(String i18nKey, @Nullable KeyStroke accelerator) {
       super(accelerator);
-
       this.i18nKey = i18nKey;
-      putValue(Action.NAME, I18N.getText(i18nKey));
-      int mnemonic = I18N.getMnemonic(i18nKey);
-      if (mnemonic >= 0) {
-        putValue(Action.MNEMONIC_KEY, mnemonic);
-      }
-
-      String description = I18N.getDescription(i18nKey);
-      if (description != null) {
-        putValue(Action.SHORT_DESCRIPTION, description);
-      }
+      I18N.setAction(i18nKey, this);
     }
 
     public final String getI18nKey() {
