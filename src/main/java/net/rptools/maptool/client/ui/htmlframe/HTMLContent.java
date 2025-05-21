@@ -44,9 +44,6 @@ import org.jsoup.parser.Tag;
  */
 public class HTMLContent {
 
-  /** Magic value that window.status must take to initiate the bridge. */
-  public static final String BRIDGE_VALUE = "MY_INITIALIZING_VALUE";
-
   /** JS to initialize the Java bridge. Needs to be the first script of the page. */
   private static final String SCRIPT_BRIDGE =
       String.format("window.status = '%s'; window.status = '';", JavaBridge.BRIDGE_VALUE);
@@ -275,10 +272,14 @@ public class HTMLContent {
    *
    * @param url the URL of the HTML content
    * @return the HTMLContent object with the Java Bridge ad base URL injected.
+   * @throws IllegalStateException if the HTML content is not a string.
    */
   public HTMLContent injectJavaBridgeAndBaseUrl(@Nullable URL url) {
     if (javaBridgeInjected && baseUrlInjected) {
       return this; // both already injected so return the same object
+    }
+    if (!isHTMLString()) {
+      new IllegalStateException("HTMLContent is not a string");
     }
     var newHtml = htmlString;
     var document = Jsoup.parse(newHtml);
@@ -348,7 +349,7 @@ public class HTMLContent {
     } catch (InterruptedException | ExecutionException e) {
       throw new IOException(e);
     }
-    throw new IOException("Unable to read location " + url.toExternalForm());
+    throw new IOException(I18N.getText("msg.error.html.loadingURL", url.toExternalForm()));
   }
 
   /**
