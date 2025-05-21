@@ -2050,162 +2050,155 @@ public class AppActions {
 
         @Override
         protected void executeAction() {
-          runBackground(
-              () -> {
-                if (!MapTool.isPersonalServer()) {
-                  MapTool.showError("msg.error.alreadyRunningServer");
-                  return;
-                }
+          if (!MapTool.isPersonalServer()) {
+            MapTool.showError("msg.error.alreadyRunningServer");
+            return;
+          }
 
-                StartServerDialog dialog = new StartServerDialog();
-                dialog.showDialog();
+          StartServerDialog dialog = new StartServerDialog();
+          dialog.showDialog();
 
-                if (!dialog.accepted()) { // Results stored in Preferences.userRoot()
-                  return;
-                }
+          if (!dialog.accepted()) { // Results stored in Preferences.userRoot()
+            return;
+          }
 
-                StartServerDialogPreferences serverProps =
-                    new StartServerDialogPreferences(); // data retrieved from
-                // Preferences.userRoot()
-                if (serverProps.getPort() > 65535) {
-                  MapTool.showError("ServerDialog.error.port.outOfRange");
-                  return;
-                }
+          StartServerDialogPreferences serverProps =
+              new StartServerDialogPreferences(); // data retrieved from
+          // Preferences.userRoot()
+          if (serverProps.getPort() > 65535) {
+            MapTool.showError("ServerDialog.error.port.outOfRange");
+            return;
+          }
 
-                ServerPolicy policy = new ServerPolicy();
-                policy.setAutoRevealOnMovement(serverProps.isAutoRevealOnMovement());
-                policy.setUseStrictTokenManagement(serverProps.getUseStrictTokenOwnership());
-                policy.setGmRevealsVisionForUnownedTokens(
-                    serverProps.getGmRevealsVisionForUnownedTokens());
-                policy.setPlayersCanRevealVision(serverProps.getPlayersCanRevealVision());
-                policy.setUseIndividualViews(serverProps.getUseIndividualViews());
-                policy.setPlayersReceiveCampaignMacros(
-                    serverProps.getPlayersReceiveCampaignMacros());
-                policy.setHiddenMapSelectUI(serverProps.getMapSelectUIHidden());
-                policy.setIsTokenEditorLocked(serverProps.getLockTokenEditOnStart());
-                policy.setIsMovementLocked(serverProps.getLockPlayerMovementOnStart());
-                policy.setDisablePlayerAssetPanel(serverProps.getPlayerLibraryLock());
+          ServerPolicy policy = new ServerPolicy();
+          policy.setAutoRevealOnMovement(serverProps.isAutoRevealOnMovement());
+          policy.setUseStrictTokenManagement(serverProps.getUseStrictTokenOwnership());
+          policy.setGmRevealsVisionForUnownedTokens(
+              serverProps.getGmRevealsVisionForUnownedTokens());
+          policy.setPlayersCanRevealVision(serverProps.getPlayersCanRevealVision());
+          policy.setUseIndividualViews(serverProps.getUseIndividualViews());
+          policy.setPlayersReceiveCampaignMacros(serverProps.getPlayersReceiveCampaignMacros());
+          policy.setHiddenMapSelectUI(serverProps.getMapSelectUIHidden());
+          policy.setIsTokenEditorLocked(serverProps.getLockTokenEditOnStart());
+          policy.setIsMovementLocked(serverProps.getLockPlayerMovementOnStart());
+          policy.setDisablePlayerAssetPanel(serverProps.getPlayerLibraryLock());
 
-                // Tool Tips for unformatted inline rolls.
-                policy.setUseToolTipsForDefaultRollFormat(
-                    serverProps.getUseToolTipsForUnformattedRolls());
+          // Tool Tips for unformatted inline rolls.
+          policy.setUseToolTipsForDefaultRollFormat(
+              serverProps.getUseToolTipsForUnformattedRolls());
 
-                // my addition
-                // Note: Restricted impersonation setting is the opposite of its label
-                // (Unrestricted when checked and restricted when unchecked)
-                policy.setRestrictedImpersonation(!serverProps.getRestrictedImpersonation());
-                policy.setMovementMetric(serverProps.getMovementMetric());
-                boolean useIF =
-                    serverProps.getUseIndividualViews() && serverProps.getUseIndividualFOW();
-                policy.setUseIndividualFOW(useIF);
+          // my addition
+          // Note: Restricted impersonation setting is the opposite of its label
+          // (Unrestricted when checked and restricted when unchecked)
+          policy.setRestrictedImpersonation(!serverProps.getRestrictedImpersonation());
+          policy.setMovementMetric(serverProps.getMovementMetric());
+          boolean useIF = serverProps.getUseIndividualViews() && serverProps.getUseIndividualFOW();
+          policy.setUseIndividualFOW(useIF);
 
-                String gmPassword;
-                String playerPassword;
+          String gmPassword;
+          String playerPassword;
 
-                if (!serverProps.getUsePasswordFile()) {
-                  gmPassword = serverProps.getGMPassword();
-                  playerPassword = serverProps.getPlayerPassword();
-                } else {
-                  gmPassword = new PasswordGenerator().getPassword();
-                  playerPassword = new PasswordGenerator().getPassword();
-                }
+          if (!serverProps.getUsePasswordFile()) {
+            gmPassword = serverProps.getGMPassword();
+            playerPassword = serverProps.getPlayerPassword();
+          } else {
+            gmPassword = new PasswordGenerator().getPassword();
+            playerPassword = new PasswordGenerator().getPassword();
+          }
 
-                ServerConfig config =
-                    new ServerConfig(
-                        serverProps.getUsername(),
-                        gmPassword,
-                        playerPassword,
-                        serverProps.getPort(),
-                        serverProps.getRPToolsName(),
-                        "localhost",
-                        serverProps.getUseEasyConnect(),
-                        serverProps.getUseWebRtc());
+          ServerConfig config =
+              new ServerConfig(
+                  serverProps.getUsername(),
+                  gmPassword,
+                  playerPassword,
+                  serverProps.getPort(),
+                  serverProps.getRPToolsName(),
+                  "localhost",
+                  serverProps.getUseEasyConnect(),
+                  serverProps.getUseWebRtc());
 
-                // Use the existing campaign
-                Campaign campaign = MapTool.getCampaign();
+          // Use the existing campaign
+          Campaign campaign = MapTool.getCampaign();
 
-                boolean failed = false;
-                try {
-                  MapTool.disconnect();
-                  MapTool.stopServer();
+          boolean failed = false;
+          try {
+            MapTool.disconnect();
+            MapTool.stopServer();
 
-                  campaign.setHasUsedFogToolbar(useIF);
+            campaign.setHasUsedFogToolbar(useIF);
 
-                  ServerSidePlayerDatabase playerDatabase;
-                  if (serverProps.getUsePasswordFile()) {
-                    PasswordFilePlayerDatabase db =
-                        PlayerDatabaseFactory.getPasswordFilePlayerDatabase();
-                    db.initialize();
-                    if (serverProps.getRole() == Role.GM) {
-                      db.addTemporaryPlayer(
-                          dialog.getUsernameTextField().getText(), Role.GM, gmPassword);
-                    } else {
-                      db.addTemporaryPlayer(
-                          dialog.getUsernameTextField().getText(), Role.PLAYER, playerPassword);
-                    }
-                    playerDatabase = db;
-                  } else {
-                    playerDatabase =
-                        PlayerDatabaseFactory.getDefaultPlayerDatabase(
-                            config.getPlayerPassword(), config.getGmPassword());
-                  }
-                  // Make a copy of the campaign since we don't coordinate local changes well ...
-                  // yet
+            ServerSidePlayerDatabase playerDatabase;
+            if (serverProps.getUsePasswordFile()) {
+              PasswordFilePlayerDatabase db = PlayerDatabaseFactory.getPasswordFilePlayerDatabase();
+              db.initialize();
+              if (serverProps.getRole() == Role.GM) {
+                db.addTemporaryPlayer(dialog.getUsernameTextField().getText(), Role.GM, gmPassword);
+              } else {
+                db.addTemporaryPlayer(
+                    dialog.getUsernameTextField().getText(), Role.PLAYER, playerPassword);
+              }
+              playerDatabase = db;
+            } else {
+              playerDatabase =
+                  PlayerDatabaseFactory.getDefaultPlayerDatabase(
+                      config.getPlayerPassword(), config.getGmPassword());
+            }
+            // Make a copy of the campaign since we don't coordinate local changes well ...
+            // yet
 
-                  Player.Role playerType = (Player.Role) dialog.getRoleCombo().getSelectedItem();
-                  final var player =
-                      new LocalPlayer(
-                          dialog.getUsernameTextField().getText(),
-                          playerType,
-                          (playerType == Role.GM) ? gmPassword : playerPassword);
+            Player.Role playerType = (Player.Role) dialog.getRoleCombo().getSelectedItem();
+            final var player =
+                new LocalPlayer(
+                    dialog.getUsernameTextField().getText(),
+                    playerType,
+                    (playerType == Role.GM) ? gmPassword : playerPassword);
 
-                  /*
-                   * JFJ 2010-10-27 The below creates a NEW campaign with a copy of the existing
-                   * campaign. However, this is NOT a full copy. In the constructor called below,
-                   * each zone from the
-                   * previous campaign(ie, the one passed in) is recreated. This means that only
-                   * some items for that campaign, zone(s), and token's are copied over when you
-                   * start a new server
-                   * instance.
-                   *
-                   * You need to modify either Campaign(Campaign) or Zone(Zone) to get any data
-                   * you need to persist from the pre-server campaign to the post server start up
-                   * campaign.
-                   */
-                  MapTool.startServer(
-                      dialog.getUsernameTextField().getText(),
-                      config,
-                      serverProps.getUseUPnP(),
-                      policy,
-                      campaign,
-                      playerDatabase,
-                      player);
-                } catch (UnknownHostException uh) {
-                  MapTool.showError("msg.error.invalidLocalhost", uh);
-                  failed = true;
-                } catch (IOException ioe) {
-                  MapTool.showError("msg.error.failedConnect", ioe);
-                  failed = true;
-                } catch (NoSuchAlgorithmException
-                    | InvalidAlgorithmParameterException
-                    | InvalidKeySpecException
-                    | NoSuchPaddingException
-                    | InvalidKeyException e) {
-                  MapTool.showError("msg.error.initializeCrypto", e);
-                  failed = true;
-                } catch (PasswordDatabaseException pwde) {
-                  MapTool.showError(pwde.getMessage());
-                  failed = true;
-                }
+            /*
+             * JFJ 2010-10-27 The below creates a NEW campaign with a copy of the existing
+             * campaign. However, this is NOT a full copy. In the constructor called below,
+             * each zone from the
+             * previous campaign(ie, the one passed in) is recreated. This means that only
+             * some items for that campaign, zone(s), and token's are copied over when you
+             * start a new server
+             * instance.
+             *
+             * You need to modify either Campaign(Campaign) or Zone(Zone) to get any data
+             * you need to persist from the pre-server campaign to the post server start up
+             * campaign.
+             */
+            MapTool.startServer(
+                dialog.getUsernameTextField().getText(),
+                config,
+                serverProps.getUseUPnP(),
+                policy,
+                campaign,
+                playerDatabase,
+                player);
+          } catch (UnknownHostException uh) {
+            MapTool.showError("msg.error.invalidLocalhost", uh);
+            failed = true;
+          } catch (IOException ioe) {
+            MapTool.showError("msg.error.failedConnect", ioe);
+            failed = true;
+          } catch (NoSuchAlgorithmException
+              | InvalidAlgorithmParameterException
+              | InvalidKeySpecException
+              | NoSuchPaddingException
+              | InvalidKeyException e) {
+            MapTool.showError("msg.error.initializeCrypto", e);
+            failed = true;
+          } catch (PasswordDatabaseException pwde) {
+            MapTool.showError(pwde.getMessage());
+            failed = true;
+          }
 
-                if (failed) {
-                  try {
-                    MapTool.startPersonalServer(campaign);
-                  } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-                    MapTool.showError("msg.error.failedStartPersonalServer", e);
-                  }
-                }
-              });
+          if (failed) {
+            try {
+              MapTool.startPersonalServer(campaign);
+            } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+              MapTool.showError("msg.error.failedStartPersonalServer", e);
+            }
+          }
         }
       };
 
@@ -2299,7 +2292,7 @@ public class AppActions {
           var password =
               prefs.getUsePublicKey() ? new PasswordGenerator().getPassword() : prefs.getPassword();
 
-          runBackground(() -> connectToServer(username, password, config));
+          connectToServer(username, password, config);
         }
       };
 
@@ -2932,16 +2925,15 @@ public class AppActions {
     }
   }
 
-  private static final int QUICK_MAP_ICON_SIZE = 25;
-
   public static class QuickMapAction extends AdminClientAction {
 
-    private MD5Key assetId;
+    private static final int QUICK_MAP_ICON_SIZE = 25;
+
+    private Asset asset;
 
     public QuickMapAction(String name, File imagePath) {
       try {
-        Asset asset = Asset.createImageAsset(name, FileUtils.readFileToByteArray(imagePath));
-        assetId = asset.getMD5Key();
+        asset = Asset.createImageAsset(name, FileUtils.readFileToByteArray(imagePath));
 
         // Make smaller
         BufferedImage iconImage =
@@ -2968,16 +2960,11 @@ public class AppActions {
 
     @Override
     protected void executeAction() {
-      runBackground(
-          () -> {
-            Asset asset = AssetManager.getAsset(assetId);
+      Zone zone = ZoneFactory.createZone();
+      zone.setBackgroundPaint(new DrawableTexturePaint(asset.getMD5Key()));
+      zone.setName(asset.getName());
 
-            Zone zone = ZoneFactory.createZone();
-            zone.setBackgroundPaint(new DrawableTexturePaint(asset.getMD5Key()));
-            zone.setName(asset.getName());
-
-            MapTool.addZone(zone);
-          });
+      MapTool.addZone(zone);
     }
   }
 
@@ -2989,19 +2976,16 @@ public class AppActions {
 
         @Override
         protected void executeAction() {
-          runBackground(
-              () -> {
-                Zone zone = ZoneFactory.createZone();
-                MapPropertiesDialog newMapDialog =
-                    MapPropertiesDialog.createMapPropertiesDialog(MapTool.getFrame());
-                newMapDialog.setZone(zone);
+          Zone zone = ZoneFactory.createZone();
+          MapPropertiesDialog newMapDialog =
+              MapPropertiesDialog.createMapPropertiesDialog(MapTool.getFrame());
+          newMapDialog.setZone(zone);
 
-                newMapDialog.setVisible(true);
+          newMapDialog.setVisible(true);
 
-                if (newMapDialog.getStatus() == MapPropertiesDialog.Status.OK) {
-                  MapTool.addZone(zone);
-                }
-              });
+          if (newMapDialog.getStatus() == MapPropertiesDialog.Status.OK) {
+            MapTool.addZone(zone);
+          }
         }
       };
 
@@ -3013,18 +2997,15 @@ public class AppActions {
 
         @Override
         protected void executeAction() {
-          runBackground(
-              () -> {
-                Zone zone = MapTool.getFrame().getCurrentZoneRenderer().getZone();
-                MapPropertiesDialog newMapDialog =
-                    MapPropertiesDialog.createMapPropertiesDialog(MapTool.getFrame());
-                newMapDialog.setZone(zone);
-                newMapDialog.setVisible(true);
-                MapTool.serverCommand().removeZone(zone.getId());
-                MapTool.serverCommand().putZone(zone);
-                MapTool.getFrame()
-                    .setCurrentZoneRenderer(MapTool.getFrame().getCurrentZoneRenderer());
-              });
+          Zone zone = MapTool.getFrame().getCurrentZoneRenderer().getZone();
+          MapPropertiesDialog newMapDialog =
+              MapPropertiesDialog.createMapPropertiesDialog(MapTool.getFrame());
+          newMapDialog.setZone(zone);
+          newMapDialog.setVisible(true);
+
+          MapTool.serverCommand().removeZone(zone.getId());
+          MapTool.serverCommand().putZone(zone);
+          MapTool.getFrame().setCurrentZoneRenderer(MapTool.getFrame().getCurrentZoneRenderer());
         }
       };
 
@@ -3048,11 +3029,8 @@ public class AppActions {
 
         @Override
         protected void executeAction() {
-          runBackground(
-              () -> {
-                AddResourceDialog dialog = new AddResourceDialog();
-                dialog.showDialog();
-              });
+          AddResourceDialog dialog = new AddResourceDialog();
+          dialog.showDialog();
         }
       };
 
@@ -3276,16 +3254,6 @@ public class AppActions {
     }
 
     protected abstract void executeAction();
-
-    public void runBackground(final Runnable r) {
-      new Thread(
-              () -> {
-                r.run();
-
-                updateActions();
-              })
-          .start();
-    }
   }
 
   /**
