@@ -862,25 +862,7 @@ public class PointerTool extends DefaultTool {
     actionMap.put(AppActions.CUT_TOKENS.getKeyStroke(), AppActions.CUT_TOKENS);
     actionMap.put(AppActions.COPY_TOKENS.getKeyStroke(), AppActions.COPY_TOKENS);
     actionMap.put(AppActions.PASTE_TOKENS.getKeyStroke(), AppActions.PASTE_TOKENS);
-    actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_R, AppActions.menuShortcut),
-        new AbstractAction() {
-          private static final long serialVersionUID = 1L;
-
-          public void actionPerformed(ActionEvent e) {
-            if (renderer.getSelectedTokenSet().isEmpty()) {
-              return;
-            }
-            Toolbox toolbox = MapTool.getFrame().getToolbox();
-
-            FacingTool tool = toolbox.getTool(FacingTool.class);
-            tool.init(
-                renderer.getZone().getToken(renderer.getSelectedTokenSet().iterator().next()),
-                renderer.getSelectedTokenSet());
-
-            toolbox.setSelectedTool(FacingTool.class);
-          }
-        });
+    actionMap.put(AppActions.SET_FACING_ACTION.getKeyStroke(), AppActions.SET_FACING_ACTION);
 
     actionMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), ToolHelper.getDeleteTokenAction());
     actionMap.put(
@@ -1013,55 +995,15 @@ public class PointerTool extends DefaultTool {
         });
 
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_I, AppActions.menuShortcut),
-        new AbstractAction() {
-          private static final long serialVersionUID = 1L;
-
-          public void actionPerformed(ActionEvent e) {
-            if (MapTool.getPlayer().isGM()
-                || MapTool.getServerPolicy().getPlayersCanRevealVision()) {
-              FogUtil.exposeVisibleArea(
-                  renderer, renderer.getOwnedTokens(renderer.getSelectedTokenSet()));
-            }
-          }
-        });
+        AppActions.EXPOSE_VISIBLE_AREA_ACTION.getKeyStroke(),
+        AppActions.EXPOSE_VISIBLE_AREA_ACTION);
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_O, AppActions.menuShortcut | InputEvent.SHIFT_DOWN_MASK),
-        new AbstractAction() {
-          private static final long serialVersionUID = 1L;
-
-          public void actionPerformed(ActionEvent e) {
-            // Only let the GM's do this
-            if (MapTool.getPlayer().isGM()) {
-              FogUtil.exposePCArea(renderer);
-            }
-          }
-        });
+        AppActions.EXPOSE_VISIBLE_AREA_ONLY_ACTION.getKeyStroke(),
+        AppActions.EXPOSE_VISIBLE_AREA_ONLY_ACTION);
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_F, AppActions.menuShortcut | InputEvent.SHIFT_DOWN_MASK),
-        new AbstractAction() {
-          private static final long serialVersionUID = 1L;
-
-          public void actionPerformed(ActionEvent e) {
-            // Only let the GM's do this
-            if (MapTool.getPlayer().isGM()) {
-              FogUtil.exposeAllOwnedArea(renderer);
-            }
-          }
-        });
+        AppActions.EXPOSE_ALL_OWNED_ACTION.getKeyStroke(), AppActions.EXPOSE_ALL_OWNED_ACTION);
     actionMap.put(
-        KeyStroke.getKeyStroke(KeyEvent.VK_P, AppActions.menuShortcut),
-        new AbstractAction() {
-          private static final long serialVersionUID = 1L;
-
-          public void actionPerformed(ActionEvent e) {
-            if (MapTool.getPlayer().isGM()
-                || MapTool.getServerPolicy().getPlayersCanRevealVision()) {
-              FogUtil.exposeLastPath(
-                  renderer, renderer.getOwnedTokens(renderer.getSelectedTokenSet()));
-            }
-          }
-        });
+        AppActions.EXPOSE_LAST_PATH_ACTION.getKeyStroke(), AppActions.EXPOSE_LAST_PATH_ACTION);
   }
 
   /**

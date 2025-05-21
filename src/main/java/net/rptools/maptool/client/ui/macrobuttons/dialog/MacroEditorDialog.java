@@ -14,6 +14,8 @@
  */
 package net.rptools.maptool.client.ui.macrobuttons.dialog;
 
+import static net.rptools.maptool.client.AppActions.withMenuShortcut;
+
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -23,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -592,23 +595,28 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     menu.add(new JMenuItem(new GoToLineAction()));
     menu.addSeparator();
 
-    menu.add(bottomComponent("action.macroEditor.showFindSearchBar", findToolBar)); // shift
-    // f
-    menu.add(bottomComponent("action.macroEditor.showReplaceSearchBar", replaceToolBar)); // shift
-    // h
+    menu.add(
+        bottomComponent(
+            "action.macroEditor.showFindSearchBar",
+            withMenuShortcut(KeyStroke.getKeyStroke("shift F")),
+            findToolBar));
+    menu.add(
+        bottomComponent(
+            "action.macroEditor.showReplaceSearchBar",
+            withMenuShortcut(KeyStroke.getKeyStroke("shift H")),
+            replaceToolBar));
   }
 
   /**
    * Creates the slide-up panel at the bottom of the macro editor dialog panel.
    *
-   * @param key string key to lookup in the properties file (used to call {@link I18N#getKeystroke}
-   *     and {@link I18N#getText}
+   * @param key string key to lookup in the properties file.
+   * @param accelerator the accelerator key for the component's action.
    * @param tb the toolbar that is meant to slide up
    * @return new JMenuItem containing the new {@link Action}
    */
-  private JMenuItem bottomComponent(String key, FindToolBar tb) {
-    KeyStroke k = I18N.getKeystroke(key);
-    Action a = csp.addBottomComponent(k, tb);
+  private JMenuItem bottomComponent(String key, @Nullable KeyStroke accelerator, FindToolBar tb) {
+    Action a = csp.addBottomComponent(accelerator, tb);
     a.putValue(Action.NAME, I18N.getText(key));
     return new JMenuItem(a);
   }
@@ -653,11 +661,11 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class ShowFindDialogAction extends AppActions.DefaultClientAction {
-    MacroEditorDialog callingDialog;
+  private class ShowFindDialogAction extends AppActions.TranslatedClientAction {
+    private final MacroEditorDialog callingDialog;
 
     public ShowFindDialogAction(MacroEditorDialog macroButtonDialog) {
-      init("action.macroEditor.searchFind");
+      super("action.macroEditor.searchFind", withMenuShortcut(KeyStroke.getKeyStroke("F")));
       callingDialog = macroButtonDialog;
     }
 
@@ -671,11 +679,11 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class ShowReplaceDialogAction extends AppActions.DefaultClientAction {
-    MacroEditorDialog callingDialog;
+  private class ShowReplaceDialogAction extends AppActions.TranslatedClientAction {
+    private final MacroEditorDialog callingDialog;
 
     public ShowReplaceDialogAction(MacroEditorDialog macroButtonDialog) {
-      init("action.macroEditor.searchReplace");
+      super("action.macroEditor.searchReplace", withMenuShortcut(KeyStroke.getKeyStroke("H")));
       callingDialog = macroButtonDialog;
     }
 
@@ -689,9 +697,9 @@ public class MacroEditorDialog extends JDialog implements SearchListener {
     }
   }
 
-  private class GoToLineAction extends AppActions.DefaultClientAction {
+  private class GoToLineAction extends AppActions.TranslatedClientAction {
     public GoToLineAction() {
-      init("action.macroEditor.gotoLine");
+      super("action.macroEditor.gotoLine", withMenuShortcut(KeyStroke.getKeyStroke("L")));
     }
 
     @Override

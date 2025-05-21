@@ -36,7 +36,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -845,64 +844,6 @@ public abstract class AbstractTokenPopupMenu extends JPopupMenu {
         Token.Update update = Token.Update.setSnapToGridAndXY;
         MapTool.serverCommand().updateTokenProperty(token, update, !snapToGrid, zp.x, zp.y);
       }
-    }
-  }
-
-  /** Internal class used to handle token state changes. */
-  public class ChangeStateAction extends AbstractAction {
-
-    /**
-     * Initialize a state action for a given state.
-     *
-     * @param state The name of the state set when this action is executed
-     */
-    public ChangeStateAction(String state) {
-      putValue(ACTION_COMMAND_KEY, state); // Set the state command
-
-      // Load the name, mnemonic, accelerator, and description if
-      // available
-      String key = "defaultTool.stateAction." + state;
-      String name = net.rptools.maptool.language.I18N.getText(key);
-      if (!name.equals(key)) {
-        putValue(NAME, name);
-        int mnemonic = I18N.getMnemonic(key);
-        if (mnemonic != -1) putValue(MNEMONIC_KEY, mnemonic);
-        String accel = I18N.getAccelerator(key);
-        if (accel != null) putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(accel));
-        String description = I18N.getDescription(key);
-        if (description != null) putValue(SHORT_DESCRIPTION, description);
-      } else {
-
-        // Default name if no I18N set
-        putValue(NAME, state);
-      } // endif
-    }
-
-    /**
-     * Set the state for all of the selected tokens.
-     *
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent aE) {
-      ZoneRenderer renderer = MapTool.getFrame().getCurrentZoneRenderer();
-      for (GUID tokenGUID : selectedTokenSet) {
-        Token token = renderer.getZone().getToken(tokenGUID);
-        if (aE.getActionCommand().equals("clear")) {
-          // Wipe out the entire state HashMap, this is what the previous
-          // code attempted to do but was failing due to the Set returned
-          // by getStatePropertyNames being a non-static view into a set.
-          // Removing items from the map was messing up the iteration.
-          // Here, clear all states, unfortunately, including light.
-          token.getStatePropertyNames().clear();
-        } else {
-          token.setState(
-              aE.getActionCommand(),
-              ((JCheckBoxMenuItem) aE.getSource()).isSelected() ? Boolean.TRUE : null);
-        }
-        renderer.flush(token);
-        MapTool.serverCommand().putToken(renderer.getZone().getId(), token);
-      }
-      renderer.repaint();
     }
   }
 
