@@ -230,7 +230,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
       tokID = theTokId;
       Token sourceToken = getRenderer().getZone().getToken(tokID);
       String tokensView = I18N.getText("token.popup.menu.fow.tokens.view", sourceToken.getName());
-      I18N.setAction(tokensView, this, true);
+      I18N.setAction(tokensView, this);
     }
 
     @Override
@@ -257,7 +257,7 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     private static final long serialVersionUID = 3672180436608883849L;
 
     public AddPartyExposedAreaAction() {
-      I18N.setAction("token.popup.menu.fow.party", this, true);
+      I18N.setAction("token.popup.menu.fow.party", this);
     }
 
     @Override
@@ -292,36 +292,11 @@ public class TokenPopupMenu extends AbstractTokenPopupMenu {
     }
   }
 
-  @SuppressWarnings("unused")
-  private class AddGlobalExposedAreaAction extends AbstractAction {
-    private static final long serialVersionUID = -3558008167872719635L;
-
-    public AddGlobalExposedAreaAction() {
-      I18N.setAction("token.popup.menu.fow.global", this, true);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Zone zone = getRenderer().getZone();
-      Area area = zone.getExposedArea();
-      for (GUID tok : selectedTokenSet) {
-        Token token = zone.getToken(tok);
-        ExposedAreaMetaData meta = zone.getExposedAreaMetaData(token.getExposedAreaGUID());
-        meta.addToExposedAreaHistory(area);
-        getRenderer().flush(token);
-        zone.setExposedAreaMetaData(token.getExposedAreaGUID(), meta);
-        MapTool.serverCommand()
-            .updateExposedAreaMeta(zone.getId(), token.getExposedAreaGUID(), meta);
-      }
-      getRenderer().repaint();
-    }
-  }
-
   private class ClearSelectedExposedAreaAction extends AbstractAction {
     private static final long serialVersionUID = 7969000504336361693L;
 
     public ClearSelectedExposedAreaAction() {
-      I18N.setAction("token.popup.menu.fow.clearselected", this, true);
+      I18N.setAction("token.popup.menu.fow.clearselected", this);
     }
 
     @Override
