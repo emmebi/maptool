@@ -19,14 +19,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.sun.webkit.WebPage;
 import com.sun.webkit.dom.HTMLSelectElementImpl;
-import java.awt.*;
+import java.awt.AWTEventMulticaster;
 import java.awt.event.ActionListener;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -43,10 +42,15 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.web.*;
+import javafx.scene.web.PopupFeatures;
+import javafx.scene.web.PromptData;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebErrorEvent;
+import javafx.scene.web.WebEvent;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javax.swing.*;
+import javax.swing.SwingUtilities;
 import net.rptools.lib.FileUtil;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
@@ -59,10 +63,24 @@ import net.rptools.maptool.util.PromiseUtil;
 import netscape.javascript.JSObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.w3c.dom.events.EventListener;
 import org.w3c.dom.events.EventTarget;
-import org.w3c.dom.html.*;
+import org.w3c.dom.html.HTMLAnchorElement;
+import org.w3c.dom.html.HTMLAreaElement;
+import org.w3c.dom.html.HTMLButtonElement;
+import org.w3c.dom.html.HTMLCollection;
+import org.w3c.dom.html.HTMLElement;
+import org.w3c.dom.html.HTMLFormElement;
+import org.w3c.dom.html.HTMLInputElement;
+import org.w3c.dom.html.HTMLOptionElement;
+import org.w3c.dom.html.HTMLSelectElement;
+import org.w3c.dom.html.HTMLTextAreaElement;
 
 /** The manager for a WebView that can display HTML5. */
 public class HTMLWebViewManager {
@@ -213,23 +231,6 @@ public class HTMLWebViewManager {
     }
   }
 
-  /** Meta-tag that blocks external file access. */
-  private static final String SCRIPT_BLOCK_EXT =
-      "<meta http-equiv=\"Content-Security-Policy\" "
-          + "content=\" "
-          + " default-src asset: lib: "
-          + " https://code.jquery.com " // JQuery CDN
-          + " https://cdn.jsdelivr.net " // JSDelivr CDN
-          + " https://stackpath.bootstrapcdn.com " // Bootstrap CDN
-          + " https://unpkg.com " // unpkg CDN
-          + " https://cdnjs.cloudflare.com " // CloudFlare JS CDN
-          + " https://ajax.googleapis.com " // Google CDN
-          + " https://fonts.googleapis.com  https://fonts.gstatic.com " // Google Fonts
-          + " 'unsafe-inline' 'unsafe-eval' ; "
-          + " img-src * asset: lib: ; "
-          + " font-src https://fonts.gstatic.com 'self'"
-          + "\">\n";
-
   /** The default rule for the body tag. */
   static final String CSS_BODY =
       "body { font-family: sans-serif; font-size: %dpt; background: #ECE9D8;}";
@@ -243,11 +244,6 @@ public class HTMLWebViewManager {
   /** JS that scroll the view to an element from its Id. */
   private static final String SCRIPT_ANCHOR =
       "element = document.getElementById('%s'); if(element != null) {element.scrollIntoView();}";
-
-  /** JS to initialize the Java bridge. Needs to be the first script of the page. */
-  private static final String SCRIPT_BRIDGE =
-      String.format(
-          "<SCRIPT>window.status = '%s'; window.status = '';</SCRIPT>", JavaBridge.BRIDGE_VALUE);
 
   private static final String[] INITIALIZATION_SCRIPTS = {
     "net/rptools/maptool/client/html5/javascript/Console.js",
@@ -310,6 +306,7 @@ public class HTMLWebViewManager {
     // Delete cache for navigate back
     webEngine.load("about:blank");
     // Delete cookies
+
     java.net.CookieHandler.setDefault(new java.net.CookieManager());
 
     // This may look pointless, but we need new objects on JFX <22 to avoid peering issues.
@@ -319,7 +316,13 @@ public class HTMLWebViewManager {
     isFlushed = true;
   }
 
-  public void updateContents(String html, boolean scrollReset) {
+  /**
+   * Upate the contents of the WebView with the HTMLContent.
+   *
+   * @param htmlContent the HTMLContent to display.
+   * @param scrollReset true if the scrolling should be reset, false otherwise.
+   */
+  public void updateContents(HTMLContent htmlContent, boolean scrollReset) {
     this.scrollReset = scrollReset;
     // If the WebView has been flushed, the scrolling has already been stored
     if (!scrollReset && !isFlushed) {
@@ -328,10 +331,11 @@ public class HTMLWebViewManager {
     }
     isFlushed = false;
 
-    String fixedHtml = SCRIPT_BLOCK_EXT + SCRIPT_BRIDGE + HTMLPanelInterface.fixHTML(html);
-    String encodedHtml =
-        Base64.getEncoder().encodeToString(fixedHtml.getBytes(StandardCharsets.UTF_8));
-    webEngine.load("data:text/html;base64," + encodedHtml);
+    if (htmlContent.isUrl()) {
+      webEngine.load(htmlContent.getUrl().toString());
+    } else {
+      webEngine.load(htmlContent.injectJavaBridge().getHtmlStringAsDataUrl());
+    }
   }
 
   /**

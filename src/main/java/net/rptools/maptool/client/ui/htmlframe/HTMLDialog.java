@@ -199,7 +199,7 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
    * @param scrollReset whether the scrollbar should be reset
    * @param isHTML5 whether the frame should support HTML5
    * @param value a value to be returned by getDialogProperties()
-   * @param html the HTML to display in the dialog
+   * @param htmlContent the HTML to display in the dialog
    * @return the dialog
    */
   static HTMLDialog showDialog(
@@ -214,7 +214,7 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
       boolean scrollReset,
       boolean isHTML5,
       Object value,
-      String html) {
+      HTMLContent htmlContent) {
     HTMLDialog dialog;
     if (dialogs.containsKey(name)) {
       dialog = dialogs.get(name);
@@ -223,7 +223,7 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
       dialogs.put(name, dialog);
     }
     dialog.updateContents(
-        html, title, frame, input, temp, closeButton, scrollReset, isHTML5, value);
+        htmlContent, title, frame, input, temp, closeButton, scrollReset, isHTML5, value);
 
     if (!dialog.isVisible()) {
       dialog.setVisible(true);
@@ -331,7 +331,7 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
   /**
    * Updates the contents of the dialog.
    *
-   * @param html the html contents of the dialog
+   * @param htmlContent the html contents of the dialog
    * @param title the title of the dialog
    * @param decorated whether to decorate form with frame and title bar
    * @param input whether to close the dialog on form submit
@@ -342,7 +342,7 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
    * @param val the value held in the frame
    */
   private void updateContents(
-      String html,
+      HTMLContent htmlContent,
       String title,
       boolean decorated,
       boolean input,
@@ -368,7 +368,7 @@ public class HTMLDialog extends JDialog implements HTMLPanelContainer {
     this.setTitle(title);
     macroCallbacks.clear();
     updateButton(closeButton);
-    panel.updateContents(html, scrollReset);
+    panel.updateContents(htmlContent, scrollReset);
   }
 
   /**
