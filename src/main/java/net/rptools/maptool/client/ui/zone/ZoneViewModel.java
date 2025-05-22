@@ -50,6 +50,7 @@ public class ZoneViewModel {
   private final Zone zone;
   // TODO Use array list
   private PlayerView view = new PlayerView(Player.Role.PLAYER);
+  private Rectangle2D viewport = new Rectangle2D.Double();
   private final SelectionModel selectionModel;
 
   private final List<Token> selectedTokenList = new ArrayList<>();
@@ -71,9 +72,38 @@ public class ZoneViewModel {
   }
 
   public void update() {
+    updateViewport();
     updateSelectedTokensList();
     updatePlayerView();
     updateTokenPositions();
+  }
+
+  // What follows are "systems".
+
+  private void updateViewport() {
+    var renderer = MapTool.getFrame().getZoneRenderer(this.zone);
+    if (renderer == null) {
+      // No viewport.
+      viewport.setFrame(0, 0, 0, 0);
+      return;
+    }
+
+    var width = renderer.getWidth();
+    var height = renderer.getHeight();
+    var zoneScale = renderer.getZoneScale();
+    var scale = zoneScale.getScale();
+
+    if (scale <= 0) {
+      // Not a valid scale.
+      viewport.setFrame(0, 0, 0, 0);
+      return;
+    }
+
+    viewport.setFrame(
+        -zoneScale.getOffsetX() / scale,
+        -zoneScale.getOffsetY() / scale,
+        width / scale,
+        height / scale);
   }
 
   private void updateSelectedTokensList() {
@@ -86,8 +116,6 @@ public class ZoneViewModel {
       }
     }
   }
-
-  // What follows are "systems".
 
   private void updatePlayerView() {
     var selected = true;
