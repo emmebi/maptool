@@ -88,6 +88,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   /** DebounceExecutor for throttling repaint() requests. */
   private final DebounceExecutor repaintDebouncer;
 
+  private final ZoneViewModel viewModel;
+
   /** Noise for mask on repeating tiles. */
   private DrawableNoise noise = null;
 
@@ -181,6 +183,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       throw new IllegalArgumentException("Zone cannot be null");
     }
     this.zone = zone;
+    this.viewModel = new ZoneViewModel(zone);
     zoneView = new ZoneView(zone);
     setZoneScale(new Scale());
 
@@ -881,8 +884,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   public void update() {
     skipDrawing = MapTool.getFrame().getGdxPanel().isVisible();
 
+    viewModel.update();
+
     // Clear internal state
-    tokenPositionMap.clear();
     markerPositionList.clear();
     itemRenderList.clear();
 
@@ -1994,7 +1998,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * for the given layer
    */
   private List<TokenPosition> getTokenPositions(Zone.Layer layer) {
-    return tokenPositionMap.getOrDefault(layer, Collections.emptyList());
+    return viewModel.getTokenPositionsForLayer(layer);
   }
 
   protected void renderTokens(Graphics2D g, List<Token> tokenList, PlayerView view) {
@@ -2678,15 +2682,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @return List of tokens
    */
   public List<Token> getSelectedTokensList() {
-    List<Token> tokenList = new ArrayList<>();
-
-    for (GUID g : selectionModel.getSelectedTokenIds()) {
-      final var token = zone.getToken(g);
-      if (token != null) {
-        tokenList.add(token);
-      }
-    }
-    return tokenList;
+    return viewModel.getSelectedTokenList();
   }
 
   /**
