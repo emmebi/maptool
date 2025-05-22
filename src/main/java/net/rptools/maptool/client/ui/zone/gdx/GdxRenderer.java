@@ -263,6 +263,8 @@ public class GdxRenderer extends ApplicationAdapter {
 
   @Override
   public void render() {
+    zoneCache.getZoneRenderer().update();
+
     // System.out.println("FPS:   " + Gdx.graphics.getFramesPerSecond());
     var delta = Gdx.graphics.getDeltaTime();
     stateTime += delta;
