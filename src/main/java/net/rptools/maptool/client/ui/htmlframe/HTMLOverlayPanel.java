@@ -247,16 +247,17 @@ public class HTMLOverlayPanel extends JFXPanel {
    * @param name the name of the overlay
    * @param zOrder the zOrder of the overlay
    * @param locked the locked state of the overlay
-   * @param html the HTML of the overlay
+   * @param htmlContent the HTML of the overlay
    */
-  public void showOverlay(String name, int zOrder, boolean locked, String html, Object frameValue) {
+  public void showOverlay(
+      String name, int zOrder, boolean locked, HTMLContent htmlContent, Object frameValue) {
     getDropTarget().setActive(false); // disables drop on overlay, drop goes to map
     setVisible(true);
     Platform.runLater(
         () -> {
           HTMLOverlayManager overlayManager = getOverlay(name);
           if (overlayManager != null) {
-            if ("".equals(html)) {
+            if ("".equals(htmlContent)) {
               // Blank removes the overlay
               removeOverlay(overlayManager);
               return;
@@ -281,7 +282,7 @@ public class HTMLOverlayPanel extends JFXPanel {
             }
           }
           sortOverlays();
-          overlayManager.updateContents(html, true);
+          overlayManager.updateContents(htmlContent, true);
           if (frameValue != null) {
             overlayManager.setValue(frameValue);
           }
