@@ -1950,9 +1950,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     List<Token> list = new ArrayList<>();
 
     // Always assume tokens, for now
-    List<TokenPosition> tokenPositionListCopy =
-        new ArrayList<>(getTokenPositions(getActiveLayer()));
-    for (TokenPosition location : tokenPositionListCopy) {
+    for (TokenPosition location : getTokenPositions(getActiveLayer())) {
       list.add(location.token);
     }
 
@@ -1990,7 +1988,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * for the given layer
    */
   private List<TokenPosition> getTokenPositions(Zone.Layer layer) {
-    return tokenPositionMap.computeIfAbsent(layer, k -> new LinkedList<>());
+    return tokenPositionMap.getOrDefault(layer, Collections.emptyList());
   }
 
   protected void renderTokens(Graphics2D g, List<Token> tokenList, PlayerView view) {
@@ -2169,10 +2167,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       // Note the order -- the top most token is at the end of the list
       timer.start("renderTokens:Locations");
       Zone.Layer layer = token.getLayer();
-      List<TokenPosition> locationList = getTokenPositions(layer);
-      if (locationList != null) {
-        locationList.add(position);
-      }
+
+      List<TokenPosition> locationList =
+          tokenPositionMap.computeIfAbsent(layer, l -> new LinkedList<>());
+      locationList.add(position);
       timer.stop("renderTokens:Locations");
 
       // Add the token to our visible set.
