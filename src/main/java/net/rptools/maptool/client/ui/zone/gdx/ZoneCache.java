@@ -21,7 +21,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.video.VideoPlayer;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -322,7 +321,7 @@ public class ZoneCache implements Disposable {
     if (paint instanceof DrawableColorPaint) {
       var color = new Color();
       Color.argb8888ToColor(color, ((DrawableColorPaint) paint).getColor());
-      return new GdxPaint(color, null);
+      return new GdxPaint(color, whitePixelRegion);
     }
 
     var texturePaint = (DrawableTexturePaint) paint;
