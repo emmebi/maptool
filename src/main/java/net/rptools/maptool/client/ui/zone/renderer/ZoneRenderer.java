@@ -136,7 +136,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private Area visibleScreenArea;
   private final List<ItemRenderer> itemRenderList = new LinkedList<>();
   private PlayerView lastView;
-  private Set<GUID> visibleTokenSet = new HashSet<>();
 
   private boolean autoResizeStamp = false;
 
@@ -178,8 +177,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     this.zone = zone;
     selectionModel = new SelectionModel(zone);
-    this.viewModel = new ZoneViewModel(zone, selectionModel);
     zoneView = new ZoneView(zone);
+    this.viewModel = new ZoneViewModel(zone, zoneView, selectionModel);
     setZoneScale(new Scale());
 
     drawableRenderers =
@@ -1955,7 +1954,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     Rectangle clipBounds = g.getClipBounds();
     double scale = zoneScale.getScale();
-    Set<GUID> tempVisTokens = new HashSet<>();
 
     List<Token> tokenPostProcessing = new ArrayList<>(tokenList.size());
     for (Token token : tokenList) {
@@ -2037,40 +2035,14 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
                 footprintBounds.height,
                 scaledWidth,
                 scaledHeight);
-        // Too small ?
-        if (position.scaledHeight < 1 || position.scaledWidth < 1) {
+        if (!viewModel.getVisibleTokens(token.getLayer()).contains(token.getId())) {
+          // Token not on screen or otherwise not visible.
           continue;
-        }
-        // Vision visibility
-        if (!isGMView && token.getLayer().supportsVision() && zoneView.isUsingVision()) {
-          if (!GraphicsUtil.intersects(visibleScreenArea, position.bounds)) {
-            continue;
-          }
         }
       } finally {
         // This ensures that the timer is always stopped
         timer.stop("token-list-1e");
       }
-
-      // Keep track of the position on the screen
-      // Note the order -- the top most token is at the end of the list
-      timer.start("renderTokens:Locations");
-      Zone.Layer layer = token.getLayer();
-      timer.stop("renderTokens:Locations");
-
-      // Add the token to our visible set.
-      tempVisTokens.add(token.getId());
-
-      // Only draw if we're visible
-      // NOTE: this takes place AFTER resizing the image, that's so that the user
-      // suffers a pause only once while scaling, and not as new tokens are
-      // scrolled onto the screen
-      timer.start("renderTokens:OnscreenCheck");
-      if (!position.bounds.intersects(clipBounds)) {
-        timer.stop("renderTokens:OnscreenCheck");
-        continue;
-      }
-      timer.stop("renderTokens:OnscreenCheck");
 
       if (skipDrawing) continue;
 
@@ -2476,12 +2448,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       clippedG.dispose();
     }
     timer.stop("token-list-13");
-
-    if (figuresOnly) {
-      tempVisTokens.addAll(visibleTokenSet);
-    }
-
-    visibleTokenSet = Collections.unmodifiableSet(tempVisTokens);
   }
 
   /**
@@ -3048,11 +3014,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
   }
 
-  public Set<GUID> getVisibleTokenSet() {
-    return visibleTokenSet;
-  }
-
   public List<Token> getVisibleTokens() {
+    var visibleTokenSet = viewModel.getVisibleTokens(Layer.TOKEN);
+
     List<Token> tokenList = new ArrayList<>(visibleTokenSet.size());
     for (GUID id : visibleTokenSet) {
       tokenList.add(zone.getToken(id));

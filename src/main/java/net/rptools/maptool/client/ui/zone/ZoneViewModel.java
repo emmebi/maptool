@@ -40,6 +40,7 @@ import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.util.CollectionUtil;
+import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.StringUtil;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ public class ZoneViewModel {
 
   // region These are updated externally.
 
+  private final ZoneView zoneView;
   private final SelectionModel selectionModel;
 
   // endregion
@@ -75,6 +77,7 @@ public class ZoneViewModel {
 
   private PlayerView playerView = new PlayerView(Player.Role.PLAYER);
   private final Rectangle2D viewport = new Rectangle2D.Double();
+  private Area visibleArea = new Area();
 
   private final List<Token> selectedTokenList = new ArrayList<>();
 
@@ -88,10 +91,14 @@ public class ZoneViewModel {
   private final List<TokenPosition> markerList = new ArrayList<>();
   private final Map<Token, Set<Token>> tokenStackMap = new HashMap<>();
 
+  private final Map<Zone.Layer, Set<GUID>> visibleTokensByLayer =
+      CollectionUtil.newFilledEnumMap(Zone.Layer.class, layer -> new HashSet<>());
+
   // endregion
 
-  public ZoneViewModel(Zone zone, SelectionModel selectionModel) {
+  public ZoneViewModel(Zone zone, ZoneView zoneView, SelectionModel selectionModel) {
     this.zone = zone;
+    this.zoneView = zoneView;
     this.selectionModel = selectionModel;
   }
 
@@ -172,14 +179,20 @@ public class ZoneViewModel {
     return Collections.unmodifiableList(selectedTokenList);
   }
 
+  public Set<GUID> getVisibleTokens(Zone.Layer layer) {
+    return Collections.unmodifiableSet(visibleTokensByLayer.get(layer));
+  }
+
   public void update() {
     updateIsLoading();
     updateViewport();
     updatePlayerView();
+    updateVisibleArea();
     updateSelectedTokensList();
     updateTokenPositions();
     updateMarkerPositions();
     updateTokenStacks();
+    updateVisibleTokens();
   }
 
   // What follows are "systems".
@@ -246,6 +259,10 @@ public class ZoneViewModel {
 
     var screenBounds = new Rectangle2D.Double(0, 0, renderer.getWidth(), renderer.getHeight());
     viewport.setFrame(renderer.getZoneScale().toWorldSpace(screenBounds));
+  }
+
+  private void updateVisibleArea() {
+    visibleArea = zoneView.getVisibleArea(playerView);
   }
 
   private void updateSelectedTokensList() {
@@ -357,6 +374,41 @@ public class ZoneViewModel {
       if (!tokenStackSet.isEmpty()) {
         tokenStackSet.add(token);
         tokenStackMap.put(token, tokenStackSet);
+      }
+    }
+  }
+
+  private void updateVisibleTokens() {
+    double scale = 1;
+    var renderer = MapTool.getFrame().getZoneRenderer(this.zone);
+    if (renderer != null) {
+      scale = renderer.getZoneScale().getScale();
+    }
+
+    for (var layer : Zone.Layer.values()) {
+      var tokenPositions = tokenPositionsByLayer.get(layer);
+
+      var visibleTokens = visibleTokensByLayer.get(layer);
+      visibleTokens.clear();
+      for (var tokenPosition : tokenPositions) {
+        // First make sure it is on screen.
+        if (!tokenPosition.transformedBounds().intersects(viewport)) {
+          continue;
+        }
+        // Then make sure it is in revealed area (for players).
+        if (!playerView.isGMView()
+            && layer.supportsVision()
+            && zoneView.isUsingVision()
+            && !GraphicsUtil.intersects(tokenPosition.transformedBounds(), visibleArea)) {
+          continue;
+        }
+
+        var bounds = tokenPosition.transformedBounds().getBounds2D();
+        if (bounds.getWidth() * scale < 1 || bounds.getHeight() * scale < 1) {
+          continue;
+        }
+
+        visibleTokens.add(tokenPosition.token().getId());
       }
     }
   }
