@@ -27,6 +27,7 @@ import net.rptools.maptool.client.functions.exceptions.*;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
 import net.rptools.maptool.client.macro.MacroLocation;
 import net.rptools.maptool.client.macro.MacroLocationFactory;
+import net.rptools.maptool.client.ui.htmlframe.HTMLContent;
 import net.rptools.maptool.client.ui.htmlframe.HTMLFrameFactory;
 import net.rptools.maptool.client.ui.htmlframe.HTMLFrameFactory.FrameType;
 import net.rptools.maptool.client.ui.macrobuttons.buttons.MacroButtonPrefs;
@@ -963,30 +964,28 @@ public class MapToolLineParser {
                 break;
             }
           }
+          var htmlContent = HTMLContent.fromString(expressionBuilder.toString());
           switch (outputTo) {
             case FRAME:
               // Macros can not interact with internal frames/dialogs/overlays
               if (HTMLFrameFactory.isInternalOnly(frameName)) {
                 throw new ParserException(I18N.getText("msg.error.frame.reservedName", frameName));
               }
-              HTMLFrameFactory.show(
-                  frameName, FrameType.FRAME, false, frameOpts, expressionBuilder.toString());
+              HTMLFrameFactory.show(frameName, FrameType.FRAME, false, frameOpts, htmlContent);
               break;
             case DIALOG:
               // Macros can not interact with internal frames/dialogs/overlays
               if (HTMLFrameFactory.isInternalOnly(frameName)) {
                 throw new ParserException(I18N.getText("msg.error.frame.reservedName", frameName));
               }
-              HTMLFrameFactory.show(
-                  frameName, FrameType.DIALOG, false, frameOpts, expressionBuilder.toString());
+              HTMLFrameFactory.show(frameName, FrameType.DIALOG, false, frameOpts, htmlContent);
               break;
             case OVERLAY:
               // Macros can not interact with internal frames/dialogs/overlays
               if (HTMLFrameFactory.isInternalOnly(frameName)) {
                 throw new ParserException(I18N.getText("msg.error.frame.reservedName", frameName));
               }
-              HTMLFrameFactory.show(
-                  frameName, FrameType.OVERLAY, true, frameOpts, expressionBuilder.toString());
+              HTMLFrameFactory.show(frameName, FrameType.OVERLAY, true, frameOpts, htmlContent);
               break;
             case CHAT:
               builder.append(expressionBuilder);
@@ -996,8 +995,7 @@ public class MapToolLineParser {
               if (HTMLFrameFactory.isInternalOnly(frameName)) {
                 throw new ParserException(I18N.getText("msg.error.frame.reservedName", frameName));
               }
-              HTMLFrameFactory.show(
-                  frameName, FrameType.FRAME, true, frameOpts, expressionBuilder.toString());
+              HTMLFrameFactory.show(frameName, FrameType.FRAME, true, frameOpts, htmlContent);
               break;
             case DIALOG5:
               // Macros can not interact with internal frames/dialogs/overlays
@@ -1005,11 +1003,7 @@ public class MapToolLineParser {
                 throw new ParserException(I18N.getText("msg.error.frame.reservedName", frameName));
               }
               HTMLFrameFactory.show(
-                  frameName,
-                  HTMLFrameFactory.FrameType.DIALOG,
-                  true,
-                  frameOpts,
-                  expressionBuilder.toString());
+                  frameName, HTMLFrameFactory.FrameType.DIALOG, true, frameOpts, htmlContent);
               break;
           }
 

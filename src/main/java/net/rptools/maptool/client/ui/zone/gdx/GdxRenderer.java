@@ -284,7 +284,7 @@ public class GdxRenderer extends ApplicationAdapter {
     try {
       doRendering();
     } catch (Exception ex) {
-      log.warn(ex);
+      log.warn("Error while rendering", ex);
     }
   }
 
