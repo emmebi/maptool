@@ -179,7 +179,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       throw new IllegalArgumentException("Zone cannot be null");
     }
     this.zone = zone;
-    this.viewModel = new ZoneViewModel(zone);
+    selectionModel = new SelectionModel(zone);
+    this.viewModel = new ZoneViewModel(zone, selectionModel);
     zoneView = new ZoneView(zone);
     setZoneScale(new Scale());
 
@@ -202,7 +203,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         new DebounceExecutor(1000 / AppPreferences.frameRateCap.get(), this::repaint);
 
     setFocusable(true);
-    selectionModel = new SelectionModel(zone);
 
     // DnD
     setTransferHandler(new TransferableHelper());

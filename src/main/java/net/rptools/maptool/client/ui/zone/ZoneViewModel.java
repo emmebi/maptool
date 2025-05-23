@@ -69,9 +69,9 @@ public class ZoneViewModel {
   private final List<TokenPosition> markerList = new ArrayList<>();
   private final Map<Token, Set<Token>> tokenStackMap = new HashMap<>();
 
-  public ZoneViewModel(Zone zone) {
+  public ZoneViewModel(Zone zone, SelectionModel selectionModel) {
     this.zone = zone;
-    this.selectionModel = new SelectionModel(zone);
+    this.selectionModel = selectionModel;
   }
 
   public Rectangle2D getViewport() {
