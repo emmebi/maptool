@@ -21,10 +21,15 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.theme.Icons;
+import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.language.I18N;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
@@ -72,7 +77,12 @@ public class StatusPanel extends JPanel {
         new ComponentAdapter() {
           @Override
           public void componentResized(ComponentEvent e) {
-            setStatus(StatusMarquee.labelText);
+            statusLabel.revalidate();
+          }
+
+          @Override
+          public void componentMoved(ComponentEvent e) {
+            statusLabel.revalidate();
           }
         });
   }
@@ -111,11 +121,24 @@ public class StatusPanel extends JPanel {
    * space the message can be scrolled (automatically or manually) with an adjustable scroll speed
    * and various delays.
    */
-  private static class StatusMarquee extends JPanel {
+  private static class StatusMarquee extends JPanel implements ComponentListener {
+    private static final FlatButton BUTTON = new FlatButton();
+    private static final JLabel HOVER_LABEL = new JLabel();
+    private static final JLabel MARQUEE_LABEL = new JLabel();
+    private static final JScrollPane SCROLL_PANE = new FadingScroll();
+    private static final String FADE_STRING =
+        "   "; // space used at start and end of string where content fades
     private static final Color BG = UIManager.getColor("Panel.background");
+    private static final Color CLEAR = new Color(1f, 1f, 1f, 0);
+    private static final Color[] GRAD_COLOURS = new Color[] {BG, CLEAR, CLEAR, BG};
+    private static final AffineTransform SCROLL_TRANSFORM = new AffineTransform();
+    private static int tickInterval = 1000 / AppPreferences.frameRateCap.get();
+    private static int startDelay = (int) (1000 * AppPreferences.scrollStatusStartDelay.get());
+    private static int endDelay = (int) (1000 * AppPreferences.scrollStatusEndPause.get());
+    private static int tempDuration = (int) (1000 * AppPreferences.scrollStatusTempDuration.get());
+    private static int textDirection =
+        MARQUEE_LABEL.getComponentOrientation().isLeftToRight() ? -1 : 1;
     private static boolean allowScroll = AppPreferences.scrollStatusMessages.get();
-    private static final int TICK_INTERVAL = 1000 / AppPreferences.frameRateCap.get();
-    private static int textDirection;
     private static double scrollSpeed;
     private static double scrollPosition = 0;
     protected static String labelText = ""; // keep a copy as super truncates string overflow
@@ -123,115 +146,152 @@ public class StatusPanel extends JPanel {
     private static float overflow; // amount that string overflows container
     private static Timer timer;
     private static Timer tempTimer;
-    private static FlatButton button;
-    private static JLabel marqueeText;
-    private static JScrollPane scrollPane;
-    private static final AffineTransform SCROLL_TRANSFORM = new AffineTransform();
-    private static final String FADE_STRING =
-        "   "; // space used at start and end of string where content fades
+    private static final Function<String, Boolean> TEMP_MESSAGE_CHECK =
+        (string) -> {
+          // check for similarity because some messages will not be exact,
+          // e.g. "Autosave complete. Elapsed time (ms):"
+          JaroWinklerDistance winklerDistance = new JaroWinklerDistance();
+          double threshhold = 0.15;
+          for (String s : TEMP_STRINGS) {
+            if (s != null) {
+              if (winklerDistance.apply(string, s.trim()) < threshhold) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+    private static final Supplier<Integer> SCROLL_WIDTH =
+        () ->
+            Math.max(
+                0,
+                SCROLL_PANE.getWidth()
+                    - SCROLL_PANE.getInsets().left
+                    - SCROLL_PANE.getInsets().right);
+
+    private static final Consumer<Double> INCREMENT_SCROLL =
+        (delta) -> {
+          if (overflow != 0) {
+            scrollPosition =
+                Math.clamp(
+                    scrollPosition + delta.floatValue(),
+                    textDirection == 1 ? 0 : -1 * (SCROLL_WIDTH.get() + overflow),
+                    textDirection == 1 ? SCROLL_WIDTH.get() + overflow : 0);
+            SCROLL_TRANSFORM.setToTranslation(scrollPosition, 0);
+            Rectangle bounds = statusLabel.getBounds();
+            RepaintManager.currentManager(statusLabel)
+                .addDirtyRegion(statusLabel, bounds.x, bounds.y, bounds.width, bounds.height);
+          } else if (timer.isRunning()) {
+            timer.stop();
+          }
+        };
+    private static final Function<String, Integer> STRING_WIDTH =
+        string ->
+            SwingUtilities.computeStringWidth(
+                MARQUEE_LABEL.getFontMetrics(MARQUEE_LABEL.getFont()), string);
+    private static final Consumer<String> SET_OVERFLOW =
+        string -> {
+          int stringWidth = STRING_WIDTH.apply(string);
+          int scrollWidth = SCROLL_WIDTH.get();
+          if (stringWidth > scrollWidth) {
+            stringWidth += 70; // add some space at the end
+            MARQUEE_LABEL.setPreferredSize(new Dimension(stringWidth, 1));
+            overflow = stringWidth - scrollWidth;
+          } else {
+            overflow = 0;
+            MARQUEE_LABEL.setPreferredSize(new Dimension(SCROLL_WIDTH.get() - 1, -1));
+          }
+        };
+
+    private static final Supplier<Boolean> PREFERENCE_CHANGED =
+        () ->
+            1000 / AppPreferences.frameRateCap.get() != tickInterval
+                || startDelay != (int) (1000 * AppPreferences.scrollStatusStartDelay.get())
+                || endDelay != (int) (1000 * AppPreferences.scrollStatusEndPause.get())
+                || Math.abs(scrollSpeed) != AppPreferences.scrollStatusSpeed.get()
+                || tempDuration != (int) (1000 * AppPreferences.scrollStatusTempDuration.get())
+                || AppPreferences.scrollStatusMessages.get() != allowScroll;
+
+    private static void getPreferences() {
+      allowScroll = AppPreferences.scrollStatusMessages.get();
+
+      tickInterval = 1000 / AppPreferences.frameRateCap.get();
+      startDelay = (int) (1000 * AppPreferences.scrollStatusStartDelay.get());
+      endDelay = (int) (1000 * AppPreferences.scrollStatusEndPause.get());
+      tempDuration = (int) (1000 * AppPreferences.scrollStatusTempDuration.get());
+      initTimer();
+
+      // Reverse direction for RTL scripts
+      textDirection = MARQUEE_LABEL.getComponentOrientation().isLeftToRight() ? -1 : 1;
+      scrollSpeed = AppPreferences.scrollStatusSpeed.get() * textDirection;
+    }
 
     private StatusMarquee() {
       super();
-      setLayout(new BorderLayout(1, 0));
+      getPreferences();
+      BoxLayout layout = new BoxLayout(this, BoxLayout.LINE_AXIS);
+      setLayout(layout);
       setBackground(BG);
 
-      // Reverse direction for RTL scripts
-      textDirection = this.getComponentOrientation().isLeftToRight() ? -1 : 1;
-      scrollSpeed = textDirection * AppPreferences.scrollStatusSpeed.get();
+      HOVER_LABEL.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2));
+      HOVER_LABEL.setIcon(
+          ImageUtil.scaleImageIcon(
+              new ImageIcon(RessourceManager.getImage(Images.CURSOR_THOUGHT)), 24, 24));
+      HOVER_LABEL.setOpaque(false);
+      add(HOVER_LABEL);
 
-      button = new FlatButton();
       setButtonIcon();
-      button.setToolTipText(I18N.getText("StatusBar.button.toggleAutoScroll.tooltip"));
-      button.setSize(getFont().getSize(), getFont().getSize());
-      button.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2));
+      BUTTON.setToolTipText(I18N.getText("StatusBar.button.toggleAutoScroll.tooltip"));
+      BUTTON.setSize(getFont().getSize(), getFont().getSize());
+      BUTTON.setBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2));
 
-      add(button, BorderLayout.WEST);
+      add(BUTTON);
 
-      marqueeText = new JLabel(labelText);
-      marqueeText.setDoubleBuffered(allowScroll);
-      marqueeText.setPreferredSize(new Dimension(-1, -1));
-      marqueeText.setAutoscrolls(true);
-      marqueeText.setBackground(getBackground());
+      MARQUEE_LABEL.setText(labelText);
+      MARQUEE_LABEL.setDoubleBuffered(allowScroll);
+      MARQUEE_LABEL.setPreferredSize(new Dimension(-1, -1));
+      MARQUEE_LABEL.setAutoscrolls(true);
+      MARQUEE_LABEL.setBackground(getBackground());
 
       JViewport viewport = new ScrollVP();
-      viewport.setView(marqueeText);
+      viewport.setView(MARQUEE_LABEL);
       viewport.setBackground(getBackground());
 
-      scrollPane = new FadingScroll();
-      scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-      scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-      scrollPane.setBackground(getBackground());
-      scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 6));
-      scrollPane.setViewport(viewport);
+      SCROLL_PANE.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      SCROLL_PANE.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+      SCROLL_PANE.setBackground(getBackground());
+      SCROLL_PANE.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 6));
+      SCROLL_PANE.setViewport(viewport);
 
-      add(scrollPane, BorderLayout.CENTER);
+      add(SCROLL_PANE);
       validate();
-      viewport.setDoubleBuffered(true);
 
-      button.addMouseListener(LISTEN_BUTTON);
-      marqueeText.addMouseListener(LISTEN_MOUSE);
-      marqueeText.addMouseWheelListener(LISTEN_WHEEL);
+      BUTTON.addMouseListener(LISTEN_BUTTON);
+      MARQUEE_LABEL.addMouseListener(LISTEN_MOUSE);
+      MARQUEE_LABEL.addMouseWheelListener(LISTEN_WHEEL);
       initTimer();
+      addComponentListener(this);
     }
 
     private static void setButtonIcon() {
       if (allowScroll) {
-        button.setIcon(RessourceManager.getSmallIcon(Icons.ACTION_PAUSE));
+        BUTTON.setIcon(RessourceManager.getSmallIcon(Icons.ACTION_PAUSE));
       } else {
-        button.setIcon(RessourceManager.getSmallIcon(Icons.ACTION_NEXT));
+        BUTTON.setIcon(RessourceManager.getSmallIcon(Icons.ACTION_NEXT));
       }
     }
 
     private static void resetScrollPosition() {
       scrollPosition = 0;
-      incrementScrollPosition(0); // to trigger repaint
-    }
-
-    private static void incrementScrollPosition(double delta) {
-      if (overflow != 0) {
-        scrollPosition =
-            Math.clamp(
-                scrollPosition + (float) delta,
-                textDirection == 1 ? 0 : -1 * (getScrollWidth() + overflow),
-                textDirection == 1 ? getScrollWidth() + overflow : 0);
-        SCROLL_TRANSFORM.setToTranslation(scrollPosition, 0);
-        RepaintManager.currentManager(statusLabel)
-            .addDirtyRegion(
-                statusLabel,
-                statusLabel.getX() + button.getWidth(),
-                scrollPane.getY(),
-                statusLabel.getWidth() - button.getWidth(),
-                scrollPane.getHeight());
-      } else if (timer.isRunning()) {
-        timer.stop();
-      }
-    }
-
-    private static int getScrollWidth() {
-      if (scrollPane == null) {
-        return 0;
-      } else {
-        return Math.max(
-            0, scrollPane.getWidth() - scrollPane.getInsets().left - scrollPane.getInsets().right);
-      }
-    }
-
-    private static boolean isTempMessage(String string) {
-      // we check for similarity because some messages will not be exact, e.g. "Autosave complete.
-      // Elapsed time (ms):"
-      JaroWinklerDistance winklerDistance = new JaroWinklerDistance();
-      double threshhold = 0.15;
-      for (String s : TEMP_STRINGS) {
-        if (s != null) {
-          if (winklerDistance.apply(string, s.trim()) < threshhold) {
-            return true;
-          }
-        }
-      }
-      return false;
+      INCREMENT_SCROLL.accept(0d); // to trigger repaint
     }
 
     private static void setText(String text) {
+      if (PREFERENCE_CHANGED.get()) {
+        getPreferences();
+        setText(text);
+        return;
+      }
       resetScrollPosition();
       if (tempTimer.isRunning()) {
         // if a message comes through before a temporary message has reset.
@@ -240,60 +300,48 @@ public class StatusPanel extends JPanel {
       }
 
       oldText = labelText;
-      if (text == null || text.isBlank()) {
+      if (text == null || text.isBlank() && oldText != null) {
         text = oldText;
       }
-      if (isTempMessage(text.trim())) {
+      if (TEMP_MESSAGE_CHECK.apply(text.trim())) {
         tempTimer.start();
       }
 
       labelText = FADE_STRING + text.trim();
-      int stringWidth =
-          SwingUtilities.computeStringWidth(
-              marqueeText.getFontMetrics(marqueeText.getFont()), labelText);
-
-      if (stringWidth > getScrollWidth()) {
-        stringWidth += 70;
-        marqueeText.setPreferredSize(new Dimension(stringWidth, -1));
-        overflow = stringWidth - getScrollWidth();
-      } else {
-        overflow = 0;
-        marqueeText.setPreferredSize(new Dimension(getScrollWidth() - 1, -1));
-      }
-      marqueeText.setText(labelText);
+      SET_OVERFLOW.accept(labelText);
+      MARQUEE_LABEL.setText(labelText);
       // This will need replacing once auto-wrapping tooltips are implemented
-      marqueeText.setToolTipText(
+      String tipText =
           "<html><p width="
               + (Toolkit.getDefaultToolkit().getScreenSize().width / 3)
               + ">"
               + labelText
-              + "</p></html>");
+              + "</p></html>";
+      HOVER_LABEL.setToolTipText(tipText);
+      MARQUEE_LABEL.setToolTipText(tipText);
       startTimer();
     }
 
     private static void initTimer() {
       if (timer == null) {
-        timer = new Timer(TICK_INTERVAL, LISTEN_TIMER);
+        timer = new Timer(tickInterval, LISTEN_TIMER);
         timer.setRepeats(true);
       }
       if (tempTimer == null) {
-        tempTimer =
-            new Timer(
-                (int) (1000d * AppPreferences.scrollStatusTempDuration.get()),
-                (e) -> setText(oldText));
+        tempTimer = new Timer(tempDuration, (e) -> setText(oldText));
       }
       resetTimer();
     }
 
     private static void resetTimer() {
-      timer.setDelay(TICK_INTERVAL);
-      timer.setInitialDelay((int) (1000 * AppPreferences.scrollStatusStartDelay.get()));
+      timer.setDelay(tickInterval);
+      timer.setInitialDelay(startDelay);
       timer.setActionCommand("start_delay");
     }
 
     private static void startTimer() {
       initTimer(); // just to make sure it exists
-      if (allowScroll && overflow > 0 && getScrollWidth() > 0) {
+      if (allowScroll && overflow > 0 && SCROLL_WIDTH.get() > 0) {
         timer.start();
       } else if (timer.isRunning()) {
         timer.setActionCommand("stop");
@@ -318,7 +366,7 @@ public class StatusPanel extends JPanel {
                 timer.setActionCommand("scroll");
                 timer.stop();
               }
-              case "scroll" -> incrementScrollPosition(scrollSpeed);
+              case "scroll" -> INCREMENT_SCROLL.accept(scrollSpeed);
               case "stop" -> {
                 timer.stop();
                 resetTimer();
@@ -329,15 +377,12 @@ public class StatusPanel extends JPanel {
             if ((textDirection == 1 && scrollPosition > overflow)
                 || (textDirection == -1 && scrollPosition < -overflow)) {
               timer.stop();
-              timer.setInitialDelay(
-                  (int)
-                      (1000 * AppPreferences.scrollStatusEndPause.get())); // start end hold period
+              timer.setInitialDelay(endDelay); // start end hold period
               timer.setActionCommand("end_hold");
               timer.start();
             }
           }
         };
-
     private static final MouseAdapter LISTEN_BUTTON =
         new MouseAdapter() {
           // Right-clicking replaces the text with a deliberately long string and scrolls it as an
@@ -377,7 +422,7 @@ public class StatusPanel extends JPanel {
           public void mouseDragged(MouseEvent e) {
             timer.setActionCommand("pause");
             int direction = lastPt.getX() > e.getPoint().getX() ? -1 : 1;
-            incrementScrollPosition(direction * lastPt.distance(e.getPoint()));
+            INCREMENT_SCROLL.accept(direction * lastPt.distance(e.getPoint()));
             lastPt = e.getPoint();
           }
         };
@@ -388,7 +433,7 @@ public class StatusPanel extends JPanel {
           @Override
           public void mouseClicked(MouseEvent e) {
             // was not a drag initiator - we are toggling pause state
-            marqueeText.removeMouseMotionListener(LISTEN_DRAG);
+            MARQUEE_LABEL.removeMouseMotionListener(LISTEN_DRAG);
             if (oldActionCommand.equals("pause")) {
               timer.setActionCommand("scroll");
               timer.start();
@@ -400,40 +445,85 @@ public class StatusPanel extends JPanel {
           @Override
           public void mousePressed(MouseEvent e) {
             lastPt = e.getPoint();
-            marqueeText.addMouseMotionListener(LISTEN_DRAG);
+            MARQUEE_LABEL.addMouseMotionListener(LISTEN_DRAG);
             // store for click event as drag will set it to "pause"
             oldActionCommand = timer.getActionCommand();
           }
 
           @Override
           public void mouseReleased(MouseEvent e) {
-            marqueeText.removeMouseMotionListener(LISTEN_DRAG);
+            MARQUEE_LABEL.removeMouseMotionListener(LISTEN_DRAG);
           }
         };
+
     private static final MouseWheelListener LISTEN_WHEEL =
         new MouseWheelListener() {
           @Override
           public void mouseWheelMoved(MouseWheelEvent e) {
             timer.setActionCommand("pause");
-            incrementScrollPosition(e.getPreciseWheelRotation());
+            INCREMENT_SCROLL.accept(e.getPreciseWheelRotation());
           }
         };
+
+    private void setDisplayable(ComponentEvent e) {
+      int availableWidth = e.getComponent().getSize().width;
+      if (availableWidth < HOVER_LABEL.getWidth()) {
+        setSize(HOVER_LABEL.getWidth() + 2, HOVER_LABEL.getHeight() + 2);
+      }
+      if (availableWidth < BUTTON.getWidth() + 120) {
+        // Hover label only
+        HOVER_LABEL.setVisible(true);
+        BUTTON.setVisible(false);
+        SCROLL_PANE.setVisible(false);
+        timer.stop();
+      } else {
+        HOVER_LABEL.setVisible(false);
+        BUTTON.setVisible(true);
+        SCROLL_PANE.setVisible(true);
+        if (!timer.isRunning()) {
+          setText(labelText);
+        }
+      }
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+      setDisplayable(e);
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+      setDisplayable(e);
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+      setDisplayable(e);
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+      timer.stop();
+    }
 
     /**
      * This paints a linear gradient over the start and end of the scroll pane which looks pretty.
      */
     private static class FadingScroll extends JScrollPane {
-      private static final Color CLEAR = new Color(1f, 1f, 1f, 0);
-      private static final Color[] GRAD_COLOURS = new Color[] {BG, CLEAR, CLEAR, BG};
-
       @Override
       public void paint(Graphics g) {
         super.paint(g);
+        if (labelText == null || labelText.isBlank() || BG == null) {
+          return;
+        }
         Graphics2D g2d = (Graphics2D) g;
         Rectangle bounds = getVisibleRect();
         float viewW = (float) bounds.getWidth();
         float fadeFraction =
-            (float) g2d.getFontMetrics().getStringBounds(FADE_STRING, g2d).getWidth() / viewW;
+            Math.clamp(
+                (float) g2d.getFontMetrics().getStringBounds(FADE_STRING, g2d).getWidth() / viewW,
+                0.01f,
+                0.2f);
         g2d.setPaint(
             new LinearGradientPaint(
                 new Point2D.Float(0f, 0f),
@@ -445,7 +535,7 @@ public class StatusPanel extends JPanel {
     }
 
     /**
-     * The normal scroll pane does not scroll the view if the scroll bar is not visible and manually
+     * The normal scroll pane does not scroll the view when the scroll bar is not visible. Manually
      * setting the view position can only be done in integer increments. When animated using a
      * fractional scale this looks jumpy and jarring. This overcomes the problem by applying a
      * transform to the graphics object before normal painting.
@@ -453,11 +543,11 @@ public class StatusPanel extends JPanel {
     private static class ScrollVP extends JViewport {
       @Override
       public void paint(Graphics g) {
+        if ((labelText == null || labelText.isBlank())) {
+          return;
+        }
         Graphics2D g2d = (Graphics2D) g;
-        GraphicsConfiguration gc = g2d.getDeviceConfiguration();
-        AffineTransform at = gc.getNormalizingTransform();
-        at.concatenate(SCROLL_TRANSFORM);
-        g2d.transform(at);
+        g2d.transform(SCROLL_TRANSFORM);
         super.paint(g2d);
         g2d.dispose();
       }
