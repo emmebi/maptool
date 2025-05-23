@@ -769,7 +769,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             bufferG2d.setClip(g2d.getClip());
 
             timer.start("paintComponent:createView");
-            PlayerView pl = viewModel.getPlayerView();
+            PlayerView pl = getPlayerView();
             timer.stop("paintComponent:createView");
 
             if (!skipDrawing) {
@@ -805,20 +805,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   public PlayerView getPlayerView() {
-    // TODO Consider just returning viewModel.getPlayerView().
-    return getPlayerView(MapTool.getPlayer().getEffectiveRole());
-  }
-
-  /**
-   * The returned {@link PlayerView} contains a list of tokens that includes all selected tokens
-   * that this player owns and that have their <code>HasSight</code> checkbox enabled.
-   *
-   * @param role the player role
-   * @return the player view
-   */
-  // TODO Rename to makePlayerView() so it isn't confused with getting current state.
-  public PlayerView getPlayerView(Player.Role role) {
-    return getPlayerView(role, true);
+    return viewModel.getPlayerView();
   }
 
   /**
@@ -830,27 +817,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @param selected whether to get the view of selected tokens, or all owned
    * @return the player view
    */
-  // TODO Rename to makePlayerView() so it isn't confused with getting current state.
-  public PlayerView getPlayerView(Player.Role role, boolean selected) {
-    List<Token> selectedTokens = null;
-    if (selected && selectionModel.isAnyTokenSelected()) {
-      selectedTokens = getSelectedTokensList();
-      selectedTokens.removeIf(token -> !token.getHasSight() || !AppUtil.playerOwns(token));
-    }
-    if (selectedTokens == null || selectedTokens.isEmpty()) {
-      // if no selected token qualifying for view, use owned tokens or player tokens with sight
-      final boolean checkOwnership =
-          MapTool.getServerPolicy().isUseIndividualViews() || MapTool.isPersonalServer();
-      selectedTokens =
-          checkOwnership
-              ? zone.getOwnedTokensWithSight(MapTool.getPlayer())
-              : zone.getPlayerTokensWithSight();
-    }
-    if (selectedTokens == null || selectedTokens.isEmpty()) {
-      return new PlayerView(role);
-    }
-
-    return new PlayerView(role, selectedTokens);
+  public PlayerView makePlayerView(Player.Role role, boolean selected) {
+    return viewModel.makePlayerView(role, selected);
   }
 
   /**

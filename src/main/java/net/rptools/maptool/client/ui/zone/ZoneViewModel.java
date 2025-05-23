@@ -83,6 +83,37 @@ public class ZoneViewModel {
     return playerView;
   }
 
+  /**
+   * The returned {@link PlayerView} contains a list of tokens that includes either all selected
+   * tokens that this player owns and that have their <code>HasSight</code> checkbox enabled, or all
+   * owned tokens that have <code>HasSight</code> enabled.
+   *
+   * @param role the player role
+   * @param selected whether to get the view of selected tokens, or all owned
+   * @return the player view
+   */
+  public PlayerView makePlayerView(Player.Role role, boolean selected) {
+    List<Token> selectedTokens = null;
+    if (selected && selectionModel.isAnyTokenSelected()) {
+      selectedTokens = new ArrayList<>(getSelectedTokenList());
+      selectedTokens.removeIf(token -> !token.getHasSight() || !AppUtil.playerOwns(token));
+    }
+    if (selectedTokens == null || selectedTokens.isEmpty()) {
+      // if no selected token qualifying for view, use owned tokens or player tokens with sight
+      final boolean checkOwnership =
+          MapTool.getServerPolicy().isUseIndividualViews() || MapTool.isPersonalServer();
+      selectedTokens =
+          checkOwnership
+              ? zone.getOwnedTokensWithSight(MapTool.getPlayer())
+              : zone.getPlayerTokensWithSight();
+    }
+    if (selectedTokens == null || selectedTokens.isEmpty()) {
+      return new PlayerView(role);
+    }
+
+    return new PlayerView(role, selectedTokens);
+  }
+
   public Map<Token, TokenPosition> getTokenPositions() {
     return Collections.unmodifiableMap(tokenPositions);
   }
@@ -106,8 +137,8 @@ public class ZoneViewModel {
 
   public void update() {
     updateViewport();
-    updateSelectedTokensList();
     updatePlayerView();
+    updateSelectedTokensList();
     updateTokenPositions();
     updateMarkerPositions();
     updateTokenStacks();
@@ -139,28 +170,7 @@ public class ZoneViewModel {
   }
 
   private void updatePlayerView() {
-    var selected = true;
-    var role = MapTool.getPlayer().getEffectiveRole();
-
-    List<Token> selectedTokens = null;
-    if (selected && selectionModel.isAnyTokenSelected()) {
-      selectedTokens = new ArrayList<>(selectedTokenList);
-      selectedTokens.removeIf(token -> !token.getHasSight() || !AppUtil.playerOwns(token));
-    }
-    if (selectedTokens == null || selectedTokens.isEmpty()) {
-      // if no selected token qualifying for view, use owned tokens or player tokens with sight
-      final boolean checkOwnership =
-          MapTool.getServerPolicy().isUseIndividualViews() || MapTool.isPersonalServer();
-      selectedTokens =
-          checkOwnership
-              ? zone.getOwnedTokensWithSight(MapTool.getPlayer())
-              : zone.getPlayerTokensWithSight();
-    }
-    if (selectedTokens == null || selectedTokens.isEmpty()) {
-      playerView = new PlayerView(role);
-    } else {
-      playerView = new PlayerView(role, selectedTokens);
-    }
+    playerView = makePlayerView(MapTool.getPlayer().getEffectiveRole(), true);
   }
 
   /** Clears and populates {@link #tokenPositions} and {@link #tokenPositionsByLayer}. */
