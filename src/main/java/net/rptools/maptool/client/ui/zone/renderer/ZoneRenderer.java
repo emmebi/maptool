@@ -58,6 +58,7 @@ import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.token.dialog.create.NewTokenDialog;
 import net.rptools.maptool.client.ui.zone.*;
 import net.rptools.maptool.client.ui.zone.gdx.GdxRenderer;
+import net.rptools.maptool.client.ui.zone.renderer.tokenRender.FacingArrowRenderer;
 import net.rptools.maptool.client.ui.zone.renderer.tokenRender.TokenRenderer;
 import net.rptools.maptool.client.walker.ZoneWalker;
 import net.rptools.maptool.events.MapToolEventBus;
@@ -149,6 +150,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private final GridRenderer gridRenderer;
   private final HaloRenderer haloRenderer;
   private final TokenRenderer tokenRenderer;
+  private final FacingArrowRenderer facingArrowRenderer;
   private final LightsRenderer lightsRenderer;
   private final DarknessRenderer darknessRenderer;
   private final LumensRenderer lumensRenderer;
@@ -189,7 +191,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     this.compositor = new ZoneCompositor();
     this.gridRenderer = new GridRenderer();
     this.haloRenderer = new HaloRenderer(renderHelper);
-    this.tokenRenderer = new TokenRenderer();
+    this.tokenRenderer = new TokenRenderer(renderHelper, zone);
+    this.facingArrowRenderer = new FacingArrowRenderer(renderHelper, zone);
     this.lightsRenderer = new LightsRenderer(renderHelper, zone, zoneView);
     this.darknessRenderer = new DarknessRenderer(renderHelper, zoneView);
     this.lumensRenderer = new LumensRenderer(renderHelper, zone, zoneView);
@@ -760,9 +763,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           }
           if (!gridRenderer.isInitialised()) {
             gridRenderer.setRenderer(this);
-          }
-          if (tokenRenderer.notInitialised()) {
-            tokenRenderer.setRenderer(this);
           }
 
           timer.start("paintComponent");
@@ -2169,13 +2169,13 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           // the cell intersects visible area so
           if (zone.getGrid().checkCenterRegion(cb.getBounds(), visibleScreenArea)) {
             // if we can see the centre, draw the whole token
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
+            tokenRenderer.renderToken(token, position0, tokenG, opacity);
           } else {
             // else draw the clipped token
             Area cellArea = new Area(visibleScreenArea);
             cellArea.intersect(cb);
             tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
+            tokenRenderer.renderToken(token, position0, tokenG, opacity);
           }
         }
       } else if (!isGMView && zoneView.isUsingVision() && token.isAlwaysVisible()) {
@@ -2185,7 +2185,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           // if we can see a portion of the stamp/token, draw the whole thing, defaults to 2/9ths
           if (zone.getGrid()
               .checkRegion(cb.getBounds(), visibleScreenArea, token.getAlwaysVisibleTolerance())) {
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
+            tokenRenderer.renderToken(token, position0, tokenG, opacity);
           } else {
             // else draw the clipped stamp/token
             // This will only show the part of the token that does not have VBL on it
@@ -2193,19 +2193,19 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             Area cellArea = new Area(visibleScreenArea);
             cellArea.intersect(cb);
             tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
+            tokenRenderer.renderToken(token, position0, tokenG, opacity);
           }
         }
       } else {
         // fallthrough normal token rendered against visible area
-        tokenRenderer.renderToken(token, position, tokenG, opacity);
+        tokenRenderer.renderToken(token, position0, tokenG, opacity);
       }
       timer.stop("token-list-7");
 
       timer.start("token-list-8");
       // Facing
       if (token.hasFacing()) {
-        tokenRenderer.paintFacingArrow(tokenG, token, footprintBounds, position);
+        facingArrowRenderer.paintArrow(tokenG, position0);
       }
       timer.stop("token-list-8");
 
