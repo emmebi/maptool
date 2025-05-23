@@ -1947,7 +1947,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     timer.stop("createClip");
 
-    Rectangle clipBounds = g.getClipBounds();
     double scale = zoneScale.getScale();
 
     List<Token> tokenPostProcessing = new ArrayList<>(tokenList.size());
@@ -1985,11 +1984,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.start("token-list-1a");
       Rectangle footprintBounds = token.getBounds(zone);
       timer.stop("token-list-1a");
-
-      timer.start("token-list-1b");
-      // get token image, using image table if present
-      BufferedImage image = ImageUtil.getTokenImage(token, this);
-      timer.stop("token-list-1b");
 
       timer.start("token-list-1c");
       double scaledWidth = (footprintBounds.width * scale);
@@ -2057,6 +2051,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         renderPath(g, token.getLastPath(), token.getFootprint(zone.getGrid()));
       }
       timer.stop("renderTokens:ShowPath");
+
+      timer.start("token-list-1b");
+      // get token image, using image table if present
+      BufferedImage image = ImageUtil.getTokenImage(token, this);
+      timer.stop("token-list-1b");
 
       timer.start("token-list-5");
       // handle flipping
