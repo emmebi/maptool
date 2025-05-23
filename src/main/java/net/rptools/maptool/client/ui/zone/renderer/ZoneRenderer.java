@@ -188,7 +188,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     var renderHelper = new RenderHelper(this, tempBufferPool);
     this.compositor = new ZoneCompositor();
     this.gridRenderer = new GridRenderer();
-    this.haloRenderer = new HaloRenderer();
+    this.haloRenderer = new HaloRenderer(renderHelper);
     this.tokenRenderer = new TokenRenderer();
     this.lightsRenderer = new LightsRenderer(renderHelper, zone, zoneView);
     this.darknessRenderer = new DarknessRenderer(renderHelper, zoneView);
@@ -760,9 +760,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           }
           if (!gridRenderer.isInitialised()) {
             gridRenderer.setRenderer(this);
-          }
-          if (!haloRenderer.isInitialised()) {
-            haloRenderer.setRenderer(this);
           }
           if (tokenRenderer.notInitialised()) {
             tokenRenderer.setRenderer(this);
@@ -2157,7 +2154,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.stop("token-list-6");
 
       // Render Halo
-      haloRenderer.renderHalo(tokenG, token, position);
+      haloRenderer.renderHalo(tokenG, token, position0);
 
       // Calculate alpha Transparency from token and use opacity to indicate that token is moving
       float opacity = token.getTokenOpacity();
