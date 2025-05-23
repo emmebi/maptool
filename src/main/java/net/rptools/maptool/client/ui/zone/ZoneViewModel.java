@@ -52,10 +52,18 @@ public class ZoneViewModel {
   public record TokenPosition(Token token, Rectangle2D footprintBounds, Area transformedBounds) {}
 
   private final Zone zone;
-  // TODO Use array list
+
+  // region These are updated externally.
+
+  private final SelectionModel selectionModel;
+
+
+  // endregion
+
+  // region These are updated at the start of each render via `update()`.
+
   private PlayerView playerView = new PlayerView(Player.Role.PLAYER);
   private final Rectangle2D viewport = new Rectangle2D.Double();
-  private final SelectionModel selectionModel;
 
   private final List<Token> selectedTokenList = new ArrayList<>();
 
@@ -63,11 +71,13 @@ public class ZoneViewModel {
   //  Then additionally maintain a list of tokens per layer.
   private final Map<Token, TokenPosition> tokenPositions = new HashMap<>();
   private final Map<Zone.Layer, List<TokenPosition>> tokenPositionsByLayer =
-      CollectionUtil.newFilledEnumMap(Zone.Layer.class, l -> new LinkedList<>());
+          CollectionUtil.newFilledEnumMap(Zone.Layer.class, l -> new LinkedList<>());
 
   // TODO Should this be per-layer as well?
   private final List<TokenPosition> markerList = new ArrayList<>();
   private final Map<Token, Set<Token>> tokenStackMap = new HashMap<>();
+
+  // endregion
 
   public ZoneViewModel(Zone zone, SelectionModel selectionModel) {
     this.zone = zone;
