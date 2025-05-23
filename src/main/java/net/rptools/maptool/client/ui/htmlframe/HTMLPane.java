@@ -126,7 +126,7 @@ public class HTMLPane extends JEditorPane {
               scrollReset ? DefaultCaret.UPDATE_WHEN_ON_EDT : DefaultCaret.NEVER_UPDATE);
           editorKit.flush();
           try {
-            String htmlString = htmlContent.fetchHTMLString();
+            String htmlString = htmlContent.fetchString();
             setText(htmlString);
             if (scrollReset) {
               setCaretPosition(0);
