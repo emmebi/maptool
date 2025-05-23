@@ -40,7 +40,6 @@ import net.rptools.lib.CodeTimer;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.*;
-import net.rptools.maptool.client.events.ZoneLoaded;
 import net.rptools.maptool.client.functions.TokenMoveFunctions;
 import net.rptools.maptool.client.swing.ImageBorder;
 import net.rptools.maptool.client.swing.ImageLabel;
@@ -127,8 +126,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   private ScreenPoint pointUnderMouse;
   private @Nonnull Zone.Layer activeLayer = Layer.getDefaultPlayerLayer();
-  private String loadingProgress;
-  private boolean isLoaded;
 
   private BufferedImage miniImage;
   private BufferedImage backBuffer;
@@ -159,10 +156,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private final FogRenderer fogRenderer;
   private final VisionOverlayRenderer visionOverlayRenderer;
   private final DebugRenderer debugRenderer;
-
-  public String getLoadingProgress() {
-    return loadingProgress;
-  }
 
   public Token getTokenUnderMouse() {
     return tokenUnderMouse;
@@ -623,6 +616,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   /** Clear internal caches and back-buffers */
   public void flush() {
+    viewModel.flush();
+
     if (zone.getBackgroundPaint() instanceof DrawableTexturePaint) {
       ImageManager.flushImage(((DrawableTexturePaint) zone.getBackgroundPaint()).getAssetId());
     }
@@ -632,8 +627,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     flipImageMap.clear();
     flipIsoImageMap.clear();
     zoneView.flushFog();
-
-    isLoaded = false;
   }
 
   /** Flush the {@link #zoneView} and repaint. */
@@ -898,13 +891,17 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     if (g2d.getClipBounds() == null) {
       g2d.setClip(0, 0, viewRect.width, viewRect.height);
     }
+
     // Are we still waiting to show the zone ?
-    if (isLoading()) {
+    var loadingProgress = viewModel.getLoadingStatus();
+    if (loadingProgress.isPresent()) {
       if (!skipDrawing) {
         g2d.setColor(Color.black);
         g2d.fillRect(0, 0, viewRect.width, viewRect.height);
-        GraphicsUtil.drawBoxedString(g2d, loadingProgress, viewRect.width / 2, viewRect.height / 2);
+        GraphicsUtil.drawBoxedString(
+            g2d, loadingProgress.get(), viewRect.width / 2, viewRect.height / 2);
       }
+
       return;
     }
     if (MapTool.getCampaign().isBeingSerialized()) {
@@ -1162,51 +1159,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.stop("labels-1.1");
     }
     timer.stop("labels-1");
-  }
-
-  public boolean isLoading() {
-    if (isLoaded) {
-      // We're done, until the cache is cleared
-      return false;
-    }
-    // Get a list of all the assets in the zone
-    Set<MD5Key> assetSet = zone.getAllAssetIds();
-    assetSet.remove(null); // remove bad data
-
-    // Make sure they are loaded
-    int downloadCount = 0;
-    int cacheCount = 0;
-    boolean loaded = true;
-    for (MD5Key id : assetSet) {
-      // Have we gotten the actual data yet ?
-      Asset asset = AssetManager.getAsset(id);
-      if (asset == null) {
-        AssetManager.getAssetAsynchronously(id);
-        loaded = false;
-        continue;
-      }
-      downloadCount++;
-
-      // Have we loaded the image into memory yet ?
-      Image image = ImageManager.getImage(asset.getMD5Key(), this);
-      if (image == null || image == ImageManager.TRANSFERING_IMAGE) {
-        loaded = false;
-        continue;
-      }
-      cacheCount++;
-    }
-    loadingProgress =
-        String.format(
-            " Loading Map '%s' - %d/%d Loaded %d/%d Cached",
-            zone.getDisplayName(), downloadCount, assetSet.size(), cacheCount, assetSet.size());
-    isLoaded = loaded;
-    if (isLoaded) {
-      // Notify the token tree that it should update
-      MapTool.getFrame().updateTokenTree();
-
-      new MapToolEventBus().getMainEventBus().post(new ZoneLoaded(zone));
-    }
-    return !isLoaded;
   }
 
   protected void renderDrawableOverlay(

@@ -351,12 +351,12 @@ public class GdxRenderer extends ApplicationAdapter {
 
     setProjectionMatrix(hudCam.combined);
 
-    // TODO Move loading progress into ZoneViewModel
-    if (zoneCache.getZoneRenderer().isLoading())
-      hudTextRenderer.drawBoxedString(
-          zoneCache.getZoneRenderer().getLoadingProgress(), width / 2f, height / 2f);
-    else if (MapTool.getCampaign().isBeingSerialized())
+    var loadingProgress = viewModel.getLoadingStatus();
+    if (loadingProgress.isPresent()) {
+      hudTextRenderer.drawBoxedString(loadingProgress.get(), width / 2f, height / 2f);
+    } else if (MapTool.getCampaign().isBeingSerialized()) {
       hudTextRenderer.drawBoxedString("    Please Wait    ", width / 2f, height / 2f);
+    }
 
     float noteVPos = 20;
     if (!zoneCache.getZone().isVisible() && playerView.isGMView()) {
@@ -399,8 +399,9 @@ public class GdxRenderer extends ApplicationAdapter {
   }
 
   private void renderZone(PlayerView view) {
-    if (zoneCache.getZoneRenderer().isLoading() || MapTool.getCampaign().isBeingSerialized())
+    if (viewModel.getLoadingStatus().isPresent() || MapTool.getCampaign().isBeingSerialized()) {
       return;
+    }
 
     if (lastView != null && !lastView.equals(view)) {
       invalidateCurrentViewCache();

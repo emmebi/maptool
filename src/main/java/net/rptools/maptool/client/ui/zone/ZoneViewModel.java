@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client.ui.zone;
 
+import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
@@ -24,14 +25,22 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nullable;
+import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.events.ZoneLoaded;
+import net.rptools.maptool.events.MapToolEventBus;
+import net.rptools.maptool.model.Asset;
+import net.rptools.maptool.model.AssetManager;
 import net.rptools.maptool.model.GUID;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.util.CollectionUtil;
+import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +66,12 @@ public class ZoneViewModel {
 
   private final SelectionModel selectionModel;
 
-
   // endregion
 
   // region These are updated at the start of each render via `update()`.
+
+  /** The status message describing how loaded the zone is, or {@code null} if fully loaded. */
+  private @Nullable String loadingProgress = "";
 
   private PlayerView playerView = new PlayerView(Player.Role.PLAYER);
   private final Rectangle2D viewport = new Rectangle2D.Double();
@@ -71,7 +82,7 @@ public class ZoneViewModel {
   //  Then additionally maintain a list of tokens per layer.
   private final Map<Token, TokenPosition> tokenPositions = new HashMap<>();
   private final Map<Zone.Layer, List<TokenPosition>> tokenPositionsByLayer =
-          CollectionUtil.newFilledEnumMap(Zone.Layer.class, l -> new LinkedList<>());
+      CollectionUtil.newFilledEnumMap(Zone.Layer.class, l -> new LinkedList<>());
 
   // TODO Should this be per-layer as well?
   private final List<TokenPosition> markerList = new ArrayList<>();
@@ -82,6 +93,22 @@ public class ZoneViewModel {
   public ZoneViewModel(Zone zone, SelectionModel selectionModel) {
     this.zone = zone;
     this.selectionModel = selectionModel;
+  }
+
+  /** Marks the zone as not loaded, so that it ensures once again that all assets are loaded. */
+  public void flush() {
+    loadingProgress = "";
+  }
+
+  /**
+   * Gets a string describing how much of the zone is loaded.
+   *
+   * <p>If the zone is fully loaded, the result will be empty.
+   *
+   * @return An optional containing the loading status, or the empty optional if the zone is loaded.
+   */
+  public Optional<String> getLoadingStatus() {
+    return Optional.ofNullable(loadingProgress);
   }
 
   public Rectangle2D getViewport() {
@@ -146,6 +173,7 @@ public class ZoneViewModel {
   }
 
   public void update() {
+    updateIsLoading();
     updateViewport();
     updatePlayerView();
     updateSelectedTokensList();
@@ -155,6 +183,58 @@ public class ZoneViewModel {
   }
 
   // What follows are "systems".
+
+  /**
+   * If the zone is not already loaded, updates the loading status and emits {@link ZoneLoaded} if
+   * it becomes loaded.
+   */
+  private void updateIsLoading() {
+    if (loadingProgress == null) {
+      // We're done, until the cache is cleared
+      return;
+    }
+    // Get a list of all the assets in the zone
+    Set<MD5Key> assetSet = zone.getAllAssetIds();
+    assetSet.remove(null); // remove bad data
+
+    // Make sure they are loaded
+    int downloadCount = 0;
+    int cacheCount = 0;
+    boolean loaded = true;
+    for (MD5Key id : assetSet) {
+      // Have we gotten the actual data yet ?
+      Asset asset = AssetManager.getAsset(id);
+      if (asset == null) {
+        AssetManager.getAssetAsynchronously(id);
+        loaded = false;
+        continue;
+      }
+      downloadCount++;
+
+      // Have we loaded the image into memory yet ?
+      Image image = ImageManager.getImage(asset.getMD5Key());
+      if (image == null || image == ImageManager.TRANSFERING_IMAGE) {
+        loaded = false;
+        continue;
+      }
+      cacheCount++;
+    }
+
+    if (loaded) {
+      // Indicate that loading is finished.
+      loadingProgress = null;
+
+      // TODO Gross. Can't the token tree listen for ZoneLoaded?
+      // Notify the token tree that it should update
+      MapTool.getFrame().updateTokenTree();
+      new MapToolEventBus().getMainEventBus().post(new ZoneLoaded(zone));
+    } else {
+      loadingProgress =
+          String.format(
+              " Loading Map '%s' - %d/%d Loaded %d/%d Cached",
+              zone.getDisplayName(), downloadCount, assetSet.size(), cacheCount, assetSet.size());
+    }
+  }
 
   private void updateViewport() {
     var renderer = MapTool.getFrame().getZoneRenderer(this.zone);
