@@ -15,6 +15,7 @@
 package net.rptools.maptool.client.ui;
 
 import java.awt.Point;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serial;
@@ -160,6 +161,34 @@ public class Scale implements Serializable {
     double oldScale = this.scale;
     setScale(scale);
     zoomTo(x, y, oldScale);
+  }
+
+  /**
+   * Transforms a rectangle from screen space to world space.
+   *
+   * @param screenRect A rectangle in screen space.
+   * @return The equivalent rectangle in world space.
+   */
+  public Rectangle2D toWorldSpace(Rectangle2D screenRect) {
+    return new Rectangle2D.Double(
+        (screenRect.getMinX() - offsetX) / scale,
+        (screenRect.getMinY() - offsetY) / scale,
+        screenRect.getWidth() / scale,
+        screenRect.getHeight() / scale);
+  }
+
+  /**
+   * Transforms a rectangle from world space to screen space.
+   *
+   * @param worldRect A rectangle in world space.
+   * @return The equivalent recentangle in screen space.
+   */
+  public Rectangle2D toScreenSpace(Rectangle2D worldRect) {
+    return new Rectangle2D.Double(
+        worldRect.getMinX() * scale + offsetX,
+        worldRect.getMinY() * scale + offsetY,
+        worldRect.getWidth() * scale,
+        worldRect.getHeight() * scale);
   }
 
   private PropertyChangeSupport getPropertyChangeSupport() {
