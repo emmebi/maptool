@@ -53,6 +53,7 @@ import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.zone.DrawableLight;
 import net.rptools.maptool.client.ui.zone.PlayerView;
+import net.rptools.maptool.client.ui.zone.ZoneViewModel;
 import net.rptools.maptool.client.ui.zone.gdx.drawing.DrawnElementRenderer;
 import net.rptools.maptool.client.ui.zone.gdx.label.ItemRenderer;
 import net.rptools.maptool.client.ui.zone.gdx.label.LabelRenderer;
@@ -93,6 +94,8 @@ public class GdxRenderer extends ApplicationAdapter {
   private final String FONT_BOLD = "boldFont.ttf";
 
   private final String font = "NotoSansSymbols";
+
+  private ZoneViewModel viewModel;
 
   // from renderToken:
   private Area visibleScreenArea;
@@ -263,6 +266,9 @@ public class GdxRenderer extends ApplicationAdapter {
 
   @Override
   public void render() {
+    // TODO I just want to directly update the view model. The only thing stopping me is that the
+    //  ZoneRenderer needs to know whether to skip drawing.
+    // viewModel.update();
     zoneCache.getZoneRenderer().update();
 
     // System.out.println("FPS:   " + Gdx.graphics.getFramesPerSecond());
@@ -332,10 +338,11 @@ public class GdxRenderer extends ApplicationAdapter {
     initializeTimer();
     if (zoneCache.getZoneRenderer() == null) return;
 
+    // TODO Move ZoneScale into ZoneViewModel.
     setScale(zoneCache.getZoneRenderer().getZoneScale());
 
     timer.start("paintComponent:createView");
-    PlayerView playerView = zoneCache.getZoneRenderer().getPlayerView();
+    PlayerView playerView = viewModel.getPlayerView();
     timer.stop("paintComponent:createView");
 
     setProjectionMatrix(cam.combined);
@@ -344,6 +351,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     setProjectionMatrix(hudCam.combined);
 
+    // TODO Move loading progress into ZoneViewModel
     if (zoneCache.getZoneRenderer().isLoading())
       hudTextRenderer.drawBoxedString(
           zoneCache.getZoneRenderer().getLoadingProgress(), width / 2f, height / 2f);
@@ -404,8 +412,7 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.start("calcs-1");
     timer.start("ZoneRenderer-getVisibleArea");
     if (visibleScreenArea == null) {
-      visibleScreenArea =
-          zoneCache.getZoneView().getVisibleArea(zoneCache.getZoneRenderer().getPlayerView());
+      visibleScreenArea = zoneCache.getZoneView().getVisibleArea(viewModel.getPlayerView());
     }
     timer.stop("ZoneRenderer-getVisibleArea");
 
@@ -416,6 +423,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     renderBoard();
 
+    // TODO Move layer visibility and disablement into ZoneViewModel.
     if (zoneCache.getZoneRenderer().shouldRenderLayer(Zone.Layer.BACKGROUND, view)) {
       List<DrawnElement> drawables = zoneCache.getZone().getDrawnElements(Zone.Layer.BACKGROUND);
 
@@ -2288,6 +2296,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
           var newZone = event.zone();
           zoneCache = new ZoneCache(newZone, atlas);
+          viewModel = zoneCache.getZoneRenderer().getViewModel();
           drawnElementRenderer.setZoneCache(zoneCache);
           tokenOverlayRenderer.setZoneCache(zoneCache);
           gridRenderer.setZoneCache(zoneCache);

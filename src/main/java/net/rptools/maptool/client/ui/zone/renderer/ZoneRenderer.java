@@ -107,6 +107,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   /** Manages the selected tokens on the zone. */
   private final SelectionModel selectionModel;
 
+  // TODO Move zoneScale, selectionSetMap, zoneView, etc., into ZoneViewModel, despite them being
+  //  updated in real time and not in the render loop. Maybe in the future we can correct that
+  //  (e.g., by queueing updates for the next frame).
+
   private Scale zoneScale;
   private final Map<Zone.Layer, DrawableRenderer> drawableRenderers;
   private final List<ZoneOverlay> overlayList = new ArrayList<>();
@@ -118,6 +122,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   final Map<GUID, BufferedImage> labelRenderingCache = new HashMap<>();
   private final Map<Token, BufferedImage> flipImageMap = new HashMap<>();
   private final Map<Token, BufferedImage> flipIsoImageMap = new HashMap<>();
+  // TODO Move tokenUnderMouse into ZoneViewModel.
   private Token tokenUnderMouse;
 
   private ScreenPoint pointUnderMouse;
@@ -312,6 +317,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
   }
 
+  // TODO This is only used For AppActions.PASTE_TOKENS. Consider having it instead get the
+  //  view model and a ZonePoint for it (would require moving pointUnderMouse) into ZoneViewModel as
+  //  a ZonePoint.
   public ScreenPoint getPointUnderMouse() {
     return pointUnderMouse;
   }
@@ -605,6 +613,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return zoneView;
   }
 
+  public ZoneViewModel getViewModel() {
+    return viewModel;
+  }
+
   public SelectionModel getSelectionModel() {
     return selectionModel;
   }
@@ -753,6 +765,22 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           update();
           timer.stop("update");
 
+          // Clear internal state
+          itemRenderList.clear();
+
+          if (!compositor.isInitialised()) {
+            compositor.setRenderer(this);
+          }
+          if (!gridRenderer.isInitialised()) {
+            gridRenderer.setRenderer(this);
+          }
+          if (!haloRenderer.isInitialised()) {
+            haloRenderer.setRenderer(this);
+          }
+          if (tokenRenderer.notInitialised()) {
+            tokenRenderer.setRenderer(this);
+          }
+
           timer.start("paintComponent");
           Graphics2D g2d = (Graphics2D) g;
 
@@ -844,24 +872,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   public void update() {
     skipDrawing = MapTool.getFrame().getGdxPanel().isVisible();
-
     viewModel.update();
-
-    // Clear internal state
-    itemRenderList.clear();
-
-    if (!compositor.isInitialised()) {
-      compositor.setRenderer(this);
-    }
-    if (!gridRenderer.isInitialised()) {
-      gridRenderer.setRenderer(this);
-    }
-    if (!haloRenderer.isInitialised()) {
-      haloRenderer.setRenderer(this);
-    }
-    if (tokenRenderer.notInitialised()) {
-      tokenRenderer.setRenderer(this);
-    }
   }
 
   /**
