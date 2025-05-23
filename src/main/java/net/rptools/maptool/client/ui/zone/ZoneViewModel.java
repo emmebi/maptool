@@ -80,6 +80,7 @@ public class ZoneViewModel {
   private Area visibleArea = new Area();
 
   private final List<Token> selectedTokenList = new ArrayList<>();
+  private final Set<GUID> movingTokens = new HashSet<>();
 
   // TODO Map each token GUID to its TokenPosition.
   //  Then additionally maintain a list of tokens per layer.
@@ -183,12 +184,17 @@ public class ZoneViewModel {
     return Collections.unmodifiableSet(visibleTokensByLayer.get(layer));
   }
 
+  public boolean isTokenMoving(GUID tokenId) {
+    return movingTokens.contains(tokenId);
+  }
+
   public void update() {
     updateIsLoading();
     updateViewport();
     updatePlayerView();
     updateVisibleArea();
     updateSelectedTokensList();
+    updateMovingTokens();
     updateTokenPositions();
     updateMarkerPositions();
     updateTokenStacks();
@@ -410,6 +416,19 @@ public class ZoneViewModel {
 
         visibleTokens.add(tokenPosition.token().getId());
       }
+    }
+  }
+
+  private void updateMovingTokens() {
+    movingTokens.clear();
+
+    var renderer = MapTool.getFrame().getZoneRenderer(this.zone);
+    if (renderer == null) {
+      return;
+    }
+
+    for (final var selectionSet : renderer.getSelectionSetMap().values()) {
+      movingTokens.addAll(selectionSet.getTokens());
     }
   }
 }

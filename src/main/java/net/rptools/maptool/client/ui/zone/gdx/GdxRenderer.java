@@ -1396,7 +1396,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
       timer.start("tokenlist-1");
       try {
-        if (token.getLayer().isStampLayer() && zoneCache.getZoneRenderer().isTokenMoving(token)) {
+        if (token.getLayer().isStampLayer() && viewModel.isTokenMoving(token.getId())) {
           continue;
         }
         // Don't bother if it's not visible
@@ -1472,7 +1472,9 @@ public class GdxRenderer extends ApplicationAdapter {
 
       // Calculate alpha Transparency from token and use opacity for indicating that token is moving
       float opacity = token.getTokenOpacity();
-      if (zoneCache.getZoneRenderer().isTokenMoving(token)) opacity = opacity / 2.0f;
+      if (viewModel.isTokenMoving(token.getId())) {
+        opacity = opacity / 2.0f;
+      }
 
       Area tokenCellArea = zoneCache.getZone().getGrid().getTokenCellArea(tokenBounds);
       Area cellArea = new Area(visibleScreenArea);

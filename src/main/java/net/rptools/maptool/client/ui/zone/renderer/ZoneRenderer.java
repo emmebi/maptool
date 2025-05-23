@@ -549,12 +549,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   public boolean isTokenMoving(Token token) {
-    for (SelectionSet set : selectionSetMap.values()) {
-      if (set.contains(token)) {
-        return true;
-      }
-    }
-    return false;
+    return viewModel.isTokenMoving(token.getId());
   }
 
   protected void setViewOffset(int x, int y) {
@@ -1963,7 +1958,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       timer.start("token-list-1");
       try {
-        if (token.getLayer().isStampLayer() && isTokenMoving(token)) {
+        if (token.getLayer().isStampLayer() && viewModel.isTokenMoving(token.getId())) {
           continue;
         }
         // Don't bother if it's not visible
@@ -2167,7 +2162,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       // Calculate alpha Transparency from token and use opacity to indicate that token is moving
       float opacity = token.getTokenOpacity();
-      if (isTokenMoving(token)) {
+      if (viewModel.isTokenMoving(token.getId())) {
         opacity = opacity / 2.0f;
       }
       // Finally render the token image
@@ -2277,11 +2272,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.start("token-list-12");
     boolean useIF = MapTool.getServerPolicy().isUseIndividualFOW();
 
-    final var movingTokens = new HashSet<GUID>();
-    for (final var selectionSet : selectionSetMap.values()) {
-      movingTokens.addAll(selectionSet.getTokens());
-    }
-
     // Selection and labels
     for (Token token : tokenPostProcessing) {
       ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token);
@@ -2291,14 +2281,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       Rectangle2D bounds = zoneScale.toScreenSpace(position.transformedBounds().getBounds2D());
 
-      if (!bounds.getBounds().intersects(clipBounds)) {
-        continue;
-      }
       Rectangle footprintBounds = token.getBounds(zone);
 
       // Count moving tokens as "selected" so that a border is drawn around them.
       boolean isSelected =
-          selectionModel.isSelected(token.getId()) || movingTokens.contains(token.getId());
+          selectionModel.isSelected(token.getId()) || viewModel.isTokenMoving(token.getId());
       if (isSelected) {
         ScreenPoint sp = ScreenPoint.fromZonePoint(this, footprintBounds.x, footprintBounds.y);
         double width = footprintBounds.width * getScale();
