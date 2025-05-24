@@ -144,8 +144,7 @@ public class ImageUtil {
       // i.e. lowest ratio
       double imageFootprintRatio;
       if (token.getShape() == Token.TokenShape.FIGURE && grid.isIsometric()) {
-        // uses double footprint height
-        imageFootprintRatio = Math.min(fpW / imgW, fpH * 2 / imgH);
+        imageFootprintRatio = fpW / imgW;
       } else {
         imageFootprintRatio = Math.min(fpW / imgW, fpH / imgH);
       }

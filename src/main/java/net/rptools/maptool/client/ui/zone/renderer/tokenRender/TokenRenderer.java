@@ -151,7 +151,11 @@ public class TokenRenderer {
     Composite oldComposite = g2d.getComposite();
     // centre image
     double imageCx = -renderImage.getWidth() / 2d;
-    double imageCy = -renderImage.getHeight() / (isoFigure ? 4d / 3d : 2d);
+    double imageCy =
+        isoFigure
+            ? -renderImage.getHeight() + renderImage.getWidth() / 4d
+            : -renderImage.getHeight() / 2d;
+
     AffineTransform imageTransform =
         AffineTransform.getTranslateInstance(
             imageCx + token.getAnchorX() * scale, imageCy + token.getAnchorY() * scale);
