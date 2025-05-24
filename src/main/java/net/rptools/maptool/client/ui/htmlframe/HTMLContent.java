@@ -128,6 +128,8 @@ public class HTMLContent {
 
   /** The enumeration that represents the type of content. */
   private enum ContentType {
+    /** The content is a string, possibly HTML. */
+    STRING,
     /** HTML Content in a string */
     HTML,
     /** URL that points to the content. */
@@ -140,21 +142,22 @@ public class HTMLContent {
    * The content type that this object represents. This is used to determine how to handle the
    * content.
    *
-   * @param html HTML content as a string.
+   * @param str content as a string.
    * @param url URL that points to the content.
    * @param asset The asset that represents the content if it is a binary asset.
    * @param contentType The type of content.
    */
   private record Content(
-      @Nullable String html, @Nullable URL url, @Nullable Asset asset, @Nonnull ContentType type) {
+      @Nullable String str, @Nullable URL url, @Nullable Asset asset, @Nonnull ContentType type) {
 
     /**
      * Constructor for the Content class if it is a string containing html.
      *
-     * @param html HTML content as a string.
+     * @param str content as a string.
+     * @param isHtml true if the content is HTML, false otherwise or unknown.
      */
-    public Content(@Nonnull String html) {
-      this(html, null, null, ContentType.HTML);
+    public Content(@Nonnull String str, boolean isHtml) {
+      this(str, null, null, isHtml ? ContentType.HTML : ContentType.STRING);
     }
 
     /**
@@ -200,13 +203,36 @@ public class HTMLContent {
   }
 
   /**
-   * Factory method to create an HTMLContent object from a string.
+   * Factory method to create an HTMLContent object from a string. It will try to determine if the
+   * string is HTML or not, if you already know it is HTML, use {@link #htmlFromString(String)}
+   * instead.
    *
-   * @param html the HTML content to be displayed
+   * @param str the String content to be displayed
    * @return an HTMLContent object
    */
-  public static HTMLContent fromString(@Nonnull String html) {
-    return new HTMLContent(new Content(html), false, false);
+  public static HTMLContent fromString(@Nonnull String str) {
+    boolean isHtml = false;
+    try {
+      var mediaType = Asset.getMediaType("", str.getBytes(StandardCharsets.UTF_8));
+      var assetType = Asset.Type.fromMediaType(mediaType);
+      if (assetType == Asset.Type.HTML) {
+        isHtml = true;
+      }
+    } catch (IOException e) {
+      // Do nothing, treat as normal String
+    }
+
+    return new HTMLContent(new Content(str, isHtml), false, false);
+  }
+
+  /**
+   * Factory method to create an HTMLContent object from a string that is HTML.
+   *
+   * @param html the String content to be displayed
+   * @return an HTMLContent object
+   */
+  public static HTMLContent htmlFromString(@Nonnull String html) {
+    return new HTMLContent(new Content(html, true), false, false);
   }
 
   /**
@@ -243,7 +269,7 @@ public class HTMLContent {
    * @return the HTML content as a string
    */
   public String getHtmlString() {
-    return content.html;
+    return content.str;
   }
 
   /**
@@ -271,7 +297,7 @@ public class HTMLContent {
   public String getHtmlStringAsDataUrl() {
     if (isHTMLString()) {
       String encodedHtml =
-          Base64.getEncoder().encodeToString(content.html.getBytes(StandardCharsets.UTF_8));
+          Base64.getEncoder().encodeToString(content.str.getBytes(StandardCharsets.UTF_8));
       return "data:text/html;base64," + encodedHtml;
     } else {
       throw new IllegalStateException("HTMLContent is not a string");
@@ -289,7 +315,7 @@ public class HTMLContent {
     }
     if (isHTMLString()) {
       return new HTMLContent(
-          new Content(injectURLBase(content.html, baseUrl)), javaBridgeInjected, true);
+          new Content(injectURLBase(content.str, baseUrl), true), javaBridgeInjected, true);
     } else {
       throw new IllegalStateException("HTMLContent is not a string");
     }
@@ -330,10 +356,7 @@ public class HTMLContent {
     if (!isHTMLString()) {
       throw new IllegalStateException("HTMLContent is not a string");
     }
-    if (!urlPointsToHTML()) {
-      return this; // not a HTML page so return the same object
-    }
-    var newHtml = content.html;
+    var newHtml = content.str;
     var document = Jsoup.parse(newHtml);
     var head = document.select("head").first();
     if (head != null) {
@@ -348,7 +371,7 @@ public class HTMLContent {
 
       newHtml = document.html();
     }
-    return HTMLContent.fromString(newHtml);
+    return new HTMLContent(new Content(newHtml, true), true, true);
   }
 
   /**
@@ -361,7 +384,7 @@ public class HTMLContent {
    * @return the HTMLContent object with the Java Bridge injected.
    */
   public HTMLContent injectJavaBridge() {
-    if (isUrl() || !urlPointsToHTML() || javaBridgeInjected) {
+    if (!isHTMLString() || javaBridgeInjected) {
       return this; // No need to do anything
     }
 
@@ -372,7 +395,7 @@ public class HTMLContent {
    * Retunrs if this points to a URL that is an HTML page. This is determined by checking if the URL
    * ends with .html or .htm.
    */
-  public boolean urlPointsToHTML() {
+  private boolean urlPointsToHTML() {
     if (isUrl()) {
       String fname = content.url.getFile().toLowerCase();
       return fname.endsWith(".html") || fname.endsWith(".htm");
@@ -405,14 +428,19 @@ public class HTMLContent {
       if (assetKey == null) {
         String html = library.readAsString(content.url).get();
         if (html != null) {
-          return fromString(html);
+          var mediaType = Asset.getMediaType("", html.getBytes(StandardCharsets.UTF_8));
+          var assetType = Asset.Type.fromMediaType(mediaType);
+          return new HTMLContent(new Content(html, assetType == Asset.Type.HTML), false, false);
         }
       }
 
       var asset = AssetManager.getAsset(assetKey);
       if (asset != null) {
         if (asset.isStringAsset()) {
-          return fromString(asset.getDataAsString());
+          return new HTMLContent(
+              new Content(asset.getDataAsString(), asset.getType() == Asset.Type.HTML),
+              false,
+              false);
         } else {
           return new HTMLContent(new Content(asset), false, false);
         }
@@ -432,7 +460,7 @@ public class HTMLContent {
    */
   public String fetchString() throws IOException {
     if (isHTMLString()) {
-      return content.html;
+      return content.str;
     } else {
       return fetchContent().getHtmlString();
     }

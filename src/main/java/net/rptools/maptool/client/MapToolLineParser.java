@@ -964,7 +964,7 @@ public class MapToolLineParser {
                 break;
             }
           }
-          var htmlContent = HTMLContent.fromString(expressionBuilder.toString());
+          var htmlContent = HTMLContent.htmlFromString(expressionBuilder.toString());
           switch (outputTo) {
             case FRAME:
               // Macros can not interact with internal frames/dialogs/overlays

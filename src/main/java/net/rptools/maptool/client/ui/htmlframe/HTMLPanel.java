@@ -45,7 +45,7 @@ public class HTMLPanel extends JPanel implements HTMLPanelInterface {
     } else {
       add(pane, BorderLayout.CENTER);
     }
-    updateContents(HTMLContent.fromString(""), false);
+    updateContents(HTMLContent.htmlFromString(""), false);
 
     // ESCAPE closes the window
     pane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
