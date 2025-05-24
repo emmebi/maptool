@@ -15,11 +15,13 @@
 package net.rptools.maptool.client.ui;
 
 import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Serial;
 import java.io.Serializable;
+import net.rptools.maptool.client.ScreenPoint;
 
 public class Scale implements Serializable {
   public static final String PROPERTY_SCALE = "scale";
@@ -189,6 +191,14 @@ public class Scale implements Serializable {
         worldRect.getMinY() * scale + offsetY,
         worldRect.getWidth() * scale,
         worldRect.getHeight() * scale);
+  }
+
+  public ScreenPoint toScreenSpace(Point2D.Double worldSpace) {
+    return toScreenSpace(worldSpace.x, worldSpace.y);
+  }
+
+  public ScreenPoint toScreenSpace(double x, double y) {
+    return new ScreenPoint(x * scale + offsetX, y * scale + offsetY);
   }
 
   private PropertyChangeSupport getPropertyChangeSupport() {

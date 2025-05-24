@@ -1698,7 +1698,7 @@ public class GdxRenderer extends ApplicationAdapter {
             token.getLayer().isStampLayer()
                 ? AppStyle.selectedStampBorder
                 : AppStyle.selectedBorder;
-        if (zoneCache.getZoneRenderer().getHighlightCommonMacros().contains(token)) {
+        if (viewModel.getHighlightCommonMacros().contains(token)) {
           selectedBorder = AppStyle.commonMacroBorder;
         }
         if (!AppUtil.playerOwns(token)) {

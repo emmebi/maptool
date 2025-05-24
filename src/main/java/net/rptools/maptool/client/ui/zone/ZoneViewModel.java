@@ -32,6 +32,7 @@ import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.events.ZoneLoaded;
+import net.rptools.maptool.client.ui.Scale;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.Asset;
 import net.rptools.maptool.model.AssetManager;
@@ -59,14 +60,16 @@ public class ZoneViewModel {
    *
    * <p>Obsoletes various other TokenPosition types that are either screen-based or inconsistent.
    */
+  // TODO Not transformedBounds, but an AffineTransform that can produce it.
   public record TokenPosition(Token token, Rectangle2D footprintBounds, Area transformedBounds) {}
 
-  private final Zone zone;
+  public final Zone zone;
 
   // region These are updated externally.
 
   private final ZoneView zoneView;
   private final SelectionModel selectionModel;
+  private final List<Token> highlightCommonMacros = new ArrayList<>();
 
   // endregion
 
@@ -76,6 +79,7 @@ public class ZoneViewModel {
   private @Nullable String loadingProgress = "";
 
   private PlayerView playerView = new PlayerView(Player.Role.PLAYER);
+  private Scale zoneScale = new Scale();
   private final Rectangle2D viewport = new Rectangle2D.Double();
   private Area visibleArea = new Area();
 
@@ -117,6 +121,10 @@ public class ZoneViewModel {
    */
   public Optional<String> getLoadingStatus() {
     return Optional.ofNullable(loadingProgress);
+  }
+
+  public Scale getZoneScale() {
+    return zoneScale;
   }
 
   public Rectangle2D getViewport() {
@@ -186,6 +194,15 @@ public class ZoneViewModel {
 
   public boolean isTokenMoving(GUID tokenId) {
     return movingTokens.contains(tokenId);
+  }
+
+  public List<Token> getHighlightCommonMacros() {
+    return Collections.unmodifiableList(highlightCommonMacros);
+  }
+
+  public void setHighlightCommonMacros(List<Token> affectedTokens) {
+    highlightCommonMacros.clear();
+    highlightCommonMacros.addAll(affectedTokens);
   }
 
   public void update() {
@@ -259,12 +276,14 @@ public class ZoneViewModel {
     var renderer = MapTool.getFrame().getZoneRenderer(this.zone);
     if (renderer == null) {
       // No viewport.
+      zoneScale = new Scale();
       viewport.setFrame(0, 0, 0, 0);
       return;
     }
 
+    zoneScale = new Scale(renderer.getZoneScale());
     var screenBounds = new Rectangle2D.Double(0, 0, renderer.getWidth(), renderer.getHeight());
-    viewport.setFrame(renderer.getZoneScale().toWorldSpace(screenBounds));
+    viewport.setFrame(zoneScale.toWorldSpace(screenBounds));
   }
 
   private void updateVisibleArea() {

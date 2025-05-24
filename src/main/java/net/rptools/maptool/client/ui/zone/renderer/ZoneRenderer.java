@@ -41,16 +41,12 @@ import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.functions.TokenMoveFunctions;
-import net.rptools.maptool.client.swing.ImageBorder;
 import net.rptools.maptool.client.swing.ImageLabel;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.swing.label.FlatImageLabelFactory;
 import net.rptools.maptool.client.tool.PointerTool;
 import net.rptools.maptool.client.tool.StampTool;
-import net.rptools.maptool.client.tool.Tool;
-import net.rptools.maptool.client.tool.drawing.ExposeTool;
 import net.rptools.maptool.client.ui.Scale;
-import net.rptools.maptool.client.ui.theme.Borders;
 import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
@@ -151,6 +147,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private final HaloRenderer haloRenderer;
   private final TokenRenderer tokenRenderer;
   private final FacingArrowRenderer facingArrowRenderer;
+  private final SelectionRenderer selectionRenderer;
   private final LightsRenderer lightsRenderer;
   private final DarknessRenderer darknessRenderer;
   private final LumensRenderer lumensRenderer;
@@ -193,6 +190,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     this.haloRenderer = new HaloRenderer(renderHelper);
     this.tokenRenderer = new TokenRenderer(renderHelper, zone);
     this.facingArrowRenderer = new FacingArrowRenderer(renderHelper, zone);
+    this.selectionRenderer = new SelectionRenderer(renderHelper, viewModel, zoneView);
     this.lightsRenderer = new LightsRenderer(renderHelper, zone, zoneView);
     this.darknessRenderer = new DarknessRenderer(renderHelper, zoneView);
     this.lumensRenderer = new LumensRenderer(renderHelper, zone, zoneView);
@@ -2266,7 +2264,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.stop("token-list-11");
     }
     timer.start("token-list-12");
-    boolean useIF = MapTool.getServerPolicy().isUseIndividualFOW();
 
     // Selection and labels
     for (Token token : tokenPostProcessing) {
@@ -2275,51 +2272,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         continue;
       }
 
-      Rectangle2D bounds = zoneScale.toScreenSpace(position.transformedBounds().getBounds2D());
-
-      Rectangle footprintBounds = token.getBounds(zone);
-
       // Count moving tokens as "selected" so that a border is drawn around them.
       boolean isSelected =
           selectionModel.isSelected(token.getId()) || viewModel.isTokenMoving(token.getId());
       if (isSelected) {
-        ScreenPoint sp = ScreenPoint.fromZonePoint(this, footprintBounds.x, footprintBounds.y);
-        double width = footprintBounds.width * getScale();
-        double height = footprintBounds.height * getScale();
-
-        ImageBorder selectedBorder =
-            token.getLayer().isStampLayer()
-                ? AppStyle.selectedStampBorder
-                : AppStyle.selectedBorder;
-        if (highlightCommonMacros.contains(token)) {
-          selectedBorder = AppStyle.commonMacroBorder;
-        }
-        if (!AppUtil.playerOwns(token)) {
-          selectedBorder = AppStyle.selectedUnownedBorder;
-        }
-        if (useIF && token.getLayer().supportsVision() && zoneView.isUsingVision()) {
-          Tool tool = MapTool.getFrame().getToolbox().getSelectedTool();
-          if (tool instanceof ExposeTool<?>) {
-            selectedBorder = RessourceManager.getBorder(Borders.FOW_TOOLS);
-          }
-        }
-        if (token.hasFacing()
-            && (token.getShape() == Token.TokenShape.TOP_DOWN || token.getLayer().isStampLayer())) {
-          AffineTransform oldTransform = clippedG.getTransform();
-
-          // Rotated
-          clippedG.translate(sp.x, sp.y);
-          clippedG.rotate(
-              Math.toRadians(token.getFacingInDegrees()),
-              width / 2 - (token.getAnchor().x * scale),
-              height / 2
-                  - (token.getAnchor().y * scale)); // facing defaults to down, or -90  degrees
-          selectedBorder.paintAround(clippedG, 0, 0, (int) width, (int) height);
-
-          clippedG.setTransform(oldTransform);
-        } else {
-          selectedBorder.paintAround(clippedG, (int) sp.x, (int) sp.y, (int) width, (int) height);
-        }
+        selectionRenderer.drawSelectBorder(clippedG, position);
         // Remove labels from the cache if the corresponding tokens are deselected
       } else if (!AppState.isShowTokenNames()) {
         labelRenderingCache.remove(token.getId());
@@ -2389,7 +2346,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           labelRenderingCache.put(tokId, labelRender);
         }
         // Create LabelRenderer using cached label.
-        Rectangle r = bounds.getBounds();
+        Rectangle r =
+            zoneScale.toScreenSpace(position.transformedBounds().getBounds2D()).getBounds();
         delayRendering(
             new LabelRenderer(
                 this,
@@ -3139,18 +3097,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     // A change in grid can change the size of templates.
     flushDrawableRenderer();
-    repaintDebouncer.dispatch();
-  }
-
-  // Begin token common macro identification
-  private List<Token> highlightCommonMacros = new ArrayList<>();
-
-  public List<Token> getHighlightCommonMacros() {
-    return highlightCommonMacros;
-  }
-
-  public void setHighlightCommonMacros(List<Token> affectedTokens) {
-    highlightCommonMacros = affectedTokens;
     repaintDebouncer.dispatch();
   }
 
