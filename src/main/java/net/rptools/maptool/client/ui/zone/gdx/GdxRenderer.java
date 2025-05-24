@@ -335,8 +335,7 @@ public class GdxRenderer extends ApplicationAdapter {
     initializeTimer();
     if (zoneCache.getZoneRenderer() == null) return;
 
-    // TODO Move ZoneScale into ZoneViewModel.
-    setScale(zoneCache.getZoneRenderer().getZoneScale());
+    setScale(viewModel.getZoneScale());
 
     timer.start("paintComponent:createView");
     PlayerView playerView = viewModel.getPlayerView();
@@ -421,7 +420,6 @@ public class GdxRenderer extends ApplicationAdapter {
 
     renderBoard();
 
-    // TODO Move layer visibility and disablement into ZoneViewModel.
     if (zoneCache.getZoneRenderer().shouldRenderLayer(Zone.Layer.BACKGROUND, view)) {
       List<DrawnElement> drawables = zoneCache.getZone().getDrawnElements(Zone.Layer.BACKGROUND);
 

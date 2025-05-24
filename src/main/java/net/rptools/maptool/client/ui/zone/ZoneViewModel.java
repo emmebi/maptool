@@ -60,7 +60,6 @@ public class ZoneViewModel {
    *
    * <p>Obsoletes various other TokenPosition types that are either screen-based or inconsistent.
    */
-  // TODO Not transformedBounds, but an AffineTransform that can produce it.
   public record TokenPosition(Token token, Rectangle2D footprintBounds, Area transformedBounds) {}
 
   public final Zone zone;
@@ -92,7 +91,6 @@ public class ZoneViewModel {
   private final Map<Zone.Layer, List<TokenPosition>> tokenPositionsByLayer =
       CollectionUtil.newFilledEnumMap(Zone.Layer.class, l -> new LinkedList<>());
 
-  // TODO Should this be per-layer as well?
   private final List<TokenPosition> markerList = new ArrayList<>();
   private final Map<Token, Set<Token>> tokenStackMap = new HashMap<>();
 
@@ -269,7 +267,6 @@ public class ZoneViewModel {
       // Indicate that loading is finished.
       loadingProgress = null;
 
-      // TODO Gross. Can't the token tree listen for ZoneLoaded?
       // Notify the token tree that it should update
       MapTool.getFrame().updateTokenTree();
       new MapToolEventBus().getMainEventBus().post(new ZoneLoaded(zone));
@@ -316,9 +313,6 @@ public class ZoneViewModel {
 
   /** Clears and populates {@link #tokenPositions} and {@link #tokenPositionsByLayer}. */
   private void updateTokenPositions() {
-    // TODO In the original, stamps that were moving were skipped. I don't think this was
-    //  intentional in every aspect, it was only meant to avoid _drawing_ them.
-
     tokenPositions.clear();
 
     for (var layer : Zone.Layer.values()) {
@@ -328,12 +322,6 @@ public class ZoneViewModel {
       // Note the order: the top most token is at the end of the list.
       var tokens = zone.getTokensOnLayer(layer);
       for (var token : tokens) {
-        // TODO In the original, figures were handled specially. Should we do so here as well.
-
-        // TODO
-        //  if (token.getLayer().isStampLayer() && isTokenMoving(token)) {
-        //    continue;
-        //  }
         if ((!token.isVisible() || !token.getLayer().isVisibleToPlayers())
             && !this.playerView.isGMView()) {
           continue;
@@ -379,7 +367,6 @@ public class ZoneViewModel {
   private void updateTokenStacks() {
     tokenStackMap.clear();
     var tokenPositions = tokenPositionsByLayer.get(Zone.Layer.TOKEN);
-    // TODO Acceleration structure would be better.
     for (var tokenPosition : tokenPositions) {
       var token = tokenPosition.token();
       Set<Token> tokenStackSet = new HashSet<>();

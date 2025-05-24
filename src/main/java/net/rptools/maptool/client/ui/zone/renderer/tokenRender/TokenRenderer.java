@@ -147,7 +147,6 @@ public class TokenRenderer {
             ? -renderImage.getHeight() + renderImage.getWidth() / 4d
             : -renderImage.getHeight() / 2d;
 
-    // TODO Just append this onto the g2d transform.
     AffineTransform imageTransform =
         AffineTransform.getTranslateInstance(
             imageCx + token.getAnchorX(), imageCy + token.getAnchorY());

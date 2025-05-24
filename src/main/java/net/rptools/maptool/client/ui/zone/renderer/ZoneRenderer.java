@@ -103,10 +103,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   /** Manages the selected tokens on the zone. */
   private final SelectionModel selectionModel;
 
-  // TODO Move zoneScale, selectionSetMap, zoneView, etc., into ZoneViewModel, despite them being
-  //  updated in real time and not in the render loop. Maybe in the future we can correct that
-  //  (e.g., by queueing updates for the next frame).
-
   private Scale zoneScale;
   private final Map<Zone.Layer, DrawableRenderer> drawableRenderers;
   private final List<ZoneOverlay> overlayList = new ArrayList<>();
@@ -118,7 +114,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   final Map<GUID, BufferedImage> labelRenderingCache = new HashMap<>();
   private final Map<Token, BufferedImage> flipImageMap = new HashMap<>();
   private final Map<Token, BufferedImage> flipIsoImageMap = new HashMap<>();
-  // TODO Move tokenUnderMouse into ZoneViewModel.
   private Token tokenUnderMouse;
 
   private ScreenPoint pointUnderMouse;
@@ -304,9 +299,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
   }
 
-  // TODO This is only used For AppActions.PASTE_TOKENS. Consider having it instead get the
-  //  view model and a ZonePoint for it (would require moving pointUnderMouse) into ZoneViewModel as
-  //  a ZonePoint.
   public ScreenPoint getPointUnderMouse() {
     return pointUnderMouse;
   }
@@ -2441,13 +2433,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         Collections.singletonList(visibleTokens.get(newSelection).getId()));
   }
 
-  // TODO Why restrict the results to on-screen tokens?
-  // TODO Why iterate in forwards order when getTokenAt() uses reverse?
-  // TODO Why even bother with this method? Use getTokenAt(), then get that token's bounds.
   public Area getTokenBounds(Token token) {
     for (ZoneViewModel.TokenPosition position :
         viewModel.getTokenPositionsForLayer(token.getLayer())) {
-      // TODO Check guids, not identity.
       if (position.token() == token) {
         return new Area(position.transformedBounds());
       }
@@ -2459,7 +2447,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     // Note: this method must iterate only over markers. It cannot be implemented on top of
     // getTokenBounds().
     for (ZoneViewModel.TokenPosition position : viewModel.getMarkerPositions()) {
-      // TODO Check guids, not identity.
       if (position.token() == token) {
         return new Area(position.transformedBounds());
       }
