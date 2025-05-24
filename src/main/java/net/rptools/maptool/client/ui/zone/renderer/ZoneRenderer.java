@@ -159,10 +159,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return tokenUnderMouse;
   }
 
-  public Map<Token, Set<Token>> getTokenStackMap() {
-    return viewModel.getTokenStackMap();
-  }
-
   private boolean skipDrawing;
 
   /**
@@ -1428,7 +1424,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
         // Other details.
         // If the token is visible on the screen it will be in the location cache
-        var tokenPosition = viewModel.getTokenPositions().get(token);
+        var tokenPosition = viewModel.getTokenPositions().get(token.getId());
         if (token == keyToken
             && (isOwner || shouldShowMovementLabels(token, set, clearArea))
             && viewModel.getViewport().intersects(tokenPosition.footprintBounds())
@@ -1969,7 +1965,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         timer.stop("token-list-1");
       }
       timer.start("token-list-1.1");
-      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token);
+      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token.getId());
       if (position != null && !position.transformedBounds().intersects(viewModel.getViewport())) {
         timer.stop("token-list-1.1");
         continue;
@@ -2191,7 +2187,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     // Selection and labels
     for (Token token : tokenPostProcessing) {
-      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token);
+      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token.getId());
       if (position == null) {
         continue;
       }

@@ -69,7 +69,7 @@ public class ZoneViewModel {
 
   private final ZoneView zoneView;
   private final SelectionModel selectionModel;
-  private final List<Token> highlightCommonMacros = new ArrayList<>();
+  private final List<GUID> highlightCommonMacros = new ArrayList<>();
 
   // endregion
 
@@ -86,9 +86,7 @@ public class ZoneViewModel {
   private final List<Token> selectedTokenList = new ArrayList<>();
   private final Set<GUID> movingTokens = new HashSet<>();
 
-  // TODO Map each token GUID to its TokenPosition.
-  //  Then additionally maintain a list of tokens per layer.
-  private final Map<Token, TokenPosition> tokenPositions = new HashMap<>();
+  private final Map<GUID, TokenPosition> tokenPositions = new HashMap<>();
   private final Map<Zone.Layer, List<TokenPosition>> tokenPositionsByLayer =
       CollectionUtil.newFilledEnumMap(Zone.Layer.class, l -> new LinkedList<>());
 
@@ -167,7 +165,7 @@ public class ZoneViewModel {
     return new PlayerView(role, selectedTokens);
   }
 
-  public Map<Token, TokenPosition> getTokenPositions() {
+  public Map<GUID, TokenPosition> getTokenPositions() {
     return Collections.unmodifiableMap(tokenPositions);
   }
 
@@ -196,13 +194,13 @@ public class ZoneViewModel {
     return movingTokens.contains(tokenId);
   }
 
-  public List<Token> getHighlightCommonMacros() {
+  public List<GUID> getHighlightCommonMacros() {
     return Collections.unmodifiableList(highlightCommonMacros);
   }
 
   public void setHighlightCommonMacros(List<Token> affectedTokens) {
     highlightCommonMacros.clear();
-    highlightCommonMacros.addAll(affectedTokens);
+    affectedTokens.stream().map(Token::getId).forEach(highlightCommonMacros::add);
   }
 
   public void update() {
@@ -348,7 +346,7 @@ public class ZoneViewModel {
         }
 
         TokenPosition tokenPosition = new TokenPosition(token, footprintBounds, transformedBounds);
-        tokenPositions.put(token, tokenPosition);
+        tokenPositions.put(token.getId(), tokenPosition);
         layerList.add(tokenPosition);
       }
     }

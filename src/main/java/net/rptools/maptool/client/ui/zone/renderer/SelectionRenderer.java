@@ -60,7 +60,7 @@ public class SelectionRenderer {
       selectedBorder = RessourceManager.getBorder(Borders.FOW_TOOLS);
     } else if (!AppUtil.playerOwns(token)) {
       selectedBorder = AppStyle.selectedUnownedBorder;
-    } else if (viewModel.getHighlightCommonMacros().contains(token)) {
+    } else if (viewModel.getHighlightCommonMacros().contains(token.getId())) {
       selectedBorder = AppStyle.commonMacroBorder;
     } else if (token.getLayer().isStampLayer()) {
       selectedBorder = AppStyle.selectedStampBorder;

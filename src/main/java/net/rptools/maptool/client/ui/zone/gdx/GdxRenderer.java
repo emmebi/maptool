@@ -1698,7 +1698,7 @@ public class GdxRenderer extends ApplicationAdapter {
             token.getLayer().isStampLayer()
                 ? AppStyle.selectedStampBorder
                 : AppStyle.selectedBorder;
-        if (viewModel.getHighlightCommonMacros().contains(token)) {
+        if (viewModel.getHighlightCommonMacros().contains(token.getId())) {
           selectedBorder = AppStyle.commonMacroBorder;
         }
         if (!AppUtil.playerOwns(token)) {
@@ -1766,7 +1766,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     timer.start("tokenlist-13");
 
-    var tokenStackMap = zoneCache.getZoneRenderer().getTokenStackMap();
+    var tokenStackMap = viewModel.getTokenStackMap();
 
     // Stacks
     // TODO: find a cleaner way to indicate token layer
