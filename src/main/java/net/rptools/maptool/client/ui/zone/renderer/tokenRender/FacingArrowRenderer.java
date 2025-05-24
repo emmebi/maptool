@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client.ui.zone.renderer.tokenRender;
 
-import com.google.common.eventbus.Subscribe;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
@@ -23,12 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import net.rptools.lib.CodeTimer;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
-import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
-import net.rptools.maptool.events.MapToolEventBus;
+import net.rptools.maptool.client.ui.zone.ZoneViewModel;
+import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.model.zones.GridChanged;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -36,19 +33,17 @@ public class FacingArrowRenderer {
   private static final Logger log = LogManager.getLogger(FacingArrowRenderer.class);
   private final CodeTimer timer;
   private final Map<ArrowType, Map<Double, Shape>> quivers = new HashMap<>();
-  Rectangle footprintBounds;
-  Token.TokenShape tokenType;
-  ArrowType arrowType;
-  double scale;
-  private boolean initialised = false;
-  private ZoneRenderer renderer;
-  private boolean isIsometric;
+
+  private final RenderHelper renderHelper;
+  private final Zone zone;
+
   private ArrayList<Color> fillColours = new ArrayList<>();
   private Color fillColour = Color.YELLOW;
   private Color borderColour = Color.DARK_GRAY;
 
-  FacingArrowRenderer() {
-    new MapToolEventBus().getMainEventBus().register(this);
+  public FacingArrowRenderer(RenderHelper renderHelper, Zone zone) {
+    this.renderHelper = renderHelper;
+    this.zone = zone;
     for (int i = 0; i <= 90; i++) {
       fillColours.add(new Color(1 - 0.5f / 90f * i, 1 - 0.5f / 90f * i, 0));
     }
@@ -58,30 +53,15 @@ public class FacingArrowRenderer {
     timer = CodeTimer.get();
   }
 
-  public boolean isInitialised() {
-    return initialised;
+  public void paintArrow(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
+    renderHelper.render(tokenG, worldG -> paintArrowWorld(worldG, position));
   }
 
-  double getScale() {
-    return scale;
-  }
-
-  public void setScale(double scale) {
-    this.scale = scale;
-  }
-
-  public void paintArrow(
-      Graphics2D tokenG,
-      Token token,
-      Rectangle footprintBounds_,
-      TokenPosition position,
-      ZoneRenderer zoneRenderer) {
-    if (!renderer.equals(zoneRenderer)) {
-      setRenderer(zoneRenderer);
-      return;
-    }
+  private void paintArrowWorld(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
     try {
-      tokenType = token.getShape();
+      var token = position.token();
+
+      var tokenType = token.getShape();
       if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
         return;
       }
@@ -91,9 +71,10 @@ public class FacingArrowRenderer {
         return;
       }
 
+      final var isIsometric = zone.getGrid().isIsometric();
+
       timer.start("ArrowRenderer-paintArrow");
       AffineTransform oldAT = tokenG.getTransform();
-      footprintBounds = footprintBounds_;
       double facing = token.getFacing();
       facing = isIsometric ? facing + 45 : facing;
       while (facing < 0) {
@@ -103,20 +84,18 @@ public class FacingArrowRenderer {
         facing %= 360;
       }
       double radFacing = Math.toRadians(facing);
-      double cx = position.x + position.scaledWidth / 2d;
-      double cy = position.y + position.scaledHeight / 2d;
+      double cx = position.footprintBounds().getX() + position.footprintBounds().getWidth() / 2d;
+      double cy = position.footprintBounds().getY() + position.footprintBounds().getHeight() / 2d;
 
-      Shape facingArrow = getArrow(token);
-
-      facingArrow =
-          AffineTransform.getRotateInstance(-radFacing).createTransformedShape(facingArrow);
-      facingArrow =
-          AffineTransform.getScaleInstance(getScale(), isIsometric ? getScale() / 2d : getScale())
-              .createTransformedShape(facingArrow);
+      AffineTransform transform = AffineTransform.getRotateInstance(-radFacing);
+      if (isIsometric) {
+        transform.preConcatenate(AffineTransform.getScaleInstance(1.0, 0.5));
+      }
+      Shape facingArrow = transform.createTransformedShape(getArrow(position, isIsometric));
 
       if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
-        double xp = position.scaledWidth / 2;
-        double yp = position.scaledHeight / 2;
+        double xp = position.footprintBounds().getWidth() / 2;
+        double yp = position.footprintBounds().getHeight() / 2;
         if (facing >= 45 && facing <= 135 || facing >= 225 && facing <= 315) {
           xp = yp / Math.tan(Math.toRadians(facing));
           if (facing > 180) {
@@ -152,22 +131,14 @@ public class FacingArrowRenderer {
     timer.stop("ArrowRenderer-paintArrow");
   }
 
-  public void setRenderer(ZoneRenderer zoneRenderer) {
-    timer.start("ArrowRenderer-init");
-    renderer = zoneRenderer;
-    Zone zone = renderer.getZone();
-    isIsometric = zone.getGrid().isIsometric();
-    scale = renderer.getScale();
-    initialised = true;
-    timer.stop("ArrowRenderer-init");
-  }
-
-  private Shape getArrow(Token token) {
+  private Shape getArrow(ZoneViewModel.TokenPosition position, boolean isIsometric) {
+    var tokenType = position.token().getShape();
     if ((!AppPreferences.forceFacingArrow.get() && tokenType.equals(Token.TokenShape.TOP_DOWN))
-        || (!AppPreferences.forceFacingArrow.get() && token.getHasImageTable())) {
+        || (!AppPreferences.forceFacingArrow.get() && position.token().getHasImageTable())) {
       return null;
     }
     Shape arrow = new Path2D.Double();
+    final ArrowType arrowType;
     if (isIsometric) {
       arrowType = ArrowType.ISOMETRIC;
     } else {
@@ -177,7 +148,7 @@ public class FacingArrowRenderer {
         default -> arrowType = ArrowType.NONE;
       }
     }
-    double size = footprintBounds.getWidth() / 2d;
+    double size = position.footprintBounds().getWidth() / 2d;
     Map<Double, Shape> quiver;
     if (quivers.containsKey(arrowType)) {
       quiver = quivers.get(arrowType);
@@ -236,12 +207,5 @@ public class FacingArrowRenderer {
     ISOMETRIC,
     SQUARE,
     NONE
-  }
-
-  @Subscribe
-  private void onGridChanged(GridChanged event) {
-    if (this.initialised && event.zone() != null) {
-      isIsometric = event.zone().getGrid().isIsometric();
-    }
   }
 }

@@ -20,6 +20,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.image.ImageObserver;
 import java.util.function.Consumer;
 import net.rptools.lib.CodeTimer;
 import net.rptools.maptool.client.swing.SwingUtil;
@@ -38,6 +39,10 @@ public class RenderHelper {
   public RenderHelper(ZoneRenderer renderer, BufferedImagePool tempBufferPool) {
     this.renderer = renderer;
     this.tempBufferPool = tempBufferPool;
+  }
+
+  public ImageObserver getImageObserver() {
+    return renderer;
   }
 
   private void doRender(Graphics2D g, Consumer<Graphics2D> render) {

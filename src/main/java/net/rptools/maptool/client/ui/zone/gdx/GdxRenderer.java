@@ -53,6 +53,7 @@ import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.zone.DrawableLight;
 import net.rptools.maptool.client.ui.zone.PlayerView;
+import net.rptools.maptool.client.ui.zone.ZoneViewModel;
 import net.rptools.maptool.client.ui.zone.gdx.drawing.DrawnElementRenderer;
 import net.rptools.maptool.client.ui.zone.gdx.label.ItemRenderer;
 import net.rptools.maptool.client.ui.zone.gdx.label.LabelRenderer;
@@ -93,6 +94,8 @@ public class GdxRenderer extends ApplicationAdapter {
   private final String FONT_BOLD = "boldFont.ttf";
 
   private final String font = "NotoSansSymbols";
+
+  private ZoneViewModel viewModel;
 
   // from renderToken:
   private Area visibleScreenArea;
@@ -263,6 +266,8 @@ public class GdxRenderer extends ApplicationAdapter {
 
   @Override
   public void render() {
+    viewModel.update();
+
     // System.out.println("FPS:   " + Gdx.graphics.getFramesPerSecond());
     var delta = Gdx.graphics.getDeltaTime();
     stateTime += delta;
@@ -330,10 +335,10 @@ public class GdxRenderer extends ApplicationAdapter {
     initializeTimer();
     if (zoneCache.getZoneRenderer() == null) return;
 
-    setScale(zoneCache.getZoneRenderer().getZoneScale());
+    setScale(viewModel.getZoneScale());
 
     timer.start("paintComponent:createView");
-    PlayerView playerView = zoneCache.getZoneRenderer().getPlayerView();
+    PlayerView playerView = viewModel.getPlayerView();
     timer.stop("paintComponent:createView");
 
     setProjectionMatrix(cam.combined);
@@ -342,11 +347,12 @@ public class GdxRenderer extends ApplicationAdapter {
 
     setProjectionMatrix(hudCam.combined);
 
-    if (zoneCache.getZoneRenderer().isLoading())
-      hudTextRenderer.drawBoxedString(
-          zoneCache.getZoneRenderer().getLoadingProgress(), width / 2f, height / 2f);
-    else if (MapTool.getCampaign().isBeingSerialized())
+    var loadingProgress = viewModel.getLoadingStatus();
+    if (loadingProgress.isPresent()) {
+      hudTextRenderer.drawBoxedString(loadingProgress.get(), width / 2f, height / 2f);
+    } else if (MapTool.getCampaign().isBeingSerialized()) {
       hudTextRenderer.drawBoxedString("    Please Wait    ", width / 2f, height / 2f);
+    }
 
     float noteVPos = 20;
     if (!zoneCache.getZone().isVisible() && playerView.isGMView()) {
@@ -389,8 +395,9 @@ public class GdxRenderer extends ApplicationAdapter {
   }
 
   private void renderZone(PlayerView view) {
-    if (zoneCache.getZoneRenderer().isLoading() || MapTool.getCampaign().isBeingSerialized())
+    if (viewModel.getLoadingStatus().isPresent() || MapTool.getCampaign().isBeingSerialized()) {
       return;
+    }
 
     if (lastView != null && !lastView.equals(view)) {
       invalidateCurrentViewCache();
@@ -402,8 +409,7 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.start("calcs-1");
     timer.start("ZoneRenderer-getVisibleArea");
     if (visibleScreenArea == null) {
-      visibleScreenArea =
-          zoneCache.getZoneView().getVisibleArea(zoneCache.getZoneRenderer().getPlayerView());
+      visibleScreenArea = zoneCache.getZoneView().getVisibleArea(viewModel.getPlayerView());
     }
     timer.stop("ZoneRenderer-getVisibleArea");
 
@@ -1385,7 +1391,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
       timer.start("tokenlist-1");
       try {
-        if (token.getLayer().isStampLayer() && zoneCache.getZoneRenderer().isTokenMoving(token)) {
+        if (token.getLayer().isStampLayer() && viewModel.isTokenMoving(token.getId())) {
           continue;
         }
         // Don't bother if it's not visible
@@ -1461,7 +1467,9 @@ public class GdxRenderer extends ApplicationAdapter {
 
       // Calculate alpha Transparency from token and use opacity for indicating that token is moving
       float opacity = token.getTokenOpacity();
-      if (zoneCache.getZoneRenderer().isTokenMoving(token)) opacity = opacity / 2.0f;
+      if (viewModel.isTokenMoving(token.getId())) {
+        opacity = opacity / 2.0f;
+      }
 
       Area tokenCellArea = zoneCache.getZone().getGrid().getTokenCellArea(tokenBounds);
       Area cellArea = new Area(visibleScreenArea);
@@ -1685,7 +1693,7 @@ public class GdxRenderer extends ApplicationAdapter {
             token.getLayer().isStampLayer()
                 ? AppStyle.selectedStampBorder
                 : AppStyle.selectedBorder;
-        if (zoneCache.getZoneRenderer().getHighlightCommonMacros().contains(token)) {
+        if (viewModel.getHighlightCommonMacros().contains(token.getId())) {
           selectedBorder = AppStyle.commonMacroBorder;
         }
         if (!AppUtil.playerOwns(token)) {
@@ -1753,7 +1761,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     timer.start("tokenlist-13");
 
-    var tokenStackMap = zoneCache.getZoneRenderer().getTokenStackMap();
+    var tokenStackMap = viewModel.getTokenStackMap();
 
     // Stacks
     // TODO: find a cleaner way to indicate token layer
@@ -2286,6 +2294,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
           var newZone = event.zone();
           zoneCache = new ZoneCache(newZone, atlas);
+          viewModel = zoneCache.getZoneRenderer().getViewModel();
           drawnElementRenderer.setZoneCache(zoneCache);
           tokenOverlayRenderer.setZoneCache(zoneCache);
           gridRenderer.setZoneCache(zoneCache);
