@@ -1969,8 +1969,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         timer.stop("token-list-1");
       }
       timer.start("token-list-1.1");
-      ZoneViewModel.TokenPosition position0 = viewModel.getTokenPositions().get(token);
-      if (position0 != null && !position0.transformedBounds().intersects(viewModel.getViewport())) {
+      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token);
+      if (position != null && !position.transformedBounds().intersects(viewModel.getViewport())) {
         timer.stop("token-list-1.1");
         continue;
       }
@@ -2005,20 +2005,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       timer.stop("token-list-1d");
 
       timer.start("token-list-1e");
-      TokenPosition position;
       try {
-        position =
-            new TokenPosition(
-                this,
-                tokenBounds,
-                origBounds,
-                token,
-                x,
-                y,
-                footprintBounds.width,
-                footprintBounds.height,
-                scaledWidth,
-                scaledHeight);
         if (!viewModel.getVisibleTokens(token.getLayer()).contains(token.getId())) {
           // Token not on screen or otherwise not visible.
           continue;
@@ -2085,74 +2072,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         }
         token.setHeight(workImage.getHeight());
         token.setWidth(workImage.getWidth());
-        footprintBounds = token.getBounds(zone);
       }
       timer.stop("token-list-5a");
 
-      timer.start("token-list-6");
-      // Position
-      // For Isometric Grid we alter the height offset
-      double iso_ho = 0;
-      Dimension imgSize = new Dimension(workImage.getWidth(), workImage.getHeight());
-      if (token.getShape() == TokenShape.FIGURE) {
-        double th = token.getHeight() * (double) footprintBounds.width / token.getWidth();
-        iso_ho = footprintBounds.height - th;
-        footprintBounds =
-            new Rectangle(
-                footprintBounds.x,
-                footprintBounds.y - (int) iso_ho,
-                footprintBounds.width,
-                (int) th);
-        iso_ho = iso_ho * getScale();
-      }
-      SwingUtil.constrainTo(imgSize, footprintBounds.width, footprintBounds.height);
-
-      int offsetX = 0;
-      int offsetY = 0;
-
-      if (token.isSnapToScale()) {
-        offsetX =
-            (int)
-                (imgSize.width < footprintBounds.width
-                    ? (footprintBounds.width - imgSize.width) / 2 * getScale()
-                    : 0);
-        offsetY =
-            (int)
-                (imgSize.height < footprintBounds.height
-                    ? (footprintBounds.height - imgSize.height) / 2 * getScale()
-                    : 0);
-      }
-      double tx = position.x + offsetX;
-      double ty = position.y + offsetY + iso_ho;
-
-      AffineTransform at = new AffineTransform();
-      at.translate(tx, ty);
-
-      // Rotated
-      if (token.hasFacing() && token.getShape() == Token.TokenShape.TOP_DOWN) {
-        at.rotate(
-            Math.toRadians(token.getFacingInDegrees()),
-            position.scaledWidth / 2 - (token.getAnchor().x * scale) - offsetX,
-            position.scaledHeight / 2 - (token.getAnchor().y * scale) - offsetY);
-        // facing defaults to down, or -90 degrees
-      }
-      // Snap
-      if (token.isSnapToScale()) {
-        at.scale(
-            ((double) imgSize.width) / workImage.getWidth(),
-            ((double) imgSize.height) / workImage.getHeight());
-        at.scale(getScale(), getScale());
-      } else {
-        if (token.getShape() == TokenShape.FIGURE) {
-          at.scale(scaledWidth / workImage.getWidth(), scaledWidth / workImage.getWidth());
-        } else {
-          at.scale(scaledWidth / workImage.getWidth(), scaledHeight / workImage.getHeight());
-        }
-      }
-      timer.stop("token-list-6");
-
       // Render Halo
-      haloRenderer.renderHalo(tokenG, token, position0);
+      haloRenderer.renderHalo(tokenG, token, position);
 
       // Calculate alpha Transparency from token and use opacity to indicate that token is moving
       float opacity = token.getTokenOpacity();
@@ -2167,13 +2091,13 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           // the cell intersects visible area so
           if (zone.getGrid().checkCenterRegion(cb.getBounds(), visibleScreenArea)) {
             // if we can see the centre, draw the whole token
-            tokenRenderer.renderToken(token, position0, tokenG, opacity);
+            tokenRenderer.renderToken(token, position, tokenG, opacity);
           } else {
             // else draw the clipped token
             Area cellArea = new Area(visibleScreenArea);
             cellArea.intersect(cb);
             tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position0, tokenG, opacity);
+            tokenRenderer.renderToken(token, position, tokenG, opacity);
           }
         }
       } else if (!isGMView && zoneView.isUsingVision() && token.isAlwaysVisible()) {
@@ -2183,7 +2107,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           // if we can see a portion of the stamp/token, draw the whole thing, defaults to 2/9ths
           if (zone.getGrid()
               .checkRegion(cb.getBounds(), visibleScreenArea, token.getAlwaysVisibleTolerance())) {
-            tokenRenderer.renderToken(token, position0, tokenG, opacity);
+            tokenRenderer.renderToken(token, position, tokenG, opacity);
           } else {
             // else draw the clipped stamp/token
             // This will only show the part of the token that does not have VBL on it
@@ -2191,19 +2115,19 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             Area cellArea = new Area(visibleScreenArea);
             cellArea.intersect(cb);
             tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position0, tokenG, opacity);
+            tokenRenderer.renderToken(token, position, tokenG, opacity);
           }
         }
       } else {
         // fallthrough normal token rendered against visible area
-        tokenRenderer.renderToken(token, position0, tokenG, opacity);
+        tokenRenderer.renderToken(token, position, tokenG, opacity);
       }
       timer.stop("token-list-7");
 
       timer.start("token-list-8");
       // Facing
       if (token.hasFacing()) {
-        facingArrowRenderer.paintArrow(tokenG, position0);
+        facingArrowRenderer.paintArrow(tokenG, position);
       }
       timer.stop("token-list-8");
 
