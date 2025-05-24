@@ -26,9 +26,10 @@ import javax.swing.*;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
+import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.ui.zone.renderer.TokenPosition;
-import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
+import net.rptools.maptool.client.ui.zone.ZoneViewModel;
+import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.zones.GridChanged;
@@ -44,50 +45,31 @@ public class TokenRenderer {
       Collections.synchronizedMap(new HashMap<>());
   private final Map<Token, BufferedImage> renderImageMap = new HashMap<>();
   private final Map<Token, TokenState> tokenStateMap = new HashMap<>();
-  private TokenPosition position;
+
+  private final RenderHelper renderHelper;
+  private final Zone zone;
+  private ZoneViewModel.TokenPosition position;
   private Token token;
   private float opacity = 1f;
-  private ZoneRenderer renderer;
-  private Grid grid;
-  private double scale;
   private boolean isoFigure = false;
   private boolean canSpin = false;
   private BufferedImage renderImage;
-  private boolean initialised = false;
-  public FacingArrowRenderer facingArrowRenderer;
 
-  public TokenRenderer() {
-    facingArrowRenderer = new FacingArrowRenderer();
+  public TokenRenderer(RenderHelper renderHelper, Zone zone) {
+    this.renderHelper = renderHelper;
+    this.zone = zone;
     new MapToolEventBus().getMainEventBus().register(this);
     timer = CodeTimer.get();
   }
 
-  public boolean notInitialised() {
-    return !initialised;
-  }
-
-  public void setRenderer(ZoneRenderer zoneRenderer) {
-    timer.start("TokenRenderer-init");
-    renderer = zoneRenderer;
-    Zone zone = renderer.getZone();
-    grid = zone.getGrid();
-
-    scale = renderer.getScale();
-    initialised = grid != null && renderer != null;
-    timer.stop("TokenRenderer-init");
-  }
-
-  public void renderToken(Token token, TokenPosition position, Graphics2D g2d, Float opacity) {
-    if (!initialised) {
-      log.info("TokenRenderer: Not yet initialised.");
-      return;
-    }
+  public void renderToken(
+      Token token, ZoneViewModel.TokenPosition position, Graphics2D g2d, Float opacity) {
     timer.start("TokenRenderer-renderToken");
     this.token = token;
     this.position = position;
     this.opacity = opacity * token.getTokenOpacity();
     compareStates();
-    paintTokenImage(g2d);
+    renderHelper.render(g2d, worldG -> paintTokenImage(worldG));
     timer.stop("TokenRenderer-renderToken");
   }
 
@@ -115,7 +97,7 @@ public class TokenRenderer {
     }
     // set these whilst we have the information handy
     isoFigure =
-        grid.isIsometric()
+        zone.getGrid().isIsometric()
             && !currentState.flippedIso
             && currentState.shape.equals(Token.TokenShape.FIGURE);
     canSpin = currentState.shape.equals(Token.TokenShape.TOP_DOWN);
@@ -135,28 +117,43 @@ public class TokenRenderer {
                     .filter(integer -> integer >= useValue)
                     .toList()
                     .getFirst());
-        if (bi != null) {
-          bi = ImageUtil.getTokenRenderImage(token, bi, renderer);
-        }
       }
     } else {
-      bi = ImageUtil.getTokenRenderImage(token, renderer);
+      bi = ImageUtil.getTokenImage(token, renderHelper.getImageObserver());
     }
+
+    if (bi != null) {
+      AppConstants.FLIP_DIRECTION flipDirection =
+          AppConstants.FLIP_DIRECTION.getFlipDirection(
+              token.isFlippedX(), token.isFlippedY(), token.getIsFlippedIso());
+
+      bi = ImageUtil.flipCartesian(bi, flipDirection);
+      if (token.getIsFlippedIso() && zone.getGrid().isIsometric()) {
+        bi = ImageUtil.flipIsometric(bi, true);
+      }
+
+      bi = ImageUtil.getScaledTokenImage(bi, token, zone.getGrid(), 1.0);
+    }
+
     return bi;
   }
 
   private void paintTokenImage(Graphics2D g2d) {
     timer.start("TokenRenderer-paintTokenImage");
-    AffineTransform oldAT = g2d.getTransform();
-    Composite oldComposite = g2d.getComposite();
     // centre image
     double imageCx = -renderImage.getWidth() / 2d;
-    double imageCy = -renderImage.getHeight() / (isoFigure ? 4d / 3d : 2d);
+    double imageCy =
+        isoFigure
+            ? -renderImage.getHeight() + renderImage.getWidth() / 4d
+            : -renderImage.getHeight() / 2d;
+
     AffineTransform imageTransform =
         AffineTransform.getTranslateInstance(
-            imageCx + token.getAnchorX() * scale, imageCy + token.getAnchorY() * scale);
+            imageCx + token.getAnchorX(), imageCy + token.getAnchorY());
 
-    g2d.translate(position.x + position.scaledWidth / 2d, position.y + position.scaledHeight / 2d);
+    g2d.translate(
+        position.footprintBounds().getX() + position.footprintBounds().getWidth() / 2d,
+        position.footprintBounds().getY() + position.footprintBounds().getHeight() / 2d);
 
     if (token.hasFacing() && canSpin) {
       g2d.rotate(Math.toRadians(token.getFacingInDegrees()));
@@ -165,45 +162,33 @@ public class TokenRenderer {
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
     }
 
-    g2d.drawImage(renderImage, imageTransform, renderer);
+    g2d.drawImage(renderImage, imageTransform, renderHelper.getImageObserver());
     g2d.setStroke(new BasicStroke(1f));
-
-    g2d.setComposite(oldComposite);
-    g2d.setTransform(oldAT);
     timer.stop("TokenRenderer-paintTokenImage");
   }
 
-  public void paintFacingArrow(
-      Graphics2D tokenG, Token token, Rectangle footprintBounds, TokenPosition position) {
-    if (!facingArrowRenderer.isInitialised()) {
-      facingArrowRenderer.setRenderer(renderer);
-    }
-    facingArrowRenderer.paintArrow(tokenG, token, footprintBounds, position, renderer);
-  }
-
   public void zoomChanged() {
-    if (initialised) {
-      renderImageMap.clear();
-      scale = renderer.getScale();
-      facingArrowRenderer.setScale(scale);
-    }
+    renderImageMap.clear();
   }
 
   @Subscribe
   private void onGridChanged(GridChanged event) {
-    if (initialised && event.zone() != null) {
-      renderImageMap.clear();
-      this.grid = event.zone().getGrid();
+    if (event.zone() != this.zone) {
+      return;
     }
+
+    renderImageMap.clear();
   }
 
   @Subscribe
   private void onTokensChanged(TokensChanged event) {
-    if (initialised) {
-      for (Token t : event.tokens()) {
-        if (t != null) {
-          tokenStateMap.remove(t);
-        }
+    if (event.zone() != this.zone) {
+      return;
+    }
+
+    for (Token t : event.tokens()) {
+      if (t != null) {
+        tokenStateMap.remove(t);
       }
     }
   }
@@ -219,7 +204,7 @@ public class TokenRenderer {
         token.isFlippedY(),
         token.getShape(),
         token.isSnapToScale(),
-        token.getFootprint(grid));
+        token.getFootprint(zone.getGrid()));
   }
 
   protected record TokenState(
