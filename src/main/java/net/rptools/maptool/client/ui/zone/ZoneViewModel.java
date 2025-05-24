@@ -75,6 +75,8 @@ public class ZoneViewModel {
 
   // region These are updated at the start of each render via `update()`.
 
+  private boolean isUsingGdxRenderer = false;
+
   /** The status message describing how loaded the zone is, or {@code null} if fully loaded. */
   private @Nullable String loadingProgress = "";
 
@@ -108,6 +110,10 @@ public class ZoneViewModel {
   /** Marks the zone as not loaded, so that it ensures once again that all assets are loaded. */
   public void flush() {
     loadingProgress = "";
+  }
+
+  public boolean isUsingGdxRenderer() {
+    return isUsingGdxRenderer;
   }
 
   /**
@@ -204,6 +210,7 @@ public class ZoneViewModel {
   }
 
   public void update() {
+    updateIsUsingGdxRenderer();
     updateIsLoading();
     updateViewport();
     updatePlayerView();
@@ -214,6 +221,10 @@ public class ZoneViewModel {
     updateMarkerPositions();
     updateTokenStacks();
     updateVisibleTokens();
+  }
+
+  private void updateIsUsingGdxRenderer() {
+    isUsingGdxRenderer = MapTool.getFrame().getGdxPanel().isVisible();
   }
 
   // What follows are "systems".

@@ -266,10 +266,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
   @Override
   public void render() {
-    // TODO I just want to directly update the view model. The only thing stopping me is that the
-    //  ZoneRenderer needs to know whether to skip drawing.
-    // viewModel.update();
-    zoneCache.getZoneRenderer().update();
+    viewModel.update();
 
     // System.out.println("FPS:   " + Gdx.graphics.getFramesPerSecond());
     var delta = Gdx.graphics.getDeltaTime();

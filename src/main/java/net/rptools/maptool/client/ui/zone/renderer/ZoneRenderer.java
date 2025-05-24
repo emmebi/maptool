@@ -159,8 +159,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return tokenUnderMouse;
   }
 
-  private boolean skipDrawing;
-
   /**
    * Constructor for the ZoneRenderer from a zone.
    *
@@ -746,64 +744,64 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           timer.setThreshold(10);
 
           timer.start("update");
-          update();
+          viewModel.update();
+          final var skipDrawing = viewModel.isUsingGdxRenderer();
           timer.stop("update");
 
-          // Clear internal state
-          itemRenderList.clear();
+          if (!skipDrawing) {
+            // Clear internal state
+            itemRenderList.clear();
 
-          if (!compositor.isInitialised()) {
-            compositor.setRenderer(this);
-          }
-          if (!gridRenderer.isInitialised()) {
-            gridRenderer.setRenderer(this);
-          }
+            if (!compositor.isInitialised()) {
+              compositor.setRenderer(this);
+            }
+            if (!gridRenderer.isInitialised()) {
+              gridRenderer.setRenderer(this);
+            }
 
-          timer.start("paintComponent");
-          Graphics2D g2d = (Graphics2D) g;
+            timer.start("paintComponent");
+            Graphics2D g2d = (Graphics2D) g;
 
-          timer.start("paintComponent:allocateBuffer");
-          tempBufferPool.setWidth(getSize().width);
-          tempBufferPool.setHeight(getSize().height);
-          tempBufferPool.setConfiguration(g2d.getDeviceConfiguration());
-          timer.stop("paintComponent:allocateBuffer");
+            timer.start("paintComponent:allocateBuffer");
+            tempBufferPool.setWidth(getSize().width);
+            tempBufferPool.setHeight(getSize().height);
+            tempBufferPool.setConfiguration(g2d.getDeviceConfiguration());
+            timer.stop("paintComponent:allocateBuffer");
 
-          try (final var bufferHandle = tempBufferPool.acquire()) {
-            final var buffer = bufferHandle.get();
-            final var bufferG2d = buffer.createGraphics();
-            // Keep the clip to avoid rendering more than we have to.
-            bufferG2d.setClip(g2d.getClip());
+            try (final var bufferHandle = tempBufferPool.acquire()) {
+              final var buffer = bufferHandle.get();
 
-            timer.start("paintComponent:createView");
-            PlayerView pl = getPlayerView();
-            timer.stop("paintComponent:createView");
+              final var bufferG2d = buffer.createGraphics();
+              // Keep the clip to avoid rendering more than we have to.
+              bufferG2d.setClip(g2d.getClip());
 
-            if (!skipDrawing) {
+              timer.start("paintComponent:createView");
+              PlayerView pl = getPlayerView();
+              timer.stop("paintComponent:createView");
+
               renderZone(bufferG2d, pl);
-            }
-            int noteVPos = 20;
-            bufferG2d.setFont(AppStyle.labelFont);
-            if (MapTool.getFrame().areFullScreenToolsShown()) {
-              noteVPos += 40;
-            }
-            if (!AppPreferences.mapVisibilityWarning.get()
-                && (!zone.isVisible() && pl.isGMView())
-                && !skipDrawing) {
-              GraphicsUtil.drawBoxedString(
-                  bufferG2d, I18N.getText("zone.map_not_visible"), getSize().width / 2, noteVPos);
-              noteVPos += 20;
-            }
-            if (AppState.isShowAsPlayer() && !skipDrawing) {
-              GraphicsUtil.drawBoxedString(
-                  bufferG2d, I18N.getText("zone.player_view"), getSize().width / 2, noteVPos);
-            }
 
-            timer.start("paintComponent:renderBuffer");
-            bufferG2d.dispose();
-            if (!skipDrawing) {
+              int noteVPos = 20;
+              bufferG2d.setFont(AppStyle.labelFont);
+              if (MapTool.getFrame().areFullScreenToolsShown()) {
+                noteVPos += 40;
+              }
+              if (!AppPreferences.mapVisibilityWarning.get()
+                  && (!zone.isVisible() && pl.isGMView())) {
+                GraphicsUtil.drawBoxedString(
+                    bufferG2d, I18N.getText("zone.map_not_visible"), getSize().width / 2, noteVPos);
+                noteVPos += 20;
+              }
+              if (AppState.isShowAsPlayer()) {
+                GraphicsUtil.drawBoxedString(
+                    bufferG2d, I18N.getText("zone.player_view"), getSize().width / 2, noteVPos);
+              }
+
+              timer.start("paintComponent:renderBuffer");
+              bufferG2d.dispose();
               g2d.drawImage(buffer, null, 0, 0);
+              timer.stop("paintComponent:renderBuffer");
             }
-            timer.stop("paintComponent:renderBuffer");
           }
 
           timer.stop("paintComponent");
@@ -848,11 +846,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return !disabledLayers.contains(layer) && (layer.isVisibleToPlayers() || view.isGMView());
   }
 
-  public void update() {
-    skipDrawing = MapTool.getFrame().getGdxPanel().isVisible();
-    viewModel.update();
-  }
-
   /**
    * This is the top-level method of the rendering pipeline that coordinates all other calls. {@link
    * #paintComponent(Graphics)} calls this method, then adds the two optional strings, "Map not
@@ -880,22 +873,17 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     // Are we still waiting to show the zone ?
     var loadingProgress = viewModel.getLoadingStatus();
     if (loadingProgress.isPresent()) {
-      if (!skipDrawing) {
-        g2d.setColor(Color.black);
-        g2d.fillRect(0, 0, viewRect.width, viewRect.height);
-        GraphicsUtil.drawBoxedString(
-            g2d, loadingProgress.get(), viewRect.width / 2, viewRect.height / 2);
-      }
-
+      g2d.setColor(Color.black);
+      g2d.fillRect(0, 0, viewRect.width, viewRect.height);
+      GraphicsUtil.drawBoxedString(
+          g2d, loadingProgress.get(), viewRect.width / 2, viewRect.height / 2);
       return;
     }
     if (MapTool.getCampaign().isBeingSerialized()) {
-      if (!skipDrawing) {
-        g2d.setColor(Color.black);
-        g2d.fillRect(0, 0, viewRect.width, viewRect.height);
-        GraphicsUtil.drawBoxedString(
-            g2d, "    Please Wait    ", viewRect.width / 2, viewRect.height / 2);
-      }
+      g2d.setColor(Color.black);
+      g2d.fillRect(0, 0, viewRect.width, viewRect.height);
+      GraphicsUtil.drawBoxedString(
+          g2d, "    Please Wait    ", viewRect.width / 2, viewRect.height / 2);
       return;
     }
     if (zone == null) {
@@ -930,7 +918,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.stop("calcs-1");
 
     // Rendering pipeline
-    if (zone.drawBoard() && !skipDrawing) {
+    if (zone.drawBoard()) {
       timer.start("board");
       renderBoard(g2d, view);
       timer.stop("board");
@@ -1094,8 +1082,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.start("lightSourceIconOverlay.paintOverlay");
     if (shouldRenderLayer(Zone.Layer.TOKEN, view)
         && view.isGMView()
-        && AppState.isShowLightSources()
-        && !skipDrawing) {
+        && AppState.isShowLightSources()) {
       lightSourceIconOverlay.paintOverlay(this, g2d);
     }
     timer.stop("lightSourceIconOverlay.paintOverlay");
@@ -1108,7 +1095,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   private void renderRenderables(Graphics2D g) {
-    if (skipDrawing) return;
     for (ItemRenderer renderer : itemRenderList) {
       renderer.render(g);
     }
@@ -1148,8 +1134,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   protected void renderDrawableOverlay(
       Graphics g, DrawableRenderer renderer, PlayerView view, List<DrawnElement> drawnElements) {
-    if (skipDrawing) return;
-
     Rectangle viewport =
         new Rectangle(
             zoneScale.getOffsetX(), zoneScale.getOffsetY(), getSize().width, getSize().height);
@@ -1234,7 +1218,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   protected void showBlockedMoves(Graphics2D g, PlayerView view, Set<SelectionSet> movementSet) {
-    if (selectionSetMap.isEmpty() || skipDrawing) {
+    if (selectionSetMap.isEmpty()) {
       return;
     }
     g = (Graphics2D) g.create();
@@ -2010,8 +1994,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         // This ensures that the timer is always stopped
         timer.stop("token-list-1e");
       }
-
-      if (skipDrawing) continue;
 
       // create a per token Graphics object - normally clipped, unless always visible
       Area tokenCellArea = zone.getGrid().getTokenCellArea(tokenBounds);
