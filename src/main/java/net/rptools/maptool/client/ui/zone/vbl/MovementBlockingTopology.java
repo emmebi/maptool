@@ -62,7 +62,7 @@ public class MovementBlockingTopology {
             .getWalls()
             .filter(
                 wall ->
-                    switch (wall.movementModifier()) {
+                    switch (wall.data().movementModifier()) {
                       case ForceBoth -> true;
                       case Disabled -> false;
                     })

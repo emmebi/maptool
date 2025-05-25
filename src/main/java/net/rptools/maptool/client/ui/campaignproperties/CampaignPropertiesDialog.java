@@ -148,21 +148,7 @@ public class CampaignPropertiesDialog extends JDialog {
   }
 
   private void initHelp() {
-    /* simple check to see if one of the keys has been translated from English. */
-    boolean isTranslated =
-        MapTool.getLanguage().toLowerCase().startsWith("en")
-            || !I18N.getText("sightLight.optionDescription.shape")
-                .equalsIgnoreCase(
-                    "Shape may be {0}(beam), {1}(circle), {2}(cone), {3}(grid), {4}(hexagon), or {5}(square).");
-    /* use old text if new text not available */
-    String[] helpText =
-        isTranslated
-            ? generateHelpText()
-            : new String[] {
-              I18N.getText("CampaignPropertiesDialog.label.sight"),
-              I18N.getText("CampaignPropertiesDialog.label.light"),
-              I18N.getText("CampaignPropertiesDialog.label.auras")
-            };
+    String[] helpText = generateHelpText();
 
     HyperlinkListener hyperLinkListener =
         e -> {

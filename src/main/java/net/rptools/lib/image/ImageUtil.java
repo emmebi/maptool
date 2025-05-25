@@ -31,7 +31,6 @@ import net.rptools.lib.MathUtil;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.parser.ParserException;
@@ -105,19 +104,6 @@ public class ImageUtil {
     return (r << 16) | (g << 8) | b;
   }
 
-  /**
-   * Scales the provided image with the ZoneRenderer scale, the token footprint, and the token's
-   * layout scale factors.
-   *
-   * @param bi Image to scale
-   * @return Scaled bufferedImage
-   */
-  public static BufferedImage getScaledTokenImage(BufferedImage bi, Token token, ZoneRenderer zr) {
-    Grid grid = zr.getZone().getGrid();
-    double zoneS = zr.getScale();
-    return getScaledTokenImage(bi, token, grid, zoneS);
-  }
-
   public static BufferedImage getScaledTokenImage(
       BufferedImage img, Token token, Grid grid, double zoom) {
 
@@ -144,8 +130,7 @@ public class ImageUtil {
       // i.e. lowest ratio
       double imageFootprintRatio;
       if (token.getShape() == Token.TokenShape.FIGURE && grid.isIsometric()) {
-        // uses double footprint height
-        imageFootprintRatio = Math.min(fpW / imgW, fpH * 2 / imgH);
+        imageFootprintRatio = fpW / imgW;
       } else {
         imageFootprintRatio = Math.min(fpW / imgW, fpH / imgH);
       }
@@ -537,43 +522,16 @@ public class ImageUtil {
   }
 
   /**
-   * Gets the token image; applies flipping, scaling, and image rotation, but not facing.
-   *
-   * @param token Token
-   * @param zr ZoneRenderer
-   * @return modified image
-   */
-  public static BufferedImage getTokenRenderImage(Token token, ZoneRenderer zr) {
-    BufferedImage image = getTokenImage(token, zr);
-
-    AppConstants.FLIP_DIRECTION flipDirection =
-        AppConstants.FLIP_DIRECTION.getFlipDirection(
-            token.isFlippedX(), token.isFlippedY(), token.getIsFlippedIso());
-
-    image = flipCartesian(image, flipDirection);
-    if (token.getIsFlippedIso() && zr.getZone().getGrid().isIsometric()) {
-      image = flipIsometric(image, true);
-    }
-
-    image = getScaledTokenImage(image, token, zr);
-
-    return image;
-  }
-
-  /**
    * Checks to see if token has an image table and references that if the token has a facing
    * otherwise uses basic image
    *
    * @param token the token to get the image from.
    * @return BufferedImage
    */
-  public static BufferedImage getTokenImage(Token token, ZoneRenderer zr) {
+  public static BufferedImage getTokenImage(Token token, ImageObserver... observers) {
     BufferedImage image = null;
     // Get the basic image
-    if (token.getHasImageTable()
-        && token.hasFacing()
-        && token.getImageTableName() != null
-        && zr.getZone().getGrid().isIsometric()) {
+    if (token.getHasImageTable() && token.hasFacing() && token.getImageTableName() != null) {
       LookupTable lookupTable =
           MapTool.getCampaign().getLookupTableMap().get(token.getImageTableName());
       if (lookupTable != null) {
@@ -581,7 +539,7 @@ public class ImageUtil {
           LookupTable.LookupEntry result =
               lookupTable.getLookup(Integer.toString(token.getFacing()));
           if (result != null) {
-            image = ImageManager.getImage(result.getImageId(), zr);
+            image = ImageManager.getImage(result.getImageId(), observers);
           }
         } catch (ParserException p) {
           // do nothing
@@ -591,7 +549,7 @@ public class ImageUtil {
 
     if (image == null) {
       // Adds zr as observer so we can repaint once the image is ready. Fixes #1700.
-      image = ImageManager.getImage(token.getImageAssetId(), zr);
+      image = ImageManager.getImage(token.getImageAssetId(), observers);
     }
     return image;
   }
