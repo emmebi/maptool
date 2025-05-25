@@ -32,14 +32,10 @@ public class TextRenderer {
   private Batch batch;
   private BitmapFont font;
 
-  private boolean scaling = true;
+  private boolean scaling;
 
   public TextRenderer(TextureAtlas atlas, Batch batch, BitmapFont font) {
-    this.font = font;
-    this.batch = batch;
-    blueLabel = atlas.createPatch("blueLabelbox");
-    grayLabel = atlas.createPatch("grayLabelbox");
-    darkGrayLabel = atlas.createPatch("darkGreyLabelbox");
+    this(atlas, batch, font, true);
   }
 
   public TextRenderer(TextureAtlas atlas, Batch batch, BitmapFont font, boolean scaling) {
@@ -91,7 +87,9 @@ public class TextRenderer {
     var BOX_PADDINGX = 10;
     var BOX_PADDINGY = 2;
 
-    if (text == null) text = "";
+    if (text == null) {
+      text = "";
+    }
 
     // the font size was already scaled. So don't scale it here.
     glyphLayout.setText(font, text);
@@ -123,7 +121,6 @@ public class TextRenderer {
 
     var textX = x + BOX_PADDINGX;
     var textY = y + height - BOX_PADDINGY - font.getAscent();
-
     font.setColor(foreground);
     font.draw(batch, text, textX, textY);
   }

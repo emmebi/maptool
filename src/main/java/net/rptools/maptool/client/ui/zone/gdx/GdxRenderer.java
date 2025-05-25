@@ -34,6 +34,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
+import java.nio.ByteBuffer;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -307,6 +308,7 @@ public class GdxRenderer extends ApplicationAdapter {
     fontParams.fontFileName =
         String.format("net/rptools/maptool/client/fonts/%s/%s-Bold.ttf", font, font);
     fontParams.fontParameters.size = (int) (12 * fontScale);
+    fontParams.loadedCallback = GdxRenderer::premultiplyFontOnLoad;
     manager.load(FONT_BOLD, BitmapFont.class, fontParams);
     manager.finishLoading();
     boldFont = manager.get(FONT_BOLD, BitmapFont.class);
@@ -319,6 +321,8 @@ public class GdxRenderer extends ApplicationAdapter {
     fontParams.fontFileName =
         String.format("net/rptools/maptool/client/fonts/%s/%s-Regular.ttf", font, font);
     fontParams.fontParameters.size = 12;
+    fontParams.loadedCallback = GdxRenderer::premultiplyFontOnLoad;
+
     manager.load(FONT_NORMAL, BitmapFont.class, fontParams);
   }
 
@@ -2316,5 +2320,41 @@ public class GdxRenderer extends ApplicationAdapter {
 
   public void flushFog() {
     visibleScreenArea = null;
+  }
+
+  /**
+   * Premultiplies the texture for a font upon loading.
+   *
+   * <p>This method assumes the font is backed by a single texture.
+   *
+   * <p>It would be nicer if LibGDX supported premultiplied fonts, but the feature never get added
+   * (see <a href="https://github.com/libgdx/libgdx/issues/3642">this issue</a>).
+   *
+   * @param assetManager
+   * @param fileName
+   * @param type
+   */
+  private static void premultiplyFontOnLoad(
+      com.badlogic.gdx.assets.AssetManager assetManager, String fileName, Class<BitmapFont> type) {
+    var font = assetManager.get(fileName, type);
+    var texture = font.getRegion().getTexture();
+    try {
+      Pixmap pixmap = texture.getTextureData().consumePixmap();
+      ByteBuffer pixels = pixmap.getPixels();
+      Color color = new Color();
+      while (pixels.hasRemaining()) {
+        var position = pixels.position();
+        color.set(pixels.getInt());
+        color.premultiplyAlpha();
+        pixels.putInt(position, color.toIntBits());
+      }
+      pixels.rewind();
+      pixmap.setPixels(pixels);
+      font.getRegion().setTexture(new Texture(pixmap));
+    } catch (Throwable t) {
+      log.error("Unexpected error while loading font", t);
+    } finally {
+      texture.dispose();
+    }
   }
 }

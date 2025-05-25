@@ -1,6 +1,7 @@
 maptool.png
 size:512,512
 repeat:none
+pma:true
 block_move
 bounds:2,254,256,256
 blueLabelbox
@@ -10,7 +11,7 @@ pad:10,10,10,10
 border/blue/bl
 bounds:383,369,3,3
 border/blue/bottom
-bounds:2,2,52,3
+bounds:2,7,52,3
 border/blue/br
 bounds:452,387,3,3
 border/blue/right
@@ -22,7 +23,7 @@ bounds:485,499,3,3
 border/blue/top
 bounds:234,144,52,3
 border/blue/tr
-bounds:143,117,3,3
+bounds:121,75,3,3
 border/fowtools/bl
 bounds:252,192,6,6
 border/fowtools/bottom
@@ -68,9 +69,9 @@ bounds:268,214,3,52
 border/gray2/tl
 bounds:456,446,3,3
 border/gray2/top
-bounds:2,7,52,3
+bounds:129,127,52,3
 border/gray2/tr
-bounds:260,201,3,3
+bounds:464,454,3,3
 border/green/bl
 bounds:197,137,3,3
 border/green/bottom
@@ -108,13 +109,13 @@ bounds:292,316,3,3
 border/purple/bottom
 bounds:329,369,52,3
 border/purple/br
-bounds:121,75,3,3
+bounds:143,117,3,3
 border/purple/left
 bounds:470,463,3,47
 border/purple/right
 bounds:470,463,3,47
 border/purple/tl
-bounds:268,209,3,3
+bounds:260,201,3,3
 border/purple/top
 bounds:2,17,52,3
 border/purple/tr
@@ -124,7 +125,7 @@ bounds:390,379,3,3
 border/red/bottom
 bounds:129,122,52,3
 border/red/br
-bounds:464,454,3,3
+bounds:268,209,3,3
 border/red/left
 bounds:475,463,3,47
 border/red/right
@@ -142,9 +143,9 @@ bounds:121,171,217,12
 border/shadow/br
 bounds:129,108,12,12
 border/shadow/left
-bounds:456,459,12,51
-border/shadow/right
 bounds:260,268,12,51
+border/shadow/right
+bounds:456,459,12,51
 border/shadow/tl
 bounds:56,16,12,12
 border/shadow/top
@@ -154,7 +155,7 @@ bounds:329,345,12,12
 border/yellow/bl
 bounds:284,308,3,3
 border/yellow/bottom
-bounds:129,127,52,3
+bounds:2,2,52,3
 border/yellow/br
 bounds:129,103,3,3
 border/yellow/left
