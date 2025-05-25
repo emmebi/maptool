@@ -201,7 +201,7 @@ public class AreaRenderer {
   }
 
   protected void paintRegion(PolygonSpriteBatch batch, PolygonRegion polygonRegion) {
-    var oldColor = batch.getColor();
+    var oldColor = new Color(batch.getColor());
     batch.setColor(color);
     batch.draw(polygonRegion, 0, 0);
     batch.setColor(oldColor);
