@@ -43,7 +43,12 @@ public class LibraryURLConnection extends URLConnection {
 
   @Override
   public InputStream getInputStream() throws IOException {
-    var htmlContent = HTMLContent.fromURL(url).fetchContent().injectJavaBridge();
-    return new ByteArrayInputStream(htmlContent.getHtmlString().getBytes());
+    var content = HTMLContent.fromURL(url).fetchContent();
+    if (content.isBinaryAsset()) {
+      return content.getAsset().getDataAsInputStream();
+    } else {
+      content = content.injectJavaBridge();
+      return new ByteArrayInputStream(content.getHtmlString().getBytes());
+    }
   }
 }

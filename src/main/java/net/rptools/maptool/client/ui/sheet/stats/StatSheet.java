@@ -45,7 +45,7 @@ public class StatSheet {
     try {
       var statSheetContext = new StatSheetContext(token, MapTool.getPlayer(), location);
       var output =
-          HTMLContent.fromString(new HandlebarsUtil<>(content, entry).apply(statSheetContext))
+          HTMLContent.htmlFromString(new HandlebarsUtil<>(content, entry).apply(statSheetContext))
               .injectURLBase(entry);
       Platform.runLater(
           () -> {
@@ -82,7 +82,7 @@ public class StatSheet {
                   .getOverlay(AppConstants.INTERNAL_MAP_UNDER_POINTER_HTML_OVERLAY_NAME);
           if (overlay != null) {
             overlay.setVisible(false);
-            overlay.updateContents(HTMLContent.fromString(""), true);
+            overlay.updateContents(HTMLContent.htmlFromString(""), true);
           }
         });
   }
