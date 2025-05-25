@@ -324,7 +324,9 @@ public class GdxRenderer extends ApplicationAdapter {
 
   private void doRendering() {
     batch.enableBlending();
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    // Framebuffer is premultiplied. Assume source textures are as well (can be changed for
+    // operations that require something else).
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
     // this happens sometimes when starting with ide (non-debug)
     if (batch.isDrawing()) batch.end();
@@ -834,7 +836,10 @@ public class GdxRenderer extends ApplicationAdapter {
     var paint = zoneCache.getZone().getFogPaint();
     var fogPaint = zoneCache.getPaint(paint);
     var fogColor = fogPaint.color();
-    fogPaint.color().set(fogColor.r, fogColor.g, fogColor.b, view.isGMView() ? .6f : 1f);
+    fogPaint
+        .color()
+        .set(fogColor.r, fogColor.g, fogColor.b, view.isGMView() ? .6f : 1f)
+        .premultiplyAlpha();
     fillViewportWith(fogPaint);
 
     var zoneView = zoneCache.getZoneView();
@@ -855,15 +860,18 @@ public class GdxRenderer extends ApplicationAdapter {
     areaRenderer.setColor(Color.CLEAR);
     areaRenderer.fillArea(batch, combined);
     // renderFogArea(combined, visibleArea);
-    renderFogOutline();
+    if (visibleScreenArea != null) {
+      areaRenderer.setColor(Color.BLACK);
+      areaRenderer.drawArea(batch, visibleScreenArea, false, 1);
+    }
+
     timer.stop("renderFogArea");
 
     batch.flush();
     // createScreenshot("fog");
-
     backBuffer.end();
 
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
     setProjectionMatrix(hudCam.combined);
     batch.setColor(Color.WHITE);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
@@ -899,13 +907,6 @@ public class GdxRenderer extends ApplicationAdapter {
       areaRenderer.setColor(Color.CLEAR);
       areaRenderer.fillArea(batch, softFog);
     }
-  }
-
-  private void renderFogOutline() {
-    if (visibleScreenArea == null) return;
-
-    areaRenderer.setColor(Color.BLACK);
-    areaRenderer.drawArea(batch, visibleScreenArea, false, 1);
   }
 
   private void renderLabels(PlayerView view) {
@@ -1210,16 +1211,15 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.stop("renderLumensOverlay:allocateBuffer");
 
     batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
-    var A_d = overlayAlpha;
     // At night, show any uncovered areas as dark. In daylight, show them as light (clear).
     if (zoneCache.getZone().getVisionType() == Zone.VisionType.NIGHT) {
       ScreenUtils.clear(0, 0, 0, overlayAlpha);
     } else {
-      A_d = 0;
       ScreenUtils.clear(Color.CLEAR);
     }
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    // Premultiplied alpha compositing.
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
     timer.start("renderLumensOverlay:drawLumens");
     for (final var lumensLevel : disjointLumensLevels) {
       final var lumensStrength = lumensLevel.lumensStrength();
@@ -1243,14 +1243,10 @@ public class GdxRenderer extends ApplicationAdapter {
 
       timer.start("renderLumensOverlay:drawLights:fillArea");
 
-      // for SRC_OVER on transparent destination we need GL_ONE, GL_ONE_MINUS_SRC_ALPHA
-      // we have to render the fbo with the same blending function to the screen not with
-      // GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA !
-      // See https://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha/
-
-      lightOpacity *= overlayAlpha;
-      lightShade *= lightOpacity;
-      areaRenderer.setColor(tmpColor.set(lightShade, lightShade, lightShade, lightOpacity));
+      areaRenderer.setColor(
+          tmpColor
+              .set(lightShade, lightShade, lightShade, lightOpacity * overlayAlpha)
+              .premultiplyAlpha());
       areaRenderer.fillArea(batch, lumensLevel.lightArea());
 
       areaRenderer.setColor(tmpColor.set(0.f, 0.f, 0.f, overlayAlpha));
@@ -1259,18 +1255,8 @@ public class GdxRenderer extends ApplicationAdapter {
     }
 
     timer.stop("renderLumensOverlay:drawLumens");
-    batch.flush();
-    // createScreenshot("lumens");
-    backBuffer.end();
 
-    timer.start("renderLumensOverlay:drawBuffer");
-    // batch.setColor(1,1,1,overlayAlpha);
     batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
-    setProjectionMatrix(hudCam.combined);
-    batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
-    setProjectionMatrix(cam.combined);
-    timer.stop("renderLumensOverlay:drawBuffer");
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     // Now draw borders around each region if configured.
     batch.setColor(Color.WHITE);
     final var borderThickness = AppPreferences.lumensOverlayBorderThickness.get();
@@ -1285,6 +1271,20 @@ public class GdxRenderer extends ApplicationAdapter {
         timer.stop("renderLumensOverlay:drawLights:drawArea");
       }
     }
+
+    batch.flush();
+
+    // createScreenshot("lumens");
+
+    backBuffer.end();
+
+    timer.start("renderLumensOverlay:drawBuffer");
+    // batch.setColor(1,1,1,overlayAlpha);
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    setProjectionMatrix(hudCam.combined);
+    batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
+    setProjectionMatrix(cam.combined);
+    timer.stop("renderLumensOverlay:drawBuffer");
   }
 
   private void renderLightOverlay(
@@ -1330,7 +1330,8 @@ public class GdxRenderer extends ApplicationAdapter {
 
     // Draw the buffer image with all the lights onto the map
     timer.start("renderLightOverlay:drawBuffer");
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    batch.setBlendFunctionSeparate(
+        GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
