@@ -329,7 +329,7 @@ public class GdxRenderer extends ApplicationAdapter {
     batch.enableBlending();
     // Framebuffer is premultiplied. Assume source textures are as well (can be changed for
     // operations that require something else).
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
 
     // this happens sometimes when starting with ide (non-debug)
     if (batch.isDrawing()) batch.end();
@@ -829,7 +829,7 @@ public class GdxRenderer extends ApplicationAdapter {
     backBuffer.begin();
     ScreenUtils.clear(Color.CLEAR);
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
+    BlendFunction.SRC_ONLY.applyToBatch(batch);
     setProjectionMatrix(cam.combined);
 
     timer.start("renderFog-allocateBufferedImage");
@@ -878,7 +878,7 @@ public class GdxRenderer extends ApplicationAdapter {
     // createScreenshot("fog");
     backBuffer.end();
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
     setProjectionMatrix(hudCam.combined);
     batch.setColor(Color.WHITE);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
@@ -1218,7 +1218,7 @@ public class GdxRenderer extends ApplicationAdapter {
     backBuffer.begin();
     timer.stop("renderLumensOverlay:allocateBuffer");
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
+    BlendFunction.SRC_ONLY.applyToBatch(batch);
     // At night, show any uncovered areas as dark. In daylight, show them as light (clear).
     if (zoneCache.getZone().getVisionType() == Zone.VisionType.NIGHT) {
       ScreenUtils.clear(0, 0, 0, overlayAlpha);
@@ -1226,8 +1226,6 @@ public class GdxRenderer extends ApplicationAdapter {
       ScreenUtils.clear(Color.CLEAR);
     }
 
-    // Premultiplied alpha compositing.
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
     timer.start("renderLumensOverlay:drawLumens");
     for (final var lumensLevel : disjointLumensLevels) {
       final var lumensStrength = lumensLevel.lumensStrength();
@@ -1264,7 +1262,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     timer.stop("renderLumensOverlay:drawLumens");
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
     // Now draw borders around each region if configured.
     batch.setColor(Color.WHITE);
     final var borderThickness = AppPreferences.lumensOverlayBorderThickness.get();
@@ -1287,8 +1285,7 @@ public class GdxRenderer extends ApplicationAdapter {
     backBuffer.end();
 
     timer.start("renderLumensOverlay:drawBuffer");
-    // batch.setColor(1,1,1,overlayAlpha);
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
@@ -1351,7 +1348,7 @@ public class GdxRenderer extends ApplicationAdapter {
     setProjectionMatrix(cam.combined);
     timer.stop("renderLightOverlay:drawBuffer");
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
   }
 
   private void createScreenshot(String name) {

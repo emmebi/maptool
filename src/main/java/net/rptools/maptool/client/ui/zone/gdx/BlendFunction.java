@@ -29,6 +29,8 @@ public record BlendFunction(
   public static final BlendFunction SCREEN =
       new BlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_COLOR, GL20.GL_ONE, GL20.GL_NONE);
 
+  public static final BlendFunction SRC_ONLY = new BlendFunction(GL20.GL_ONE, GL20.GL_NONE);
+
   public static BlendFunction readFromBatch(Batch batch) {
     return new BlendFunction(
         batch.getBlendSrcFunc(),
