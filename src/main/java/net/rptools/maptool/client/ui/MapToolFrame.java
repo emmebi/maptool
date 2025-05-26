@@ -489,6 +489,7 @@ public class MapToolFrame extends DefaultDockableHolder implements WindowListene
 
     gdxPanel = joglSwingCanvas.getGLCanvas();
     gdxPanel.setVisible(false);
+    gdxPanel.setOpaque(false);
     // gdxPanel.setLayout(new PositionalLayout(5));
   }
 

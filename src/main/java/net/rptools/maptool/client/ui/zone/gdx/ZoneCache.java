@@ -321,6 +321,7 @@ public class ZoneCache implements Disposable {
     if (paint instanceof DrawableColorPaint) {
       var color = new Color();
       Color.argb8888ToColor(color, ((DrawableColorPaint) paint).getColor());
+      color.premultiplyAlpha();
       return new GdxPaint(color, whitePixelRegion);
     }
 

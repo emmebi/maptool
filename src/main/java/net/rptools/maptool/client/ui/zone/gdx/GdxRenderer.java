@@ -34,6 +34,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
+import java.nio.ByteBuffer;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -307,6 +308,7 @@ public class GdxRenderer extends ApplicationAdapter {
     fontParams.fontFileName =
         String.format("net/rptools/maptool/client/fonts/%s/%s-Bold.ttf", font, font);
     fontParams.fontParameters.size = (int) (12 * fontScale);
+    fontParams.loadedCallback = GdxRenderer::premultiplyFontOnLoad;
     manager.load(FONT_BOLD, BitmapFont.class, fontParams);
     manager.finishLoading();
     boldFont = manager.get(FONT_BOLD, BitmapFont.class);
@@ -319,12 +321,16 @@ public class GdxRenderer extends ApplicationAdapter {
     fontParams.fontFileName =
         String.format("net/rptools/maptool/client/fonts/%s/%s-Regular.ttf", font, font);
     fontParams.fontParameters.size = 12;
+    fontParams.loadedCallback = GdxRenderer::premultiplyFontOnLoad;
+
     manager.load(FONT_NORMAL, BitmapFont.class, fontParams);
   }
 
   private void doRendering() {
     batch.enableBlending();
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    // Framebuffer is premultiplied. Assume source textures are as well (can be changed for
+    // operations that require something else).
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
     // this happens sometimes when starting with ide (non-debug)
     if (batch.isDrawing()) batch.end();
@@ -780,7 +786,8 @@ public class GdxRenderer extends ApplicationAdapter {
      */
     if (showVisionAndHalo) {
       areaRenderer.setColor(Color.WHITE);
-      areaRenderer.drawArea(batch, combined, false, 1);
+      areaRenderer.drawArea(
+          batch, combined, false, (float) (1 / viewModel.getZoneScale().getScale()));
       renderHaloArea(combined);
     }
   }
@@ -795,11 +802,13 @@ public class GdxRenderer extends ApplicationAdapter {
       java.awt.Color visionColor =
           useHaloColor ? tokenUnderMouse.getHaloColor() : tokenUnderMouse.getVisionOverlayColor();
 
-      tmpColor.set(
-          visionColor.getRed() / 255f,
-          visionColor.getGreen() / 255f,
-          visionColor.getBlue() / 255f,
-          AppPreferences.haloOverlayOpacity.get() / 255f);
+      tmpColor
+          .set(
+              visionColor.getRed() / 255f,
+              visionColor.getGreen() / 255f,
+              visionColor.getBlue() / 255f,
+              AppPreferences.haloOverlayOpacity.get() / 255f)
+          .premultiplyAlpha();
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, visible);
     }
@@ -834,7 +843,10 @@ public class GdxRenderer extends ApplicationAdapter {
     var paint = zoneCache.getZone().getFogPaint();
     var fogPaint = zoneCache.getPaint(paint);
     var fogColor = fogPaint.color();
-    fogPaint.color().set(fogColor.r, fogColor.g, fogColor.b, view.isGMView() ? .6f : 1f);
+    fogPaint
+        .color()
+        .set(fogColor.r, fogColor.g, fogColor.b, view.isGMView() ? .6f : 1f)
+        .premultiplyAlpha();
     fillViewportWith(fogPaint);
 
     var zoneView = zoneCache.getZoneView();
@@ -855,15 +867,19 @@ public class GdxRenderer extends ApplicationAdapter {
     areaRenderer.setColor(Color.CLEAR);
     areaRenderer.fillArea(batch, combined);
     // renderFogArea(combined, visibleArea);
-    renderFogOutline();
+    if (visibleScreenArea != null) {
+      areaRenderer.setColor(Color.BLACK);
+      areaRenderer.drawArea(
+          batch, visibleScreenArea, false, (float) (1 / viewModel.getZoneScale().getScale()));
+    }
+
     timer.stop("renderFogArea");
 
     batch.flush();
     // createScreenshot("fog");
-
     backBuffer.end();
 
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
     setProjectionMatrix(hudCam.combined);
     batch.setColor(Color.WHITE);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
@@ -901,19 +917,13 @@ public class GdxRenderer extends ApplicationAdapter {
     }
   }
 
-  private void renderFogOutline() {
-    if (visibleScreenArea == null) return;
-
-    areaRenderer.setColor(Color.BLACK);
-    areaRenderer.drawArea(batch, visibleScreenArea, false, 1);
-  }
-
   private void renderLabels(PlayerView view) {
     timer.start("labels-1");
 
     for (Label label : zoneCache.getZone().getLabels()) {
       timer.start("labels-1.1");
       Color.argb8888ToColor(tmpColor, label.getForegroundColor().getRGB());
+      tmpColor.premultiplyAlpha();
       if (label.isShowBackground()) {
         textRenderer.drawBoxedString(
             label.getLabel(),
@@ -1210,16 +1220,15 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.stop("renderLumensOverlay:allocateBuffer");
 
     batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
-    var A_d = overlayAlpha;
     // At night, show any uncovered areas as dark. In daylight, show them as light (clear).
     if (zoneCache.getZone().getVisionType() == Zone.VisionType.NIGHT) {
       ScreenUtils.clear(0, 0, 0, overlayAlpha);
     } else {
-      A_d = 0;
       ScreenUtils.clear(Color.CLEAR);
     }
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    // Premultiplied alpha compositing.
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
     timer.start("renderLumensOverlay:drawLumens");
     for (final var lumensLevel : disjointLumensLevels) {
       final var lumensStrength = lumensLevel.lumensStrength();
@@ -1243,14 +1252,10 @@ public class GdxRenderer extends ApplicationAdapter {
 
       timer.start("renderLumensOverlay:drawLights:fillArea");
 
-      // for SRC_OVER on transparent destination we need GL_ONE, GL_ONE_MINUS_SRC_ALPHA
-      // we have to render the fbo with the same blending function to the screen not with
-      // GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA !
-      // See https://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha/
-
-      lightOpacity *= overlayAlpha;
-      lightShade *= lightOpacity;
-      areaRenderer.setColor(tmpColor.set(lightShade, lightShade, lightShade, lightOpacity));
+      areaRenderer.setColor(
+          tmpColor
+              .set(lightShade, lightShade, lightShade, lightOpacity * overlayAlpha)
+              .premultiplyAlpha());
       areaRenderer.fillArea(batch, lumensLevel.lightArea());
 
       areaRenderer.setColor(tmpColor.set(0.f, 0.f, 0.f, overlayAlpha));
@@ -1259,18 +1264,8 @@ public class GdxRenderer extends ApplicationAdapter {
     }
 
     timer.stop("renderLumensOverlay:drawLumens");
-    batch.flush();
-    // createScreenshot("lumens");
-    backBuffer.end();
 
-    timer.start("renderLumensOverlay:drawBuffer");
-    // batch.setColor(1,1,1,overlayAlpha);
     batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
-    setProjectionMatrix(hudCam.combined);
-    batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
-    setProjectionMatrix(cam.combined);
-    timer.stop("renderLumensOverlay:drawBuffer");
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
     // Now draw borders around each region if configured.
     batch.setColor(Color.WHITE);
     final var borderThickness = AppPreferences.lumensOverlayBorderThickness.get();
@@ -1285,6 +1280,20 @@ public class GdxRenderer extends ApplicationAdapter {
         timer.stop("renderLumensOverlay:drawLights:drawArea");
       }
     }
+
+    batch.flush();
+
+    // createScreenshot("lumens");
+
+    backBuffer.end();
+
+    timer.start("renderLumensOverlay:drawBuffer");
+    // batch.setColor(1,1,1,overlayAlpha);
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    setProjectionMatrix(hudCam.combined);
+    batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
+    setProjectionMatrix(cam.combined);
+    timer.stop("renderLumensOverlay:drawBuffer");
   }
 
   private void renderLightOverlay(
@@ -1312,7 +1321,6 @@ public class GdxRenderer extends ApplicationAdapter {
       if (paint instanceof DrawableColorPaint) {
         var colorPaint = (DrawableColorPaint) paint;
         Color.argb8888ToColor(tmpColor, colorPaint.getColor());
-
       } else if (paint instanceof java.awt.Color) {
         Color.argb8888ToColor(tmpColor, ((java.awt.Color) paint).getRGB());
       } else {
@@ -1320,6 +1328,7 @@ public class GdxRenderer extends ApplicationAdapter {
         continue;
       }
       tmpColor.set(tmpColor.r, tmpColor.g, tmpColor.b, alpha);
+      tmpColor.premultiplyAlpha();
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, light.getArea());
     }
@@ -1330,7 +1339,8 @@ public class GdxRenderer extends ApplicationAdapter {
 
     // Draw the buffer image with all the lights onto the map
     timer.start("renderLightOverlay:drawBuffer");
-    batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    batch.setBlendFunctionSeparate(
+        GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
@@ -1457,12 +1467,13 @@ public class GdxRenderer extends ApplicationAdapter {
       // Render Halo
       if (token.hasHalo()) {
         Color.argb8888ToColor(tmpColor, token.getHaloColor().getRGB());
+        tmpColor.premultiplyAlpha();
         areaRenderer.setColor(tmpColor);
         areaRenderer.drawArea(
             batch,
             zoneCache.getZone().getGrid().getTokenCellArea(tokenBounds),
             false,
-            AppPreferences.haloLineWidth.get());
+            (float) (AppPreferences.haloLineWidth.get() / viewModel.getZoneScale().getScale()));
       }
 
       // Calculate alpha Transparency from token and use opacity for indicating that token is moving
@@ -2315,5 +2326,41 @@ public class GdxRenderer extends ApplicationAdapter {
 
   public void flushFog() {
     visibleScreenArea = null;
+  }
+
+  /**
+   * Premultiplies the texture for a font upon loading.
+   *
+   * <p>This method assumes the font is backed by a single texture.
+   *
+   * <p>It would be nicer if LibGDX supported premultiplied fonts, but the feature never get added
+   * (see <a href="https://github.com/libgdx/libgdx/issues/3642">this issue</a>).
+   *
+   * @param assetManager
+   * @param fileName
+   * @param type
+   */
+  private static void premultiplyFontOnLoad(
+      com.badlogic.gdx.assets.AssetManager assetManager, String fileName, Class<BitmapFont> type) {
+    var font = assetManager.get(fileName, type);
+    var texture = font.getRegion().getTexture();
+    try {
+      Pixmap pixmap = texture.getTextureData().consumePixmap();
+      ByteBuffer pixels = pixmap.getPixels();
+      Color color = new Color();
+      while (pixels.hasRemaining()) {
+        var position = pixels.position();
+        color.set(pixels.getInt());
+        color.premultiplyAlpha();
+        pixels.putInt(position, color.toIntBits());
+      }
+      pixels.rewind();
+      pixmap.setPixels(pixels);
+      font.getRegion().setTexture(new Texture(pixmap));
+    } catch (Throwable t) {
+      log.error("Unexpected error while loading font", t);
+    } finally {
+      texture.dispose();
+    }
   }
 }

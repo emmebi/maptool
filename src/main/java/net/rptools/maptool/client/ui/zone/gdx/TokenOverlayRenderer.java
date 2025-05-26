@@ -26,7 +26,7 @@ import space.earlygrey.shapedrawer.JoinType;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public class TokenOverlayRenderer {
-  private final Color tmpColor = Color.WHITE;
+  private final Color tmpColor = Color.WHITE.cpy();
   private ZoneCache zoneCache;
   private final AreaRenderer areaRenderer;
   private final ShapeDrawer drawer;
@@ -367,7 +367,7 @@ public class TokenOverlayRenderer {
     tmpColor.set(1, 1, 1, overlay.getOpacity() / 100f);
     drawer.setColor(tmpColor);
     drawer.filledRectangle(x, y, w, h);
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(float stateTime, ImageTokenOverlay overlay, Token token) {
@@ -409,35 +409,30 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
 
     var stroke = overlay.getStroke();
 
     drawer.setColor(tmpColor);
     drawer.line(x, y, x + w, y + h, stroke.getLineWidth());
     drawer.line(x, y + h, x + w, y, stroke.getLineWidth());
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(FlowColorDotTokenOverlay overlay, Token token) {
     var bounds = token.getBounds(zoneCache.getZone());
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     drawer.setColor(tmpColor);
     Shape s = overlay.getShape(bounds, token);
     areaRenderer.fillArea(batch, new Area(s));
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(YieldTokenOverlay overlay, Token token) {
@@ -448,12 +443,9 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
 
     var stroke = overlay.getStroke();
     var hc = w / 2f;
@@ -466,7 +458,7 @@ public class TokenOverlayRenderer {
 
     drawer.setColor(tmpColor);
     drawer.path(floats, stroke.getLineWidth(), JoinType.POINTY, false);
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(OTokenOverlay overlay, Token token) {
@@ -477,12 +469,17 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
+    tmpColor
+        .set(
+            color.getRed() / 255f,
+            color.getGreen() / 255f,
+            color.getBlue() / 255f,
+            overlay.getOpacity() / 100f)
+        .premultiplyAlpha();
 
     var stroke = overlay.getStroke();
     var lineWidth = stroke.getLineWidth();
@@ -494,7 +491,7 @@ public class TokenOverlayRenderer {
 
     drawer.setColor(tmpColor);
     drawer.ellipse(centerX, centerY, radiusX, radiusY, 0, lineWidth);
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(ColorDotTokenOverlay overlay, Token token) {
@@ -504,12 +501,9 @@ public class TokenOverlayRenderer {
     var w = bounds.width;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
 
     var size = w * 0.1f;
     var offset = w * 0.8f;
@@ -534,7 +528,7 @@ public class TokenOverlayRenderer {
 
     drawer.setColor(tmpColor);
     drawer.filledEllipse(posX, posY, size, size);
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(DiamondTokenOverlay overlay, Token token) {
@@ -545,12 +539,10 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     var stroke = overlay.getStroke();
 
     var hc = w / 2f;
@@ -563,7 +555,7 @@ public class TokenOverlayRenderer {
 
     drawer.setColor(tmpColor);
     drawer.path(floats, stroke.getLineWidth(), JoinType.POINTY, false);
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(TriangleTokenOverlay overlay, Token token) {
@@ -574,12 +566,10 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     var stroke = overlay.getStroke();
 
     var hc = w / 2f;
@@ -592,7 +582,7 @@ public class TokenOverlayRenderer {
 
     drawer.setColor(tmpColor);
     drawer.path(floats, stroke.getLineWidth(), JoinType.POINTY, false);
-    drawer.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+    drawer.setColor(Color.WHITE);
   }
 
   private void renderTokenOverlay(CrossTokenOverlay overlay, Token token) {
@@ -603,12 +593,10 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    com.badlogic.gdx.graphics.Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor.set(
-        color.getRed() / 255f,
-        color.getGreen() / 255f,
-        color.getBlue() / 255f,
-        overlay.getOpacity() / 100f);
+    Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     var stroke = overlay.getStroke();
 
     drawer.setColor(tmpColor);
