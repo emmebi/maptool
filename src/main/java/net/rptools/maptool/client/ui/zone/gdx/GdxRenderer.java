@@ -67,7 +67,6 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.Path;
-import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.util.GraphicsUtil;
 import org.apache.logging.log4j.LogManager;
@@ -1321,13 +1320,10 @@ public class GdxRenderer extends ApplicationAdapter {
     for (var light : lights) {
       var paint = light.getPaint().getPaint();
 
-      if (paint instanceof DrawableColorPaint) {
-        var colorPaint = (DrawableColorPaint) paint;
-        Color.argb8888ToColor(tmpColor, colorPaint.getColor());
-      } else if (paint instanceof java.awt.Color) {
-        Color.argb8888ToColor(tmpColor, ((java.awt.Color) paint).getRGB());
+      if (paint instanceof java.awt.Color color) {
+        Color.argb8888ToColor(tmpColor, color.getRGB());
       } else {
-        System.out.println("unexpected color type");
+        log.warn("Unexpected color type: {}", paint.getClass());
         continue;
       }
       tmpColor.set(tmpColor.r, tmpColor.g, tmpColor.b, alpha);
