@@ -77,6 +77,7 @@ public class GridRenderer {
 
     var tmpColor = Pools.obtain(Color.class);
     Color.argb8888ToColor(tmpColor, zoneCache.getZone().getGridColor());
+    tmpColor.premultiplyAlpha();
     drawer.setColor(tmpColor);
     var floats = areaRenderer.pathToFloatArray(scaledHex.getPathIterator(null));
     var lineWidth = AppState.getGridSize();
@@ -125,6 +126,7 @@ public class GridRenderer {
 
     var tmpColor = Pools.obtain(Color.class);
     Color.argb8888ToColor(tmpColor, zoneCache.getZone().getGridColor());
+    tmpColor.premultiplyAlpha();
 
     drawer.setColor(tmpColor);
 
@@ -175,6 +177,7 @@ public class GridRenderer {
     float gridSize = (grid.getSize() * scale);
     var tmpColor = Pools.obtain(Color.class);
     Color.argb8888ToColor(tmpColor, zoneCache.getZone().getGridColor());
+    tmpColor.premultiplyAlpha();
 
     drawer.setColor(tmpColor);
 

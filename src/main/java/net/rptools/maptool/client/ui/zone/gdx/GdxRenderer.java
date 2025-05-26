@@ -801,11 +801,13 @@ public class GdxRenderer extends ApplicationAdapter {
       java.awt.Color visionColor =
           useHaloColor ? tokenUnderMouse.getHaloColor() : tokenUnderMouse.getVisionOverlayColor();
 
-      tmpColor.set(
-          visionColor.getRed() / 255f,
-          visionColor.getGreen() / 255f,
-          visionColor.getBlue() / 255f,
-          AppPreferences.haloOverlayOpacity.get() / 255f);
+      tmpColor
+          .set(
+              visionColor.getRed() / 255f,
+              visionColor.getGreen() / 255f,
+              visionColor.getBlue() / 255f,
+              AppPreferences.haloOverlayOpacity.get() / 255f)
+          .premultiplyAlpha();
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, visible);
     }
@@ -919,6 +921,7 @@ public class GdxRenderer extends ApplicationAdapter {
     for (Label label : zoneCache.getZone().getLabels()) {
       timer.start("labels-1.1");
       Color.argb8888ToColor(tmpColor, label.getForegroundColor().getRGB());
+      tmpColor.premultiplyAlpha();
       if (label.isShowBackground()) {
         textRenderer.drawBoxedString(
             label.getLabel(),
@@ -1316,7 +1319,6 @@ public class GdxRenderer extends ApplicationAdapter {
       if (paint instanceof DrawableColorPaint) {
         var colorPaint = (DrawableColorPaint) paint;
         Color.argb8888ToColor(tmpColor, colorPaint.getColor());
-
       } else if (paint instanceof java.awt.Color) {
         Color.argb8888ToColor(tmpColor, ((java.awt.Color) paint).getRGB());
       } else {
@@ -1324,6 +1326,7 @@ public class GdxRenderer extends ApplicationAdapter {
         continue;
       }
       tmpColor.set(tmpColor.r, tmpColor.g, tmpColor.b, alpha);
+      tmpColor.premultiplyAlpha();
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, light.getArea());
     }
@@ -1462,6 +1465,7 @@ public class GdxRenderer extends ApplicationAdapter {
       // Render Halo
       if (token.hasHalo()) {
         Color.argb8888ToColor(tmpColor, token.getHaloColor().getRGB());
+        tmpColor.premultiplyAlpha();
         areaRenderer.setColor(tmpColor);
         areaRenderer.drawArea(
             batch,
