@@ -786,7 +786,8 @@ public class GdxRenderer extends ApplicationAdapter {
      */
     if (showVisionAndHalo) {
       areaRenderer.setColor(Color.WHITE);
-      areaRenderer.drawArea(batch, combined, false, 1);
+      areaRenderer.drawArea(
+          batch, combined, false, (float) (1 / viewModel.getZoneScale().getScale()));
       renderHaloArea(combined);
     }
   }
@@ -868,7 +869,8 @@ public class GdxRenderer extends ApplicationAdapter {
     // renderFogArea(combined, visibleArea);
     if (visibleScreenArea != null) {
       areaRenderer.setColor(Color.BLACK);
-      areaRenderer.drawArea(batch, visibleScreenArea, false, 1);
+      areaRenderer.drawArea(
+          batch, visibleScreenArea, false, (float) (1 / viewModel.getZoneScale().getScale()));
     }
 
     timer.stop("renderFogArea");
@@ -1471,7 +1473,7 @@ public class GdxRenderer extends ApplicationAdapter {
             batch,
             zoneCache.getZone().getGrid().getTokenCellArea(tokenBounds),
             false,
-            AppPreferences.haloLineWidth.get());
+            (float) (AppPreferences.haloLineWidth.get() / viewModel.getZoneScale().getScale()));
       }
 
       // Calculate alpha Transparency from token and use opacity for indicating that token is moving
