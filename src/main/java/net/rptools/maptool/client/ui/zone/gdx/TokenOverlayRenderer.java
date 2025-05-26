@@ -409,15 +409,9 @@ public class TokenOverlayRenderer {
     var h = bounds.height;
 
     var color = overlay.getColor();
-    // TODO Why are we overwriting the colour right away?
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
 
     var stroke = overlay.getStroke();
 
@@ -432,13 +426,9 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     drawer.setColor(tmpColor);
     Shape s = overlay.getShape(bounds, token);
     areaRenderer.fillArea(batch, new Area(s));
@@ -454,13 +444,8 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
 
     var stroke = overlay.getStroke();
     var hc = w / 2f;
@@ -485,6 +470,9 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     tmpColor
         .set(
             color.getRed() / 255f,
@@ -514,13 +502,8 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
 
     var size = w * 0.1f;
     var offset = w * 0.8f;
@@ -557,13 +540,9 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     var stroke = overlay.getStroke();
 
     var hc = w / 2f;
@@ -588,13 +567,9 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     var stroke = overlay.getStroke();
 
     var hc = w / 2f;
@@ -619,13 +594,9 @@ public class TokenOverlayRenderer {
 
     var color = overlay.getColor();
     Color.argb8888ToColor(tmpColor, color.getRGB());
-    tmpColor
-        .set(
-            color.getRed() / 255f,
-            color.getGreen() / 255f,
-            color.getBlue() / 255f,
-            overlay.getOpacity() / 100f)
-        .premultiplyAlpha();
+    tmpColor.a = overlay.getOpacity() / 100f;
+    tmpColor.premultiplyAlpha();
+
     var stroke = overlay.getStroke();
 
     drawer.setColor(tmpColor);
