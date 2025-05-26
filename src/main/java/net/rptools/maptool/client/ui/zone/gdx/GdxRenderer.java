@@ -67,7 +67,6 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.Path;
-import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.drawing.DrawnElement;
 import net.rptools.maptool.util.GraphicsUtil;
 import org.apache.logging.log4j.LogManager;
@@ -330,7 +329,7 @@ public class GdxRenderer extends ApplicationAdapter {
     batch.enableBlending();
     // Framebuffer is premultiplied. Assume source textures are as well (can be changed for
     // operations that require something else).
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
 
     // this happens sometimes when starting with ide (non-debug)
     if (batch.isDrawing()) batch.end();
@@ -830,7 +829,7 @@ public class GdxRenderer extends ApplicationAdapter {
     backBuffer.begin();
     ScreenUtils.clear(Color.CLEAR);
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
+    BlendFunction.SRC_ONLY.applyToBatch(batch);
     setProjectionMatrix(cam.combined);
 
     timer.start("renderFog-allocateBufferedImage");
@@ -879,7 +878,7 @@ public class GdxRenderer extends ApplicationAdapter {
     // createScreenshot("fog");
     backBuffer.end();
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
     setProjectionMatrix(hudCam.combined);
     batch.setColor(Color.WHITE);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
@@ -1178,7 +1177,7 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.stop("renderAuras:getAuras");
 
     timer.start("renderAuras:renderAuraOverlay");
-    renderLightOverlay(drawableAuras, alpha, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    renderLightOverlay(drawableAuras, alpha, BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER, true);
     timer.stop("renderAuras:renderAuraOverlay");
   }
 
@@ -1198,8 +1197,8 @@ public class GdxRenderer extends ApplicationAdapter {
       renderLightOverlay(
           drawableLights,
           AppPreferences.lightOverlayOpacity.get() / 255.f,
-          GL20.GL_SRC_COLOR,
-          GL20.GL_ONE_MINUS_SRC_COLOR);
+          BlendFunction.SCREEN,
+          false);
       timer.stop("renderLights:renderLightOverlay");
     }
 
@@ -1219,7 +1218,7 @@ public class GdxRenderer extends ApplicationAdapter {
     backBuffer.begin();
     timer.stop("renderLumensOverlay:allocateBuffer");
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
+    BlendFunction.SRC_ONLY.applyToBatch(batch);
     // At night, show any uncovered areas as dark. In daylight, show them as light (clear).
     if (zoneCache.getZone().getVisionType() == Zone.VisionType.NIGHT) {
       ScreenUtils.clear(0, 0, 0, overlayAlpha);
@@ -1227,8 +1226,6 @@ public class GdxRenderer extends ApplicationAdapter {
       ScreenUtils.clear(Color.CLEAR);
     }
 
-    // Premultiplied alpha compositing.
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_NONE);
     timer.start("renderLumensOverlay:drawLumens");
     for (final var lumensLevel : disjointLumensLevels) {
       final var lumensStrength = lumensLevel.lumensStrength();
@@ -1265,7 +1262,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     timer.stop("renderLumensOverlay:drawLumens");
 
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
     // Now draw borders around each region if configured.
     batch.setColor(Color.WHITE);
     final var borderThickness = AppPreferences.lumensOverlayBorderThickness.get();
@@ -1288,8 +1285,7 @@ public class GdxRenderer extends ApplicationAdapter {
     backBuffer.end();
 
     timer.start("renderLumensOverlay:drawBuffer");
-    // batch.setColor(1,1,1,overlayAlpha);
-    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
@@ -1297,7 +1293,10 @@ public class GdxRenderer extends ApplicationAdapter {
   }
 
   private void renderLightOverlay(
-      Collection<DrawableLight> lights, float alpha, int srcBlendFunc, int dstBlendFunc) {
+      Collection<DrawableLight> lights,
+      float alpha,
+      BlendFunction lightBlending,
+      boolean premultipy) {
     if (lights.isEmpty()) {
       // No points spending resources accomplishing nothing.
       return;
@@ -1310,7 +1309,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     ScreenUtils.clear(Color.CLEAR);
     setProjectionMatrix(cam.combined);
-    batch.setBlendFunctionSeparate(srcBlendFunc, dstBlendFunc, GL20.GL_ONE, GL20.GL_NONE);
+    lightBlending.applyToBatch(batch);
     timer.stop("renderLightOverlay:allocateBuffer");
 
     // Draw lights onto the buffer image so the map doesn't affect how they blend
@@ -1318,17 +1317,16 @@ public class GdxRenderer extends ApplicationAdapter {
     for (var light : lights) {
       var paint = light.getPaint().getPaint();
 
-      if (paint instanceof DrawableColorPaint) {
-        var colorPaint = (DrawableColorPaint) paint;
-        Color.argb8888ToColor(tmpColor, colorPaint.getColor());
-      } else if (paint instanceof java.awt.Color) {
-        Color.argb8888ToColor(tmpColor, ((java.awt.Color) paint).getRGB());
+      if (paint instanceof java.awt.Color color) {
+        Color.argb8888ToColor(tmpColor, color.getRGB());
       } else {
-        System.out.println("unexpected color type");
+        log.warn("Unexpected color type: {}", paint.getClass());
         continue;
       }
       tmpColor.set(tmpColor.r, tmpColor.g, tmpColor.b, alpha);
-      tmpColor.premultiplyAlpha();
+      if (premultipy) {
+        tmpColor.premultiplyAlpha();
+      }
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, light.getArea());
     }
@@ -1339,13 +1337,18 @@ public class GdxRenderer extends ApplicationAdapter {
 
     // Draw the buffer image with all the lights onto the map
     timer.start("renderLightOverlay:drawBuffer");
-    batch.setBlendFunctionSeparate(
-        GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    if (premultipy) {
+      BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
+    } else {
+      BlendFunction.ALPHA_SRC_OVER.applyToBatch(batch);
+    }
+
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
-    // batch.setColor(Color.WHITE);
     timer.stop("renderLightOverlay:drawBuffer");
+
+    BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
   }
 
   private void createScreenshot(String name) {
