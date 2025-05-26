@@ -1178,7 +1178,13 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.stop("renderAuras:getAuras");
 
     timer.start("renderAuras:renderAuraOverlay");
-    renderLightOverlay(drawableAuras, alpha, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    renderLightOverlay(
+        drawableAuras,
+        alpha,
+        new BlendFunction(
+            GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA,
+            // TODO No! Should be src over.
+            GL20.GL_ONE, GL20.GL_NONE));
     timer.stop("renderAuras:renderAuraOverlay");
   }
 
@@ -1198,8 +1204,7 @@ public class GdxRenderer extends ApplicationAdapter {
       renderLightOverlay(
           drawableLights,
           AppPreferences.lightOverlayOpacity.get() / 255.f,
-          GL20.GL_SRC_COLOR,
-          GL20.GL_ONE_MINUS_SRC_COLOR);
+          new BlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_COLOR, GL20.GL_ONE, GL20.GL_NONE));
       timer.stop("renderLights:renderLightOverlay");
     }
 
@@ -1297,7 +1302,7 @@ public class GdxRenderer extends ApplicationAdapter {
   }
 
   private void renderLightOverlay(
-      Collection<DrawableLight> lights, float alpha, int srcBlendFunc, int dstBlendFunc) {
+      Collection<DrawableLight> lights, float alpha, BlendFunction lightBlending) {
     if (lights.isEmpty()) {
       // No points spending resources accomplishing nothing.
       return;
@@ -1310,7 +1315,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     ScreenUtils.clear(Color.CLEAR);
     setProjectionMatrix(cam.combined);
-    batch.setBlendFunctionSeparate(srcBlendFunc, dstBlendFunc, GL20.GL_ONE, GL20.GL_NONE);
+    lightBlending.applyToBatch(batch);
     timer.stop("renderLightOverlay:allocateBuffer");
 
     // Draw lights onto the buffer image so the map doesn't affect how they blend
@@ -1328,7 +1333,6 @@ public class GdxRenderer extends ApplicationAdapter {
         continue;
       }
       tmpColor.set(tmpColor.r, tmpColor.g, tmpColor.b, alpha);
-      tmpColor.premultiplyAlpha();
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, light.getArea());
     }
@@ -1341,11 +1345,13 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.start("renderLightOverlay:drawBuffer");
     batch.setBlendFunctionSeparate(
         GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
-    // batch.setColor(Color.WHITE);
     timer.stop("renderLightOverlay:drawBuffer");
+
+    batch.setBlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
   }
 
   private void createScreenshot(String name) {
