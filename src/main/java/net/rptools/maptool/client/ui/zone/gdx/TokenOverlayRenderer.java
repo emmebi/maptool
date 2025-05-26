@@ -26,7 +26,7 @@ import space.earlygrey.shapedrawer.JoinType;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 
 public class TokenOverlayRenderer {
-  private final Color tmpColor = Color.WHITE;
+  private final Color tmpColor = Color.WHITE.cpy();
   private ZoneCache zoneCache;
   private final AreaRenderer areaRenderer;
   private final ShapeDrawer drawer;
