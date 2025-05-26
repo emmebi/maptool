@@ -1178,13 +1178,7 @@ public class GdxRenderer extends ApplicationAdapter {
     timer.stop("renderAuras:getAuras");
 
     timer.start("renderAuras:renderAuraOverlay");
-    renderLightOverlay(
-        drawableAuras,
-        alpha,
-        new BlendFunction(
-            GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA,
-            // TODO No! Should be src over.
-            GL20.GL_ONE, GL20.GL_NONE));
+    renderLightOverlay(drawableAuras, alpha, BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER, true);
     timer.stop("renderAuras:renderAuraOverlay");
   }
 
@@ -1204,7 +1198,8 @@ public class GdxRenderer extends ApplicationAdapter {
       renderLightOverlay(
           drawableLights,
           AppPreferences.lightOverlayOpacity.get() / 255.f,
-          new BlendFunction(GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_COLOR, GL20.GL_ONE, GL20.GL_NONE));
+          BlendFunction.SCREEN,
+          false);
       timer.stop("renderLights:renderLightOverlay");
     }
 
@@ -1302,7 +1297,10 @@ public class GdxRenderer extends ApplicationAdapter {
   }
 
   private void renderLightOverlay(
-      Collection<DrawableLight> lights, float alpha, BlendFunction lightBlending) {
+      Collection<DrawableLight> lights,
+      float alpha,
+      BlendFunction lightBlending,
+      boolean premultipy) {
     if (lights.isEmpty()) {
       // No points spending resources accomplishing nothing.
       return;
@@ -1333,6 +1331,9 @@ public class GdxRenderer extends ApplicationAdapter {
         continue;
       }
       tmpColor.set(tmpColor.r, tmpColor.g, tmpColor.b, alpha);
+      if (premultipy) {
+        tmpColor.premultiplyAlpha();
+      }
       areaRenderer.setColor(tmpColor);
       areaRenderer.fillArea(batch, light.getArea());
     }
@@ -1343,8 +1344,11 @@ public class GdxRenderer extends ApplicationAdapter {
 
     // Draw the buffer image with all the lights onto the map
     timer.start("renderLightOverlay:drawBuffer");
-    batch.setBlendFunctionSeparate(
-        GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, GL20.GL_ONE, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    if (premultipy) {
+      BlendFunction.PREMULTIPLIED_ALPHA_SRC_OVER.applyToBatch(batch);
+    } else {
+      BlendFunction.ALPHA_SRC_OVER.applyToBatch(batch);
+    }
 
     setProjectionMatrix(hudCam.combined);
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
