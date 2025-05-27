@@ -18,9 +18,7 @@ import static net.rptools.maptool.util.UserJvmOptions.getLanguages;
 import static net.rptools.maptool.util.UserJvmOptions.setJvmOption;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -782,7 +780,10 @@ public class PreferencesDialog extends JDialog {
     statusTempMessageTimeSpinner = panel.getSpinner("statusTempMessageTimeSpinner");
     statusTempMessageTimeSpinner.setModel(
         new SpinnerNumberModel(
-            AppPreferences.scrollStatusTempDuration.get().doubleValue(), 0.1, 60d, 0.1));
+            AppPreferences.scrollStatusTempDuration.get().doubleValue(),
+            AppPreferences.scrollStatusTempDuration.getMinValue().doubleValue(),
+            AppPreferences.scrollStatusTempDuration.getMaxValue().doubleValue(),
+            .5));
     statusTempMessageTimeSpinner.addChangeListener(
         e ->
             AppPreferences.scrollStatusTempDuration.set(
@@ -792,7 +793,10 @@ public class PreferencesDialog extends JDialog {
     statusScrollSpeedSpinner = panel.getSpinner("statusScrollSpeedSpinner");
     statusScrollSpeedSpinner.setModel(
         new SpinnerNumberModel(
-            AppPreferences.scrollStatusSpeed.get().doubleValue(), 0.1, 5d, 0.01));
+            AppPreferences.scrollStatusSpeed.get().doubleValue(),
+            AppPreferences.scrollStatusSpeed.getMinValue().doubleValue(),
+            AppPreferences.scrollStatusSpeed.getMaxValue().doubleValue(),
+            0.05));
     statusScrollSpeedSpinner.addChangeListener(
         e ->
             AppPreferences.scrollStatusSpeed.set(
@@ -803,7 +807,10 @@ public class PreferencesDialog extends JDialog {
     statusScrollStartDelaySpinner = panel.getSpinner("statusScrollStartDelaySpinner");
     statusScrollStartDelaySpinner.setModel(
         new SpinnerNumberModel(
-            AppPreferences.scrollStatusStartDelay.get().doubleValue(), 0, 15d, 0.1));
+            AppPreferences.scrollStatusStartDelay.get().doubleValue(),
+            AppPreferences.scrollStatusStartDelay.getMinValue().doubleValue(),
+            AppPreferences.scrollStatusStartDelay.getMaxValue().doubleValue(),
+            0.1));
     statusScrollStartDelaySpinner.addChangeListener(
         e ->
             AppPreferences.scrollStatusStartDelay.set(
@@ -813,7 +820,10 @@ public class PreferencesDialog extends JDialog {
     statusScrollEndPause = panel.getSpinner("statusScrollEndPause");
     statusScrollEndPause.setModel(
         new SpinnerNumberModel(
-            AppPreferences.scrollStatusEndPause.get().doubleValue(), 0, 15d, 0.1));
+            AppPreferences.scrollStatusEndPause.get().doubleValue(),
+            AppPreferences.scrollStatusEndPause.getMinValue().doubleValue(),
+            AppPreferences.scrollStatusEndPause.getMaxValue().doubleValue(),
+            0.1));
     statusScrollEndPause.addChangeListener(
         e ->
             AppPreferences.scrollStatusEndPause.set(
