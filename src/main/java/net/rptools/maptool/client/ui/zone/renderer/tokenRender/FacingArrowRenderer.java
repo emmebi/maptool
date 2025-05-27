@@ -154,7 +154,7 @@ public class FacingArrowRenderer {
       arrowType = ArrowType.ISOMETRIC;
     } else {
       switch (tokenType) {
-        case FIGURE, CIRCLE -> arrowType = ArrowType.CIRCLE;
+        case FIGURE, TOP_DOWN, CIRCLE -> arrowType = ArrowType.CIRCLE;
         case SQUARE -> arrowType = ArrowType.SQUARE;
         default -> arrowType = ArrowType.NONE;
       }
