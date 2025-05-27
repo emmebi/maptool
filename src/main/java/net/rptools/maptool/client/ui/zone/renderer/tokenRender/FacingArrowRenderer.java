@@ -18,8 +18,6 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Nullable;
 import net.rptools.lib.CodeTimer;
 import net.rptools.maptool.client.AppPreferences;
@@ -32,7 +30,6 @@ import org.apache.log4j.Logger;
 
 public class FacingArrowRenderer {
   private static final Logger log = LogManager.getLogger(FacingArrowRenderer.class);
-  private final Map<ArrowType, Map<Double, Shape>> quivers = new HashMap<>();
 
   private final RenderHelper renderHelper;
   private final Zone zone;
@@ -152,7 +149,6 @@ public class FacingArrowRenderer {
         || (!AppPreferences.forceFacingArrow.get() && position.token().getHasImageTable())) {
       return null;
     }
-    Shape arrow = new Path2D.Double();
     final ArrowType arrowType;
     if (isIsometric) {
       arrowType = ArrowType.ISOMETRIC;
@@ -164,24 +160,12 @@ public class FacingArrowRenderer {
       }
     }
     double size = position.footprintBounds().getWidth() / 2d;
-    Map<Double, Shape> quiver;
-    if (quivers.containsKey(arrowType)) {
-      quiver = quivers.get(arrowType);
-    } else {
-      quiver = new HashMap<>();
-    }
-    if (quiver.containsKey(size)) {
-      arrow = quiver.get(size);
-    } else {
-      switch (arrowType) {
-        case CIRCLE -> arrow = getCircleFacingArrow(size);
-        case ISOMETRIC -> arrow = getFigureFacingArrow(size);
-        case SQUARE -> arrow = getSquareFacingArrow(size);
-      }
-      quiver.put(size, arrow);
-      quivers.put(arrowType, quiver);
-    }
-    return arrow;
+    return switch (arrowType) {
+      case CIRCLE -> getCircleFacingArrow(size);
+      case ISOMETRIC -> getFigureFacingArrow(size);
+      case SQUARE -> getSquareFacingArrow(size);
+      case NONE -> null;
+    };
   }
 
   protected Shape getCircleFacingArrow(double size) {
