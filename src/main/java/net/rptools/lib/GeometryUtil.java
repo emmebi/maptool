@@ -14,6 +14,7 @@
  */
 package net.rptools.lib;
 
+import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -31,12 +32,14 @@ import org.locationtech.jts.awt.ShapeReader;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateArrays;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Location;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.util.GeometryFixer;
 import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
@@ -44,6 +47,7 @@ public class GeometryUtil {
   private static final Logger log = LogManager.getLogger(GeometryUtil.class);
 
   private static final PrecisionModel precisionModel = new PrecisionModel(100_000.0);
+  private static final PrecisionModel finePrecisionModel = new PrecisionModel(1e10);
 
   private static final GeometryFactory geometryFactory = new GeometryFactory(precisionModel);
 
@@ -124,8 +128,8 @@ public class GeometryUtil {
     return geometryFactory;
   }
 
-  public static MultiPolygon toJts(Area area) {
-    final var polygons = toJtsPolygons(area);
+  public static MultiPolygon toJts(Shape shape) {
+    final var polygons = toJtsPolygons(shape);
     final var geometry = geometryFactory.createMultiPolygon(polygons.toArray(Polygon[]::new));
     assert geometry.isValid()
         : "Returned geometry must be valid, but found this error: "
@@ -133,12 +137,12 @@ public class GeometryUtil {
     return geometry;
   }
 
-  public static Collection<Polygon> toJtsPolygons(Area area) {
-    if (area.isEmpty()) {
+  public static Collection<Polygon> toJtsPolygons(Shape shape) {
+    if (shape instanceof Area area && area.isEmpty()) {
       return Collections.emptyList();
     }
 
-    final var pathIterator = area.getPathIterator(null, 1. / precisionModel.getScale());
+    final var pathIterator = shape.getPathIterator(null, 1. / finePrecisionModel.getScale());
     final var coordinates = (List<Coordinate[]>) ShapeReader.toCoordinates(pathIterator);
 
     // Now collect all the noded rings into islands (JTS clockwise) and oceans (counterclockwise).
@@ -149,7 +153,13 @@ public class GeometryUtil {
         log.warn(
             "Found invalid geometry: ring has only {} points but at least four are required.",
             ring.length);
-      } else if (Orientation.isCCW(ring)) {
+        continue;
+      }
+
+      for (var c : ring) {
+        finePrecisionModel.makePrecise(c);
+      }
+      if (Orientation.isCCW(ring)) {
         oceans.add(ring);
       } else {
         islands.add(new Island(geometryFactory, ring));
@@ -191,7 +201,14 @@ public class GeometryUtil {
       // Build the polygon...
       var polygon = island.toPolygon();
       // ... then make sure it is valid, fixing it if not.
-      var fixedPolygon = GeometryPrecisionReducer.reduce(polygon, precisionModel);
+      Geometry fixedPolygon;
+      try {
+        fixedPolygon = GeometryPrecisionReducer.reduce(GeometryFixer.fix(polygon), precisionModel);
+      } catch (Throwable t) {
+        log.error("Failure while reducing polygon", t);
+        continue;
+      }
+
       switch (fixedPolygon) {
         case Polygon p -> polygons.add(p);
         case MultiPolygon mp -> {
@@ -220,8 +237,8 @@ public class GeometryUtil {
   }
 
   /**
-   * Represents intermediate results in {@link #toJtsPolygons(Area)} that allows attaching oceans to
-   * parent islands.
+   * Represents intermediate results in {@link #toJtsPolygons(Shape)} that allows attaching oceans
+   * to parent islands.
    *
    * <p>The ultimate result is a {@link Polygon} that can be obtained via {@link #toPolygon()}.
    */
