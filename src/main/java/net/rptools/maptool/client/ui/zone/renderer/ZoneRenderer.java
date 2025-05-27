@@ -2573,7 +2573,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   private void clearZoomDependantCaches() {
     invalidateCurrentViewCache();
-    tokenRenderer.zoomChanged();
   }
 
   public double getScale() {
