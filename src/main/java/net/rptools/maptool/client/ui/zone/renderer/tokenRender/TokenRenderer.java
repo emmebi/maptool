@@ -40,7 +40,6 @@ import org.apache.log4j.Logger;
 
 public class TokenRenderer {
   private static final Logger log = LogManager.getLogger(TokenRenderer.class);
-  private final CodeTimer timer;
   private static final Map<String, Map<Integer, BufferedImage>> imageTableMap =
       Collections.synchronizedMap(new HashMap<>());
   private final Map<Token, BufferedImage> renderImageMap = new HashMap<>();
@@ -59,17 +58,21 @@ public class TokenRenderer {
     this.renderHelper = renderHelper;
     this.zone = zone;
     new MapToolEventBus().getMainEventBus().register(this);
-    timer = CodeTimer.get();
   }
 
   public void renderToken(
       Token token, ZoneViewModel.TokenPosition position, Graphics2D g2d, Float opacity) {
+    var timer = CodeTimer.get();
     timer.start("TokenRenderer-renderToken");
     this.token = token;
     this.position = position;
     this.opacity = opacity * token.getTokenOpacity();
+    timer.start("TokenRenderer-compareStates");
     compareStates();
+    timer.stop("TokenRenderer-compareStates");
+    timer.start("TokenRenderer-paintTokenImage");
     renderHelper.render(g2d, worldG -> paintTokenImage(worldG));
+    timer.stop("TokenRenderer-paintTokenImage");
     timer.stop("TokenRenderer-renderToken");
   }
 
@@ -104,6 +107,8 @@ public class TokenRenderer {
   }
 
   private BufferedImage getRenderImage() {
+    var timer = CodeTimer.get();
+    timer.start("TokenRenderer-getRenderImage");
     BufferedImage bi = ImageManager.BROKEN_IMAGE;
     if (token.getHasImageTable() && imageTableMap.containsKey(token.getImageTableName())) {
       Map<Integer, BufferedImage> imageTable = imageTableMap.get(token.getImageTableName());
@@ -135,11 +140,11 @@ public class TokenRenderer {
       bi = ImageUtil.getScaledTokenImage(bi, token, zone.getGrid(), 1.0);
     }
 
+    timer.stop("TokenRenderer-getRenderImage");
     return bi;
   }
 
   private void paintTokenImage(Graphics2D g2d) {
-    timer.start("TokenRenderer-paintTokenImage");
     // centre image
     double imageCx = -renderImage.getWidth() / 2d;
     double imageCy =
@@ -164,7 +169,6 @@ public class TokenRenderer {
 
     g2d.drawImage(renderImage, imageTransform, renderHelper.getImageObserver());
     g2d.setStroke(new BasicStroke(1f));
-    timer.stop("TokenRenderer-paintTokenImage");
   }
 
   public void zoomChanged() {

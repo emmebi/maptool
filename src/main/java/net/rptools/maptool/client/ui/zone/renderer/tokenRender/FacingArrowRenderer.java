@@ -31,7 +31,6 @@ import org.apache.log4j.Logger;
 
 public class FacingArrowRenderer {
   private static final Logger log = LogManager.getLogger(FacingArrowRenderer.class);
-  private final CodeTimer timer;
   private final Map<ArrowType, Map<Double, Shape>> quivers = new HashMap<>();
 
   private final RenderHelper renderHelper;
@@ -50,7 +49,6 @@ public class FacingArrowRenderer {
     for (int i = 89; i >= 0; i--) {
       fillColours.add(fillColours.get(i));
     }
-    timer = CodeTimer.get();
   }
 
   public void paintArrow(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
@@ -58,6 +56,8 @@ public class FacingArrowRenderer {
   }
 
   private void paintArrowWorld(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
+    var timer = CodeTimer.get();
+    timer.start("ArrowRenderer-paintArrow");
     try {
       var token = position.token();
 
@@ -73,7 +73,6 @@ public class FacingArrowRenderer {
 
       final var isIsometric = zone.getGrid().isIsometric();
 
-      timer.start("ArrowRenderer-paintArrow");
       AffineTransform oldAT = tokenG.getTransform();
       double facing = token.getFacing();
       facing = isIsometric ? facing + 45 : facing;
@@ -127,8 +126,9 @@ public class FacingArrowRenderer {
       tokenG.setTransform(oldAT);
     } catch (Exception e) {
       log.error("Failed to paint facing arrow.");
+    } finally {
+      timer.stop("ArrowRenderer-paintArrow");
     }
-    timer.stop("ArrowRenderer-paintArrow");
   }
 
   private Shape getArrow(ZoneViewModel.TokenPosition position, boolean isIsometric) {
