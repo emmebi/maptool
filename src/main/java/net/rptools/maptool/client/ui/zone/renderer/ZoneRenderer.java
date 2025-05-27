@@ -2096,9 +2096,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       timer.start("token-list-8");
       // Facing
-      if (token.hasFacing()) {
-        facingArrowRenderer.paintArrow(tokenG, position);
-      }
+      facingArrowRenderer.paintArrow(tokenG, position);
       timer.stop("token-list-8");
 
       timer.start("token-list-9");

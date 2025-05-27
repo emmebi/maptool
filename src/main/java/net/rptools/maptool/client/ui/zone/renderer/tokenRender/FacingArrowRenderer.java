@@ -50,25 +50,33 @@ public class FacingArrowRenderer {
   }
 
   public void paintArrow(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
+    var timer = CodeTimer.get();
+    var token = position.token();
+    var tokenType = token.getShape();
+
+    timer.start("FacingArrowRenderer-preCheck");
+    if (!token.hasFacing()) {
+      return;
+    }
+    if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
+      return;
+    }
+    if (tokenType.equals(Token.TokenShape.FIGURE)
+        && token.getHasImageTable()
+        && !AppPreferences.forceFacingArrow.get()) {
+      return;
+    }
+    timer.stop("FacingArrowRenderer-preCheck");
+
+    timer.start("FacingArrowRenderer-render");
     renderHelper.render(tokenG, worldG -> paintArrowWorld(worldG, position));
+    timer.stop("FacingArrowRenderer-render");
   }
 
   private void paintArrowWorld(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
     var timer = CodeTimer.get();
-    timer.start("ArrowRenderer-paintArrow");
+    timer.start("FacingArrowRenderer-paintArrow");
     try {
-      var token = position.token();
-
-      var tokenType = token.getShape();
-      if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
-        return;
-      }
-      if (tokenType.equals(Token.TokenShape.FIGURE)
-          && token.getHasImageTable()
-          && !AppPreferences.forceFacingArrow.get()) {
-        return;
-      }
-
       final var isIsometric = zone.getGrid().isIsometric();
 
       timer.start("FacingArrowRenderer-getArrow");
@@ -81,7 +89,7 @@ public class FacingArrowRenderer {
       AffineTransform oldAT = tokenG.getTransform();
 
       timer.start("FacingArrowRenderer-calculateTransform");
-      double facing = token.getFacing();
+      double facing = position.token().getFacing();
       facing = isIsometric ? facing + 45 : facing;
       while (facing < 0) {
         facing += 360;
@@ -104,7 +112,7 @@ public class FacingArrowRenderer {
       timer.stop("FacingArrowRenderer-transformArrow");
 
       timer.start("FacingArrowRenderer-adjustArrowForSquare");
-      if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
+      if (position.token().getShape().equals(Token.TokenShape.SQUARE) && !isIsometric) {
         double xp = position.footprintBounds().getWidth() / 2;
         double yp = position.footprintBounds().getHeight() / 2;
         if (facing >= 45 && facing <= 135 || facing >= 225 && facing <= 315) {
@@ -124,22 +132,27 @@ public class FacingArrowRenderer {
         cy -= yp;
       }
       tokenG.translate(cx, cy);
+      timer.stop("FacingArrowRenderer-adjustArrowForSquare");
 
-      if (tokenType.equals(Token.TokenShape.FIGURE) && facing <= 180) {
+      timer.start("FacingArrowRenderer-fill");
+      if (position.token().getShape().equals(Token.TokenShape.FIGURE) && facing <= 180) {
         tokenG.setColor(fillColours.get((int) facing));
       } else {
         tokenG.setColor(fillColour);
       }
-
       tokenG.fill(facingArrow);
+      timer.stop("FacingArrowRenderer-fill");
+
+      timer.start("FacingArrowRenderer-draw");
       tokenG.setColor(borderColour);
       tokenG.draw(facingArrow);
+      timer.stop("FacingArrowRenderer-draw");
 
       tokenG.setTransform(oldAT);
     } catch (Exception e) {
       log.error("Failed to paint facing arrow.", e);
     } finally {
-      timer.stop("ArrowRenderer-paintArrow");
+      timer.stop("FacingArrowRenderer-paintArrow");
     }
   }
 
