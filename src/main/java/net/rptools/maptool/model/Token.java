@@ -1508,8 +1508,8 @@ public class Token implements Cloneable {
 
     // Sizing
     if (!isSnapToScale()) {
-      w = getWidth();
-      h = getHeight();
+      w = getWidth() * scaleX;
+      h = getHeight() * scaleY;
       if (grid.isIsometric() && getShape() == Token.TokenShape.FIGURE) {
         // Native size figure tokens need to follow iso rules
         h = (w / 2);
