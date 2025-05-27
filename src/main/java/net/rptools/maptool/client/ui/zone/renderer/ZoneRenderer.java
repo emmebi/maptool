@@ -1401,10 +1401,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         // Other details.
         // If the token is visible on the screen it will be in the location cache
         var tokenPosition = viewModel.getTokenPositions().get(token.getId());
-        if (token == keyToken
+        if (tokenPosition != null
+            && token == keyToken
             && (isOwner || shouldShowMovementLabels(token, set, clearArea))
-            && viewModel.getViewport().intersects(tokenPosition.footprintBounds())
-            && zoneView.getVisibleArea(view).intersects(tokenPosition.footprintBounds())) {
+            && viewModel.getViewport().intersects(tokenPosition.footprintBounds())) {
           var labelY = y + 10 + scaledHeight;
           var labelX = x + scaledWidth / 2;
 

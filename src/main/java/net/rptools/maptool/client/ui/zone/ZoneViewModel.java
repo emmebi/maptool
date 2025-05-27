@@ -344,6 +344,18 @@ public class ZoneViewModel {
           transformedBounds.transform(at);
         }
 
+        if (!transformedBounds.intersects(viewport)) {
+          continue;
+        }
+
+        // Then make sure it is in revealed area (for players).
+        if (!playerView.isGMView()
+            && layer.supportsVision()
+            && zoneView.isUsingVision()
+            && !GraphicsUtil.intersects(transformedBounds, visibleArea)) {
+          continue;
+        }
+
         TokenPosition tokenPosition = new TokenPosition(token, footprintBounds, transformedBounds);
         tokenPositions.put(token.getId(), tokenPosition);
         layerList.add(tokenPosition);
@@ -407,23 +419,12 @@ public class ZoneViewModel {
     }
 
     for (var layer : Zone.Layer.values()) {
+      // This list only contains tokens that are on screen.
       var tokenPositions = tokenPositionsByLayer.get(layer);
 
       var visibleTokens = visibleTokensByLayer.get(layer);
       visibleTokens.clear();
       for (var tokenPosition : tokenPositions) {
-        // First make sure it is on screen.
-        if (!tokenPosition.transformedBounds().intersects(viewport)) {
-          continue;
-        }
-        // Then make sure it is in revealed area (for players).
-        if (!playerView.isGMView()
-            && layer.supportsVision()
-            && zoneView.isUsingVision()
-            && !GraphicsUtil.intersects(tokenPosition.transformedBounds(), visibleArea)) {
-          continue;
-        }
-
         var bounds = tokenPosition.transformedBounds().getBounds2D();
         if (bounds.getWidth() * scale < 1 || bounds.getHeight() * scale < 1) {
           continue;
