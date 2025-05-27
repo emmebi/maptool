@@ -112,7 +112,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   // Optimizations
   final Map<GUID, BufferedImage> labelRenderingCache = new HashMap<>();
-  private final Map<Token, BufferedImage> flipImageMap = new HashMap<>();
   private final Map<Token, BufferedImage> flipIsoImageMap = new HashMap<>();
   private Token tokenUnderMouse;
 
@@ -560,16 +559,14 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   /**
-   * Remove the token from: {@link #flipImageMap}, {@link #flipIsoImageMap}, {@link
-   * #labelRenderingCache}. Set the {@link #visibleScreenArea} to null. Flush the token from {@link
-   * #zoneView}.
+   * Remove the token from: {@link #flipIsoImageMap}, {@link #labelRenderingCache}. Set the {@link
+   * #visibleScreenArea} to null. Flush the token from {@link #zoneView}.
    *
    * @param token the token to flush
    */
   public void flush(Token token) {
     // This method can be called from a non-EDT thread so if that happens, make sure we synchronize
     // with the EDT.
-    flipImageMap.remove(token);
     flipIsoImageMap.remove(token);
     labelRenderingCache.remove(token.getId());
 
@@ -605,7 +602,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     ImageManager.flushImage(zone.getMapAssetId());
 
     flushDrawableRenderer();
-    flipImageMap.clear();
     flipIsoImageMap.clear();
     zoneView.flushFog();
   }
@@ -1337,11 +1333,13 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           if (token.getIsFlippedIso()) {
             if (flipIsoImageMap.get(token) == null) {
               workImage = IsometricGrid.isoImage(workImage);
+              flipIsoImageMap.put(token, workImage);
             } else {
               workImage = flipIsoImageMap.get(token);
             }
             token.setHeight(workImage.getHeight());
             token.setWidth(workImage.getWidth());
+
             footprintBounds = token.getBounds(zone);
           }
           iso_ho = ImageUtil.getIsoFigureHeightOffset(token, footprintBounds) * getScale();
@@ -2009,39 +2007,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       BufferedImage image = ImageUtil.getTokenImage(token, this);
       timer.stop("token-list-1b");
 
-      timer.start("token-list-5");
-      // handle flipping
-      BufferedImage workImage = image;
-      if (token.isFlippedX() || token.isFlippedY()) {
-        workImage = flipImageMap.get(token);
-        if (workImage == null) {
-          workImage =
-              new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
-
-          int workW = image.getWidth() * (token.isFlippedX() ? -1 : 1);
-          int workH = image.getHeight() * (token.isFlippedY() ? -1 : 1);
-          int workX = token.isFlippedX() ? image.getWidth() : 0;
-          int workY = token.isFlippedY() ? image.getHeight() : 0;
-
-          Graphics2D wig = workImage.createGraphics();
-          wig.drawImage(image, workX, workY, workW, workH, null);
-          wig.dispose();
-
-          flipImageMap.put(token, workImage);
-        }
-      }
-      timer.stop("token-list-5");
-
       timer.start("token-list-5a");
       if (token.getIsFlippedIso() && getZone().getGrid().isIsometric()) {
-        if (flipIsoImageMap.get(token) == null) {
-          workImage = IsometricGrid.isoImage(workImage);
-          flipIsoImageMap.put(token, workImage);
-        } else {
-          workImage = flipIsoImageMap.get(token);
-        }
-        token.setHeight(workImage.getHeight());
-        token.setWidth(workImage.getWidth());
+        int newSize = (image.getWidth() + image.getHeight());
+        token.setWidth(newSize);
+        token.setHeight(newSize / 2);
       }
       timer.stop("token-list-5a");
 
