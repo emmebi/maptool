@@ -14,6 +14,7 @@
  */
 package net.rptools.lib;
 
+import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -124,8 +125,8 @@ public class GeometryUtil {
     return geometryFactory;
   }
 
-  public static MultiPolygon toJts(Area area) {
-    final var polygons = toJtsPolygons(area);
+  public static MultiPolygon toJts(Shape shape) {
+    final var polygons = toJtsPolygons(shape);
     final var geometry = geometryFactory.createMultiPolygon(polygons.toArray(Polygon[]::new));
     assert geometry.isValid()
         : "Returned geometry must be valid, but found this error: "
@@ -133,12 +134,12 @@ public class GeometryUtil {
     return geometry;
   }
 
-  public static Collection<Polygon> toJtsPolygons(Area area) {
-    if (area.isEmpty()) {
+  public static Collection<Polygon> toJtsPolygons(Shape shape) {
+    if (shape instanceof Area area && area.isEmpty()) {
       return Collections.emptyList();
     }
 
-    final var pathIterator = area.getPathIterator(null, 1. / precisionModel.getScale());
+    final var pathIterator = shape.getPathIterator(null, 1. / precisionModel.getScale());
     final var coordinates = (List<Coordinate[]>) ShapeReader.toCoordinates(pathIterator);
 
     // Now collect all the noded rings into islands (JTS clockwise) and oceans (counterclockwise).
@@ -220,8 +221,8 @@ public class GeometryUtil {
   }
 
   /**
-   * Represents intermediate results in {@link #toJtsPolygons(Area)} that allows attaching oceans to
-   * parent islands.
+   * Represents intermediate results in {@link #toJtsPolygons(Shape)} that allows attaching oceans
+   * to parent islands.
    *
    * <p>The ultimate result is a {@link Polygon} that can be obtained via {@link #toPolygon()}.
    */
