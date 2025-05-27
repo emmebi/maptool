@@ -32,12 +32,14 @@ import org.locationtech.jts.awt.ShapeReader;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateArrays;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Location;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.geom.util.GeometryFixer;
 import org.locationtech.jts.operation.valid.IsValidOp;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
@@ -192,7 +194,14 @@ public class GeometryUtil {
       // Build the polygon...
       var polygon = island.toPolygon();
       // ... then make sure it is valid, fixing it if not.
-      var fixedPolygon = GeometryPrecisionReducer.reduce(polygon, precisionModel);
+      Geometry fixedPolygon;
+      try {
+        fixedPolygon = GeometryPrecisionReducer.reduce(GeometryFixer.fix(polygon), precisionModel);
+      } catch (Throwable t) {
+        log.error("Failure while reducing polygon", t);
+        continue;
+      }
+
       switch (fixedPolygon) {
         case Polygon p -> polygons.add(p);
         case MultiPolygon mp -> {
