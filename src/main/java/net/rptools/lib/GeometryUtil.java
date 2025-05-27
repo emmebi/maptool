@@ -47,6 +47,7 @@ public class GeometryUtil {
   private static final Logger log = LogManager.getLogger(GeometryUtil.class);
 
   private static final PrecisionModel precisionModel = new PrecisionModel(100_000.0);
+  private static final PrecisionModel finePrecisionModel = new PrecisionModel(1e10);
 
   private static final GeometryFactory geometryFactory = new GeometryFactory(precisionModel);
 
@@ -141,7 +142,7 @@ public class GeometryUtil {
       return Collections.emptyList();
     }
 
-    final var pathIterator = shape.getPathIterator(null, 1. / precisionModel.getScale());
+    final var pathIterator = shape.getPathIterator(null, 1. / finePrecisionModel.getScale());
     final var coordinates = (List<Coordinate[]>) ShapeReader.toCoordinates(pathIterator);
 
     // Now collect all the noded rings into islands (JTS clockwise) and oceans (counterclockwise).
@@ -152,7 +153,13 @@ public class GeometryUtil {
         log.warn(
             "Found invalid geometry: ring has only {} points but at least four are required.",
             ring.length);
-      } else if (Orientation.isCCW(ring)) {
+        continue;
+      }
+
+      for (var c : ring) {
+        finePrecisionModel.makePrecise(c);
+      }
+      if (Orientation.isCCW(ring)) {
         oceans.add(ring);
       } else {
         islands.add(new Island(geometryFactory, ring));
