@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import javax.swing.*;
 import net.rptools.maptool.client.AppConstants;
+import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.themes.*;
@@ -107,7 +108,7 @@ public class ThemeSupport {
   private static final String IMAGE_PATH = "/net/rptools/maptool/client/ui/themes/image/";
 
   /**
-   * Should the the chat window use the themes colors.
+   * Should the chat window use the themes colors.
    *
    * @return true if the chat window should use the themes colors.
    */
@@ -116,7 +117,7 @@ public class ThemeSupport {
   }
 
   /**
-   * Should the the chat window use the themes colors.
+   * Should the chat window use the themes colors.
    *
    * @param useThemeColorsForChat true if the chat window should use the themes colors.
    */
@@ -507,6 +508,9 @@ public class ThemeSupport {
             .filter(t -> t.name.equals(themeName))
             .findFirst()
             .orElse(currentThemeDetails);
+    if (AppPreferences.useCustomThemeFontProperties.get()) {
+      ThemeTools.flatusInterruptus();
+    }
     if (themeDetails != null) {
       var laf = themeDetails.themeClass.getDeclaredConstructor().newInstance();
       UIManager.setLookAndFeel(themeDetails.themeClass.getDeclaredConstructor().newInstance());
@@ -636,7 +640,9 @@ public class ThemeSupport {
       var imageURL = ThemeSupport.class.getResource(imageLocation);
       if (imageURL == null) {
         log.warn(
-            "Failed to retrieve resource for theme name={} from url={}, using empty ImageIcon");
+            "Failed to retrieve resource for theme name={} from url={}, using empty ImageIcon",
+            themeName,
+            imageURL);
         return new ImageIcon();
       }
       var imageIcon = new ImageIcon(imageURL, themeDetails.name);
@@ -654,9 +660,9 @@ public class ThemeSupport {
   }
 
   /**
-   * Returns if there is a a new theme that will be applied after the restart.
+   * Returns if there is a new theme that will be applied after the restart.
    *
-   * @return if there is a a new theme that will be applied after the restart.
+   * @return if there is a new theme that will be applied after the restart.
    */
   public static boolean needsRestartForNewTheme() {
     return useThemeColorsForChat != startupUseThemeColorsForChat

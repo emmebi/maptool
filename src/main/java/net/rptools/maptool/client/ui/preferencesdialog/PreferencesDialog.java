@@ -51,6 +51,7 @@ import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.ColorWell;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
+import net.rptools.maptool.client.ui.theme.ThemeFontPreferences;
 import net.rptools.maptool.client.ui.theme.ThemeSupport;
 import net.rptools.maptool.client.ui.theme.ThemeSupport.ThemeDetails;
 import net.rptools.maptool.client.walker.WalkerMetric;
@@ -587,10 +588,12 @@ public class PreferencesDialog extends JDialog {
 
     JButton okButton = (JButton) panel.getButton("okButton");
     getRootPane().setDefaultButton(okButton);
+    AbeillePanel<?> themeFontPreferences = new ThemeFontPreferences();
     okButton.addActionListener(
         e -> {
           boolean close = true;
           if (close) {
+            themeFontPreferences.commit();
             setVisible(false);
             dispose();
           }
@@ -602,6 +605,8 @@ public class PreferencesDialog extends JDialog {
                 JOptionPane.WARNING_MESSAGE);
           }
         });
+    JPanel ui = (JPanel) panel.getComponent("uiPrefs");
+    ui.add(themeFontPreferences, BorderLayout.CENTER);
 
     tabbedPane = panel.getTabbedPane("TabPane");
 

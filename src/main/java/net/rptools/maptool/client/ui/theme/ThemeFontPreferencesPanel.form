@@ -1,0 +1,1259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="net.rptools.maptool.client.ui.theme.ThemeFontPreferencesPanel">
+  <grid id="27dc6" binding="main" layout-manager="GridLayoutManager" row-count="18" column-count="17" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="4" left="4" bottom="7" right="4"/>
+    <constraints>
+      <xy x="20" y="20" width="1080" height="800"/>
+    </constraints>
+    <properties>
+      <background color="-1"/>
+      <minimumSize width="-1" height="-1"/>
+      <name value="main"/>
+      <opaque value="false"/>
+      <preferredSize width="-1" height="-1"/>
+      <requestFocusEnabled value="true"/>
+    </properties>
+    <border type="none">
+      <size top="8" left="8" bottom="12" right="8"/>
+    </border>
+    <children>
+      <component id="f4ccf" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="6" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <actionCommand value=""/>
+          <label value="Override theme font settings"/>
+          <name value="useCustomUIProperties"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.theme.override.checkbox"/>
+        </properties>
+      </component>
+      <component id="69938" class="com.jidesoft.swing.TitledSeparator" default-binding="true">
+        <constraints>
+          <grid row="7" column="0" row-span="1" col-span="15" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <labelComponent value="ee2da"/>
+          <name value="titledSpacer"/>
+          <opaque value="true"/>
+          <verifyInputWhenFocusTarget value="false"/>
+        </properties>
+      </component>
+      <component id="cb69" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.subheading.text.sizes.general"/>
+        </properties>
+      </component>
+      <component id="c9652" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="9" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h00.font"/>
+        </properties>
+      </component>
+      <component id="f7088" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="10" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h0.font"/>
+        </properties>
+      </component>
+      <component id="1fb0c" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="11" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h1.font"/>
+        </properties>
+      </component>
+      <component id="1e117" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="12" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h2.font"/>
+        </properties>
+      </component>
+      <component id="2ac7c" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="13" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h3.font"/>
+        </properties>
+      </component>
+      <component id="d172f" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="14" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h4.font"/>
+        </properties>
+      </component>
+      <component id="eaa0e" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="9" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h00.font.size"/>
+        </properties>
+      </component>
+      <component id="23325" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="10" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h0.font.size"/>
+        </properties>
+      </component>
+      <component id="50696" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="11" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h1.font.size"/>
+        </properties>
+      </component>
+      <component id="42fc6" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="12" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h2.font.size"/>
+        </properties>
+      </component>
+      <component id="ff75b" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="13" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h3.font.size"/>
+        </properties>
+      </component>
+      <component id="e9ae6" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="14" column="12" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h4.font.size"/>
+        </properties>
+      </component>
+      <component id="69700" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="h00.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="33236" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="10" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="h0.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="8f9b4" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="11" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="h1.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="88f11" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="12" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="h2.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="12ad3" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="13" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="h3.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="8ea01" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="light.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="f61b8" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.light.font"/>
+        </properties>
+      </component>
+      <component id="46393" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.semibold.font"/>
+        </properties>
+      </component>
+      <component id="1f0fd" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="semibold.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="afcd3" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.monospaced.font"/>
+        </properties>
+      </component>
+      <component id="5d963" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="monospaced.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <grid id="94d4" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="4" left="4" bottom="6" right="4"/>
+        <constraints>
+          <grid row="9" column="6" row-span="7" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="general.panel"/>
+        </properties>
+        <border type="line"/>
+        <children>
+          <component id="e5290" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="large.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.large.font"/>
+            </properties>
+          </component>
+          <component id="1f34c" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="medium.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.medium.font"/>
+            </properties>
+          </component>
+          <component id="74d7c" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="small.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.small.font"/>
+            </properties>
+          </component>
+          <component id="9f662" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="mini.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.mini.font"/>
+            </properties>
+          </component>
+          <vspacer id="422b1">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </vspacer>
+        </children>
+      </grid>
+      <component id="c4323" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="14" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="h4.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <grid id="f83f0" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="4" left="4" bottom="6" right="4"/>
+        <constraints>
+          <grid row="6" column="2" row-span="1" col-span="12" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="font.panel"/>
+        </properties>
+        <border type="line"/>
+        <children>
+          <component id="65374" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="light.font.label"/>
+              <text value="Light"/>
+            </properties>
+          </component>
+          <component id="ba227" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="semibold.font.label"/>
+              <text value="Semi-bold"/>
+            </properties>
+          </component>
+          <component id="e6dab" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="monospaced.font.label"/>
+              <text value="Monospaced"/>
+            </properties>
+          </component>
+          <component id="95fc8" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="defaultFont.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.defaultFont"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <grid id="a6081" layout-manager="GridLayoutManager" row-count="7" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="4" left="4" bottom="6" right="4"/>
+        <constraints>
+          <grid row="9" column="13" row-span="8" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="headings.panel"/>
+        </properties>
+        <border type="line"/>
+        <children>
+          <component id="8b4e1" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="h00.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h00.font"/>
+            </properties>
+          </component>
+          <component id="98614" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="h0.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h0.font"/>
+            </properties>
+          </component>
+          <component id="5470a" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="h1.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h1.font"/>
+            </properties>
+          </component>
+          <component id="4aecc" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="h2.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h2.font"/>
+            </properties>
+          </component>
+          <component id="4dd18" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="h3.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h3.font"/>
+            </properties>
+          </component>
+          <component id="c0261" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <name value="h4.font.label"/>
+              <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.h4.font"/>
+            </properties>
+          </component>
+          <vspacer id="3e377">
+            <constraints>
+              <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </vspacer>
+        </children>
+      </grid>
+      <component id="e7e4d" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="8" column="7" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.subheading.text.sizes.headings"/>
+        </properties>
+      </component>
+      <component id="7c9f8" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="light.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="c9e95" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="semibold.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="a9afd" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="monospaced.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="c9311" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="9" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h00.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="d88b4" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="10" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h0.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="dd3f3" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="11" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h1.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="e7075" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="12" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h2.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="b8362" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="13" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h3.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="f5ae4" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="14" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="h4.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <hspacer id="b17e1">
+        <constraints>
+          <grid row="9" column="16" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <component id="224e4" class="com.jidesoft.swing.TitledSeparator" default-binding="true">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="15" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <labelComponent value="bd9cf"/>
+          <name value="firstTitledSpacer"/>
+          <opaque value="true"/>
+          <verifyInputWhenFocusTarget value="false"/>
+        </properties>
+      </component>
+      <component id="bd9cf" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="1" column="9" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <name value="headingLabel"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.heading.theme.fonts"/>
+        </properties>
+      </component>
+      <component id="ee2da" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="8" column="2" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.heading.text.relative.sizes"/>
+        </properties>
+      </component>
+      <vspacer id="53afa">
+        <constraints>
+          <grid row="15" column="12" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <vspacer id="358a8">
+        <constraints>
+          <grid row="16" column="12" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <vspacer id="26c8d">
+        <constraints>
+          <grid row="17" column="13" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <hspacer id="468e6">
+        <constraints>
+          <grid row="6" column="14" row-span="1" col-span="3" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <component id="f56a2" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.defaultFont"/>
+        </properties>
+      </component>
+      <component id="d1383" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="defaultFont.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="a882d" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="defaultFont.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="6b71b" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="9" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.large.font"/>
+        </properties>
+      </component>
+      <component id="20279" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="12" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.mini.font"/>
+        </properties>
+      </component>
+      <component id="98f80" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.medium.font"/>
+        </properties>
+      </component>
+      <component id="a6c63" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Preferences.label.small.font"/>
+        </properties>
+      </component>
+      <component id="168c" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="9" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="large.font.size"/>
+        </properties>
+      </component>
+      <component id="b17d2" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="10" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="medium.font.size"/>
+        </properties>
+      </component>
+      <component id="6824d" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="11" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="small.font.size"/>
+        </properties>
+      </component>
+      <component id="7e6c" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="12" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="mini.font.size"/>
+        </properties>
+      </component>
+      <component id="29cfb" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="12" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="mini.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="b3209" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="11" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="small.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="40706" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="10" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="medium.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="cc47c" class="javax.swing.JButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <name value="large.font.reset"/>
+          <text value="X"/>
+          <toolTipText resource-bundle="net/rptools/maptool/language/i18n" key="token.popup.menu.size.reset"/>
+        </properties>
+      </component>
+      <component id="6a920" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="9" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="large.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="80022" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="10" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="medium.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="1b0e5" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="small.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="523ed" class="javax.swing.JCheckBox" default-binding="true">
+        <constraints>
+          <grid row="12" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="mini.font.enable"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="e538" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="large.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="f4317" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="large.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="b9886" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="10" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="medium.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="76626" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="10" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="medium.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="62217" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="11" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="small.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="d5c8a" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="11" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="small.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="8f912" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="12" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="mini.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="e585f" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="12" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="mini.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="3b3df" class="javax.swing.JComboBox" default-binding="true">
+        <constraints>
+          <grid row="3" column="6" row-span="1" col-span="4" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <actionCommand value=""/>
+          <name value="light.font.family"/>
+        </properties>
+      </component>
+      <component id="e26d0" class="javax.swing.JComboBox" default-binding="true">
+        <constraints>
+          <grid row="4" column="6" row-span="1" col-span="4" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <actionCommand value=""/>
+          <name value="semibold.font.family"/>
+        </properties>
+      </component>
+      <component id="4fccf" class="javax.swing.JComboBox" default-binding="true">
+        <constraints>
+          <grid row="5" column="6" row-span="1" col-span="4" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <actionCommand value=""/>
+          <name value="monospaced.font.family"/>
+        </properties>
+      </component>
+      <component id="c1491" class="javax.swing.JComboBox" default-binding="true">
+        <constraints>
+          <grid row="2" column="6" row-span="1" col-span="4" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <actionCommand value=""/>
+          <name value="defaultFont.family"/>
+        </properties>
+      </component>
+      <hspacer id="dbf3a">
+        <constraints>
+          <grid row="2" column="15" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <hspacer id="504a0">
+        <constraints>
+          <grid row="2" column="12" row-span="1" col-span="3" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </hspacer>
+      <component id="f79e" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="10" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="h00.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="3f8bf" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="9" column="11" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="h00.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="c3b76" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="10" column="10" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="h0.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="cbbad" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="10" column="11" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="h0.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="ad93e" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="11" column="10" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="h1.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="305ad" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="11" column="11" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="h1.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="239b4" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="12" column="10" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="h2.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="ee18f" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="12" column="11" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="h2.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="33453" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="13" column="10" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="h3.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="891b5" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="13" column="11" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="h3.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="e52b9" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="14" column="10" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="h4.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="5e060" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="14" column="11" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="h4.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="fa301" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="light.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="74086" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="4" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="semibold.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="acc48" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <name value="monospaced.font.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="cf83" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="3" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="light.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="492d1" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="4" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="semibold.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="54b7f" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <name value="monospaced.font.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="73ce9" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font style="1"/>
+          <horizontalTextPosition value="0"/>
+          <label value="B"/>
+          <name value="defaultFont.bold"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.bold"/>
+        </properties>
+      </component>
+      <component id="1917e" class="javax.swing.JToggleButton" default-binding="true">
+        <constraints>
+          <grid row="2" column="4" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+            <preferred-size width="22" height="-1"/>
+            <maximum-size width="48" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <font name="Serif" style="2"/>
+          <horizontalTextPosition value="0"/>
+          <label value="I"/>
+          <name value="defaultFont.italic"/>
+          <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.text.italic"/>
+        </properties>
+      </component>
+      <component id="7aea7" class="javax.swing.JSpinner" default-binding="true">
+        <constraints>
+          <grid row="2" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <name value="defaultFont.size"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

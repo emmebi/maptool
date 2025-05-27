@@ -416,6 +416,9 @@ public class AppPreferences {
 
   public static final Preference<String> iconTheme = StringType.create("iconTheme", "Rod Takehara");
 
+  public static final Preference<Boolean> useCustomThemeFontProperties =
+      BooleanType.create("useCustomUIProperties", true);
+
   static {
     // Used to be stored as separate components but now is one color. Add if not already there.
     if (prefs.get("trustedPrefixFG", null) == null) {
