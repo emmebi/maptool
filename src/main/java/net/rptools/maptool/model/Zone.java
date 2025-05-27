@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import net.rptools.lib.GeometryUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
@@ -967,19 +968,25 @@ public class Zone {
    * All other tokens' topology will be included.
    *
    * @param types The type of masks to get.
-   * @param excluding
+   * @param excluding The ID of the token to exclude. Meant for pathfinding where a token should not
+   *     consider its own MBL.
    * @return
    */
   public List<MaskTopology> getMasks(Set<TopologyType> types, @Nullable GUID excluding) {
     var masks = new ArrayList<MaskTopology>();
+    var tokenMasks = getTokenMaskTopologies(excluding);
 
     for (var type : types) {
+      var topologies = tokenMasks.getOrDefault(type, List.of());
+
       var mapArea = getMaskTopology(type);
-      var tokenArea = getTokenMaskTopology(type, excluding);
       if (mapArea != null) {
-        tokenArea.add(mapArea);
+        topologies.add(mapArea);
       }
-      masks.addAll(MaskTopology.createFromLegacy(type, tokenArea));
+
+      var union = GeometryUtil.union(topologies);
+
+      masks.addAll(MaskTopology.createFromLegacy(type, union));
     }
 
     return masks;
@@ -1044,18 +1051,24 @@ public class Zone {
     new MapToolEventBus().getMainEventBus().post(new MaskTopologyChanged(this));
   }
 
-  public Area getTokenMaskTopology(TopologyType type, @Nullable GUID excluding) {
-    var result = new Area();
-    for (var token : getAllTokens()) {
-      if (excluding != null && excluding.equals(token.getId())) {
-        continue;
-      }
+  public Map<TopologyType, List<Area>> getTokenMaskTopologies(@Nullable GUID excluding) {
+    var result = new EnumMap<TopologyType, List<Area>>(TopologyType.class);
 
-      var tokenArea = token.getTransformedMaskTopology(type);
-      if (tokenArea != null) {
-        result.add(tokenArea);
+    for (var type : TopologyType.values()) {
+      var topologies = new ArrayList<Area>();
+      for (var token : getAllTokens()) {
+        if (excluding != null && excluding.equals(token.getId())) {
+          continue;
+        }
+
+        var tokenArea = token.getTransformedMaskTopology(type);
+        if (tokenArea != null) {
+          topologies.add(tokenArea);
+        }
       }
+      result.put(type, topologies);
     }
+
     return result;
   }
 
