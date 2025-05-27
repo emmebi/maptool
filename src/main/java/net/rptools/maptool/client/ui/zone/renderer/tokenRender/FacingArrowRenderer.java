@@ -20,6 +20,7 @@ import java.awt.geom.Path2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import net.rptools.lib.CodeTimer;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.zone.ZoneViewModel;
@@ -73,7 +74,16 @@ public class FacingArrowRenderer {
 
       final var isIsometric = zone.getGrid().isIsometric();
 
+      timer.start("FacingArrowRenderer-getArrow");
+      var arrow = getArrow(position, isIsometric);
+      timer.stop("FacingArrowRenderer-getArrow");
+      if (arrow == null) {
+        return;
+      }
+
       AffineTransform oldAT = tokenG.getTransform();
+
+      timer.start("FacingArrowRenderer-calculateTransform");
       double facing = token.getFacing();
       facing = isIsometric ? facing + 45 : facing;
       while (facing < 0) {
@@ -90,8 +100,13 @@ public class FacingArrowRenderer {
       if (isIsometric) {
         transform.preConcatenate(AffineTransform.getScaleInstance(1.0, 0.5));
       }
-      Shape facingArrow = transform.createTransformedShape(getArrow(position, isIsometric));
+      timer.stop("FacingArrowRenderer-calculateTransform");
 
+      timer.start("FacingArrowRenderer-transformArrow");
+      Shape facingArrow = transform.createTransformedShape(arrow);
+      timer.stop("FacingArrowRenderer-transformArrow");
+
+      timer.start("FacingArrowRenderer-adjustArrowForSquare");
       if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
         double xp = position.footprintBounds().getWidth() / 2;
         double yp = position.footprintBounds().getHeight() / 2;
@@ -125,13 +140,13 @@ public class FacingArrowRenderer {
 
       tokenG.setTransform(oldAT);
     } catch (Exception e) {
-      log.error("Failed to paint facing arrow.");
+      log.error("Failed to paint facing arrow.", e);
     } finally {
       timer.stop("ArrowRenderer-paintArrow");
     }
   }
 
-  private Shape getArrow(ZoneViewModel.TokenPosition position, boolean isIsometric) {
+  private @Nullable Shape getArrow(ZoneViewModel.TokenPosition position, boolean isIsometric) {
     var tokenType = position.token().getShape();
     if ((!AppPreferences.forceFacingArrow.get() && tokenType.equals(Token.TokenShape.TOP_DOWN))
         || (!AppPreferences.forceFacingArrow.get() && position.token().getHasImageTable())) {
@@ -156,7 +171,7 @@ public class FacingArrowRenderer {
       quiver = new HashMap<>();
     }
     if (quiver.containsKey(size)) {
-      return quiver.get(size);
+      arrow = quiver.get(size);
     } else {
       switch (arrowType) {
         case CIRCLE -> arrow = getCircleFacingArrow(size);
