@@ -1810,84 +1810,41 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     timer.stop("createClip");
 
-    double scale = zoneScale.getScale();
-
-    List<Token> tokenPostProcessing = new ArrayList<>(tokenList.size());
+    List<ZoneViewModel.TokenPosition> tokenPostProcessing = new ArrayList<>(tokenList.size());
     for (Token token : tokenList) {
       if (token.getShape() != Token.TokenShape.FIGURE && figuresOnly && !token.isAlwaysVisible()) {
         continue;
       }
 
       timer.start("token-list-1");
+      ZoneViewModel.TokenPosition position;
       try {
         if (token.getLayer().isStampLayer() && viewModel.isTokenMoving(token.getId())) {
           continue;
         }
-        // Don't bother if it's not visible
-        // NOTE: Not going to use zone.isTokenVisible as it is very slow. In fact, it's faster
-        // to just draw the tokens and let them be clipped
-        if ((!token.isVisible() || !token.getLayer().isVisibleToPlayers()) && !isGMView) {
+
+        position = viewModel.getTokenPositions().get(token.getId());
+        if (position == null) {
+          // Unknown token?
           continue;
         }
-        if (token.isVisibleOnlyToOwner() && !AppUtil.playerOwns(token)) {
-          continue;
-        }
-      } finally {
-        // This ensures that the timer is always stopped
-        timer.stop("token-list-1");
-      }
-      timer.start("token-list-1.1");
-      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token.getId());
-      if (position != null && !position.transformedBounds().intersects(viewModel.getViewport())) {
-        timer.stop("token-list-1.1");
-        continue;
-      }
-      timer.stop("token-list-1.1");
-
-      timer.start("token-list-1a");
-      Rectangle footprintBounds = token.getBounds(zone);
-      timer.stop("token-list-1a");
-
-      timer.start("token-list-1c");
-      double scaledWidth = (footprintBounds.width * scale);
-      double scaledHeight = (footprintBounds.height * scale);
-
-      ScreenPoint tokenScreenLocation =
-          ScreenPoint.fromZonePoint(this, footprintBounds.x, footprintBounds.y);
-      timer.stop("token-list-1c");
-
-      timer.start("token-list-1d");
-      // Tokens are centered on the image center point
-      double x = tokenScreenLocation.x;
-      double y = tokenScreenLocation.y;
-
-      Rectangle2D origBounds = new Rectangle2D.Double(x, y, scaledWidth, scaledHeight);
-      Area tokenBounds = new Area(origBounds);
-      if (token.hasFacing() && token.getShape() == Token.TokenShape.TOP_DOWN) {
-        double sx = scaledWidth / 2 + x - (token.getAnchor().x * scale);
-        double sy = scaledHeight / 2 + y - (token.getAnchor().y * scale);
-        tokenBounds.transform(
-            AffineTransform.getRotateInstance(Math.toRadians(token.getFacingInDegrees()), sx, sy));
-        // facing defaults to down or -90 degrees
-      }
-      timer.stop("token-list-1d");
-
-      timer.start("token-list-1e");
-      try {
         if (!viewModel.getVisibleTokens(token.getLayer()).contains(token.getId())) {
           // Token not on screen or otherwise not visible.
           continue;
         }
       } finally {
-        // This ensures that the timer is always stopped
-        timer.stop("token-list-1e");
+        timer.stop("token-list-1");
       }
 
-      // create a per token Graphics object - normally clipped, unless always visible
-      Area tokenCellArea = zone.getGrid().getTokenCellArea(tokenBounds);
       Graphics2D tokenG;
-      if (isTokenInNeedOfClipping(token, tokenCellArea, isGMView)) {
+      if (isTokenInNeedOfClipping(token, position.transformedBounds(), isGMView)) {
         tokenG = (Graphics2D) clippedG.create();
+        if (token.getShape() == Token.TokenShape.FIGURE || token.isAlwaysVisible()) {
+          Area cb =
+              zone.getGrid()
+                  .getTokenCellArea(zoneScale.toScreenSpace(position.transformedBounds()));
+          tokenG.clip(cb);
+        }
       } else {
         tokenG = (Graphics2D) g.create();
         AppPreferences.renderQuality.get().setRenderingHints(tokenG);
@@ -1923,43 +1880,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
       // Finally render the token image
       timer.start("token-list-7");
-      if (!isGMView && zoneView.isUsingVision() && (token.getShape() == Token.TokenShape.FIGURE)) {
-        Area cb = zone.getGrid().getTokenCellArea(tokenBounds);
-        if (GraphicsUtil.intersects(visibleScreenArea, cb)) {
-          // the cell intersects visible area so
-          if (zone.getGrid().checkCenterRegion(cb.getBounds(), visibleScreenArea)) {
-            // if we can see the centre, draw the whole token
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          } else {
-            // else draw the clipped token
-            Area cellArea = new Area(visibleScreenArea);
-            cellArea.intersect(cb);
-            tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          }
-        }
-      } else if (!isGMView && zoneView.isUsingVision() && token.isAlwaysVisible()) {
-        // Jamz: Always Visible tokens will get rendered again here to place on top of FoW
-        Area cb = zone.getGrid().getTokenCellArea(tokenBounds);
-        if (GraphicsUtil.intersects(visibleScreenArea, cb)) {
-          // if we can see a portion of the stamp/token, draw the whole thing, defaults to 2/9ths
-          if (zone.getGrid()
-              .checkRegion(cb.getBounds(), visibleScreenArea, token.getAlwaysVisibleTolerance())) {
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          } else {
-            // else draw the clipped stamp/token
-            // This will only show the part of the token that does not have VBL on it
-            // as any VBL on the token will block LOS, affecting the clipping.
-            Area cellArea = new Area(visibleScreenArea);
-            cellArea.intersect(cb);
-            tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          }
-        }
-      } else {
-        // fallthrough normal token rendered against visible area
-        tokenRenderer.renderToken(token, position, tokenG, opacity);
-      }
+      // Clipping is handled in the isTokenInNeedOfClipping() call far above.
+      tokenRenderer.renderToken(token, position, tokenG, opacity);
       timer.stop("token-list-7");
 
       timer.start("token-list-8");
@@ -1969,19 +1891,16 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       timer.start("token-list-9");
       // Set up the graphics so that the overlay can just be painted.
+      Rectangle2D tokenBounds = zoneScale.toScreenSpace(position.transformedBounds().getBounds2D());
       Graphics2D locG =
           (Graphics2D)
               tokenG.create(
-                  (int) tokenBounds.getBounds().getX(),
-                  (int) tokenBounds.getBounds().getY(),
-                  (int) tokenBounds.getBounds().getWidth(),
-                  (int) tokenBounds.getBounds().getHeight());
+                  (int) tokenBounds.getX(),
+                  (int) tokenBounds.getY(),
+                  (int) tokenBounds.getWidth(),
+                  (int) tokenBounds.getHeight());
       Rectangle bounds =
-          new Rectangle(
-              0,
-              0,
-              (int) tokenBounds.getBounds().getWidth(),
-              (int) tokenBounds.getBounds().getHeight());
+          new Rectangle(0, 0, (int) tokenBounds.getWidth(), (int) tokenBounds.getHeight());
 
       // Check each of the set values
       for (String state : MapTool.getCampaign().getTokenStatesMap().keySet()) {
@@ -2019,18 +1938,15 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       // Keep track of which tokens have been drawn for post-processing on them later
       // (such as selection borders and names/labels)
       if (getActiveLayer().equals(token.getLayer())) {
-        tokenPostProcessing.add(token);
+        tokenPostProcessing.add(position);
       }
       timer.stop("token-list-11");
     }
-    timer.start("token-list-12");
 
     // Selection and labels
-    for (Token token : tokenPostProcessing) {
-      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token.getId());
-      if (position == null) {
-        continue;
-      }
+    timer.start("token-list-12");
+    for (ZoneViewModel.TokenPosition position : tokenPostProcessing) {
+      var token = position.token();
 
       // Count moving tokens as "selected" so that a border is drawn around them.
       boolean isSelected =
@@ -2122,8 +2038,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     timer.stop("token-list-12");
 
-    timer.start("token-list-13");
     // Stacks
+    timer.start("token-list-13");
     if (!tokenList.isEmpty() && tokenList.getFirst().getLayer().isTokenLayer()) {
       boolean hideTSI = AppPreferences.hideTokenStackIndicator.get();
       if (!hideTSI) {
@@ -2143,8 +2059,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
     }
 
-    // Markers
-
     if (clippedG != g) {
       clippedG.dispose();
     }
@@ -2161,20 +2075,20 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @return true if the token is need of clipping, false otherwise
    */
   public boolean isTokenInNeedOfClipping(Token token, Area tokenCellArea, boolean isGMView) {
-
     // can view everything or zone is not using vision = no clipping needed
     if (isGMView || !zoneView.isUsingVision()) {
       return false;
     }
 
-    // no clipping if there is no visible screen area
-    if (visibleScreenArea == null) {
+    var visibleArea = viewModel.getVisibleArea();
+    if (visibleArea.isEmpty()) {
+      // No clipping if there is no visible screen area.
       return false;
     }
 
     // If the token is a figure and its center is visible then no clipping
     if (token.getShape() == Token.TokenShape.FIGURE
-        && zone.getGrid().checkCenterRegion(tokenCellArea.getBounds(), visibleScreenArea)) {
+        && zone.getGrid().checkCenterRegion(tokenCellArea.getBounds(), visibleArea)) {
       return false;
     }
 
@@ -2183,7 +2097,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     if (token.isAlwaysVisible()
         && zone.getGrid()
             .checkRegion(
-                tokenCellArea.getBounds(), visibleScreenArea, token.getAlwaysVisibleTolerance())) {
+                tokenCellArea.getBounds(), visibleArea, token.getAlwaysVisibleTolerance())) {
       return false;
     }
 

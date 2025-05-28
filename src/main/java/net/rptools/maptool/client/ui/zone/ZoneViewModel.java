@@ -153,6 +153,10 @@ public class ZoneViewModel {
         viewport.getMinX(), viewport.getMinY(), viewport.getWidth(), viewport.getHeight());
   }
 
+  public Area getVisibleArea() {
+    return visibleArea;
+  }
+
   public PlayerView getPlayerView() {
     return playerView;
   }
