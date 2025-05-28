@@ -14,7 +14,6 @@
  */
 package net.rptools.maptool.client.ui.zone.renderer.tokenRender;
 
-import com.google.common.eventbus.Subscribe;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
@@ -26,84 +25,47 @@ import javax.swing.*;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
-import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.ui.zone.ZoneViewModel;
+import net.rptools.maptool.client.ui.zone.ZoneViewModel.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
-import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
-import net.rptools.maptool.model.zones.GridChanged;
-import net.rptools.maptool.model.zones.TokensChanged;
 import net.rptools.maptool.util.ImageManager;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 public class TokenRenderer {
   private static final Logger log = LogManager.getLogger(TokenRenderer.class);
-  private final CodeTimer timer;
   private static final Map<String, Map<Integer, BufferedImage>> imageTableMap =
       Collections.synchronizedMap(new HashMap<>());
-  private final Map<Token, BufferedImage> renderImageMap = new HashMap<>();
-  private final Map<Token, TokenState> tokenStateMap = new HashMap<>();
 
   private final RenderHelper renderHelper;
   private final Zone zone;
-  private ZoneViewModel.TokenPosition position;
-  private Token token;
-  private float opacity = 1f;
-  private boolean isoFigure = false;
-  private boolean canSpin = false;
-  private BufferedImage renderImage;
 
   public TokenRenderer(RenderHelper renderHelper, Zone zone) {
     this.renderHelper = renderHelper;
     this.zone = zone;
-    new MapToolEventBus().getMainEventBus().register(this);
-    timer = CodeTimer.get();
   }
 
-  public void renderToken(
-      Token token, ZoneViewModel.TokenPosition position, Graphics2D g2d, Float opacity) {
+  public void renderToken(Token token, TokenPosition position, Graphics2D g2d, float opacity) {
+    var timer = CodeTimer.get();
     timer.start("TokenRenderer-renderToken");
-    this.token = token;
-    this.position = position;
-    this.opacity = opacity * token.getTokenOpacity();
-    compareStates();
-    renderHelper.render(g2d, worldG -> paintTokenImage(worldG));
-    timer.stop("TokenRenderer-renderToken");
-  }
 
-  private void compareStates() {
-    TokenState currentState = createRecord(token); // for comparing apples to apples
-    boolean updateStoredImage = true;
+    timer.start("TokenRenderer-loadImageTable");
     if (token.getHasImageTable() && !imageTableMap.containsKey(token.getImageTableName())) {
       (new CacheTableImagesWorker(token.getImageTableName())).execute();
     }
-    if (tokenStateMap.containsKey(token)) {
-      // exists, is it equal
-      if (!tokenStateMap.get(token).equals(currentState)) {
-        // not equal, replace
-        tokenStateMap.put(token, currentState);
-      } else {
-        // is equal, only update if we have nothing stored.
-        updateStoredImage = !renderImageMap.containsKey(token);
-      }
-    }
-    if (updateStoredImage) {
-      renderImage = getRenderImage();
-      renderImageMap.put(token, renderImage);
-    } else {
-      renderImage = renderImageMap.get(token);
-    }
-    // set these whilst we have the information handy
-    isoFigure =
-        zone.getGrid().isIsometric()
-            && !currentState.flippedIso
-            && currentState.shape.equals(Token.TokenShape.FIGURE);
-    canSpin = currentState.shape.equals(Token.TokenShape.TOP_DOWN);
+    timer.stop("TokenRenderer-loadImageTable");
+
+    timer.start("TokenRenderer-paintTokenImage");
+    renderHelper.render(
+        g2d, worldG -> paintTokenImage(worldG, position, opacity * token.getTokenOpacity()));
+    timer.stop("TokenRenderer-paintTokenImage");
+    timer.stop("TokenRenderer-renderToken");
   }
 
-  private BufferedImage getRenderImage() {
+  private BufferedImage getRenderImage(Token token) {
+    var timer = CodeTimer.get();
+    timer.start("TokenRenderer-getRenderImage");
     BufferedImage bi = ImageManager.BROKEN_IMAGE;
     if (token.getHasImageTable() && imageTableMap.containsKey(token.getImageTableName())) {
       Map<Integer, BufferedImage> imageTable = imageTableMap.get(token.getImageTableName());
@@ -121,25 +83,22 @@ public class TokenRenderer {
     } else {
       bi = ImageUtil.getTokenImage(token, renderHelper.getImageObserver());
     }
-
-    if (bi != null) {
-      AppConstants.FLIP_DIRECTION flipDirection =
-          AppConstants.FLIP_DIRECTION.getFlipDirection(
-              token.isFlippedX(), token.isFlippedY(), token.getIsFlippedIso());
-
-      bi = ImageUtil.flipCartesian(bi, flipDirection);
-      if (token.getIsFlippedIso() && zone.getGrid().isIsometric()) {
-        bi = ImageUtil.flipIsometric(bi, true);
-      }
-
-      bi = ImageUtil.getScaledTokenImage(bi, token, zone.getGrid(), 1.0);
-    }
-
+    timer.stop("TokenRenderer-getRenderImage");
     return bi;
   }
 
-  private void paintTokenImage(Graphics2D g2d) {
-    timer.start("TokenRenderer-paintTokenImage");
+  private void paintTokenImage(Graphics2D g2d, TokenPosition position, float opacity) {
+    var token = position.token();
+    var renderImage = getRenderImage(token);
+    if (renderImage == null) {
+      return;
+    }
+
+    var isoFigure =
+        zone.getGrid().isIsometric()
+            && !token.getIsFlippedIso()
+            && token.getShape() == Token.TokenShape.FIGURE;
+
     // centre image
     double imageCx = -renderImage.getWidth() / 2d;
     double imageCy =
@@ -147,77 +106,64 @@ public class TokenRenderer {
             ? -renderImage.getHeight() + renderImage.getWidth() / 4d
             : -renderImage.getHeight() / 2d;
 
-    AffineTransform imageTransform =
-        AffineTransform.getTranslateInstance(
-            imageCx + token.getAnchorX(), imageCy + token.getAnchorY());
+    // Compose a transformation to draw the token image at the correct place.
+    // Because the last transform applies first, read these steps backwards for a better
+    // understanding.
+    AffineTransform imageTransform = new AffineTransform();
+    {
+      // Now move the image back to its actual location.
+      imageTransform.translate(
+          position.footprintBounds().getCenterX(), position.footprintBounds().getCenterY());
 
-    g2d.translate(
-        position.footprintBounds().getX() + position.footprintBounds().getWidth() / 2d,
-        position.footprintBounds().getY() + position.footprintBounds().getHeight() / 2d);
+      // Rotate around the anchor.
+      if (token.hasFacing() && token.getShape() == Token.TokenShape.TOP_DOWN) {
+        imageTransform.rotate(Math.toRadians(token.getFacingInDegrees()));
+      }
 
-    if (token.hasFacing() && canSpin) {
-      g2d.rotate(Math.toRadians(token.getFacingInDegrees()));
+      // Rotation applies around the anchor, so nudge the token first.
+      imageTransform.translate(token.getAnchorX(), token.getAnchorY());
+
+      // Size image to footprint.
+      // For snap-to-scale, fit to footprint, then scale according to layout.
+      // For others, the X/Y scale is already incorporated into the footprint, so just fill the
+      // footprint.
+      if (token.isSnapToScale()) {
+        var scale =
+            isoFigure
+                // Fit width
+                ? position.footprintBounds().getWidth() / renderImage.getWidth()
+                // Scale to fit
+                : Math.min(
+                    position.footprintBounds().getWidth() / renderImage.getWidth(),
+                    position.footprintBounds().getHeight() / renderImage.getHeight());
+        scale *= token.getSizeScale();
+        imageTransform.scale(scale, scale);
+      } else {
+        var scaleX = position.footprintBounds().getWidth() / renderImage.getWidth();
+        var scaleY = position.footprintBounds().getHeight() / renderImage.getHeight();
+        imageTransform.scale(scaleX, scaleY);
+      }
+
+      // Iso flip
+      if (token.getIsFlippedIso() && zone.getGrid().isIsometric()) {
+        imageTransform.scale(Math.sqrt(2), 1 / Math.sqrt(2));
+        imageTransform.rotate(Math.toRadians(45));
+      }
+
+      // Cartesian flip.
+      imageTransform.scale(token.isFlippedX() ? -1 : 1, token.isFlippedY() ? -1 : 1);
+
+      // Move the image center to (0, 0) so rotations and scales can be easily applied.
+      imageTransform.translate(imageCx, imageCy);
     }
+
     if (opacity < 1.0f) {
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
     }
 
     g2d.drawImage(renderImage, imageTransform, renderHelper.getImageObserver());
     g2d.setStroke(new BasicStroke(1f));
-    timer.stop("TokenRenderer-paintTokenImage");
   }
-
-  public void zoomChanged() {
-    renderImageMap.clear();
-  }
-
-  @Subscribe
-  private void onGridChanged(GridChanged event) {
-    if (event.zone() != this.zone) {
-      return;
-    }
-
-    renderImageMap.clear();
-  }
-
-  @Subscribe
-  private void onTokensChanged(TokensChanged event) {
-    if (event.zone() != this.zone) {
-      return;
-    }
-
-    for (Token t : event.tokens()) {
-      if (t != null) {
-        tokenStateMap.remove(t);
-      }
-    }
-  }
-
-  protected TokenState createRecord(Token token) {
-    return new TokenState(
-        token.getFacing(),
-        token.getScaleX(),
-        token.getScaleY(),
-        token.getSizeScale(),
-        token.getIsFlippedIso(),
-        token.isFlippedX(),
-        token.isFlippedY(),
-        token.getShape(),
-        token.isSnapToScale(),
-        token.getFootprint(zone.getGrid()));
-  }
-
-  protected record TokenState(
-      int facing,
-      double scaleX,
-      double scaleY,
-      double sizeScale,
-      boolean flippedIso,
-      boolean flippedX,
-      boolean flippedY,
-      Token.TokenShape shape,
-      boolean snapToScale,
-      TokenFootprint footprint) {}
 
   private static Map<Integer, BufferedImage> cacheImageTable(String tableName) {
     LookupTable lookupTable = MapTool.getCampaign().getLookupTableMap().get(tableName);

@@ -62,7 +62,6 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.LookupTable.LookupEntry;
-import net.rptools.maptool.model.Token.TokenShape;
 import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.*;
 import net.rptools.maptool.model.player.Player;
@@ -112,8 +111,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   // Optimizations
   final Map<GUID, BufferedImage> labelRenderingCache = new HashMap<>();
-  private final Map<Token, BufferedImage> flipImageMap = new HashMap<>();
-  private final Map<Token, BufferedImage> flipIsoImageMap = new HashMap<>();
   private Token tokenUnderMouse;
 
   private ScreenPoint pointUnderMouse;
@@ -560,17 +557,14 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   /**
-   * Remove the token from: {@link #flipImageMap}, {@link #flipIsoImageMap}, {@link
-   * #labelRenderingCache}. Set the {@link #visibleScreenArea} to null. Flush the token from {@link
-   * #zoneView}.
+   * Remove the token from: {@link #labelRenderingCache}. Set the {@link #visibleScreenArea} to
+   * null. Flush the token from {@link #zoneView}.
    *
    * @param token the token to flush
    */
   public void flush(Token token) {
     // This method can be called from a non-EDT thread so if that happens, make sure we synchronize
     // with the EDT.
-    flipImageMap.remove(token);
-    flipIsoImageMap.remove(token);
     labelRenderingCache.remove(token.getId());
 
     // This should be smarter, but whatever
@@ -605,8 +599,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     ImageManager.flushImage(zone.getMapAssetId());
 
     flushDrawableRenderer();
-    flipImageMap.clear();
-    flipIsoImageMap.clear();
     zoneView.flushFog();
   }
 
@@ -1237,7 +1229,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
     }
 
-    double scale = zoneScale.getScale();
     for (SelectionSet set : movementSet) {
       Token keyToken = zone.getToken(set.getKeyToken());
       if (keyToken == null) {
@@ -1270,28 +1261,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           continue;
         }
 
-        // ... or if it doesn't have an image to display. (Hm, should still show *something*?)
-        Asset asset = AssetManager.getAsset(token.getImageAssetId());
-        if (asset == null) {
-          continue;
-        }
-
-        // OPTIMIZE: combine this with the code in renderTokens()
-        Rectangle footprintBounds = token.getBounds(zone);
-        ScreenPoint newScreenPoint =
-            ScreenPoint.fromZonePoint(
-                this, footprintBounds.x + set.getOffsetX(), footprintBounds.y + set.getOffsetY());
-
-        // get token image, using image table if present
-        BufferedImage image = ImageUtil.getTokenImage(token, this);
-
-        int scaledWidth = (int) (footprintBounds.width * scale);
-        int scaledHeight = (int) (footprintBounds.height * scale);
-
-        // Tokens are centered on the image center point
-        int x = (int) (newScreenPoint.x);
-        int y = (int) (newScreenPoint.y);
-
         // Show path only on the key token on token layer that are visible to the owner or gm while
         // fow and vision is on
         if (token == keyToken && token.getLayer().supportsWalker()) {
@@ -1316,97 +1285,31 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             }
           }
         }
-        // handle flipping
-        BufferedImage workImage = image;
-        if (token.isFlippedX() || token.isFlippedY()) {
-          workImage =
-              new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
 
-          int workW = image.getWidth() * (token.isFlippedX() ? -1 : 1);
-          int workH = image.getHeight() * (token.isFlippedY() ? -1 : 1);
-          int workX = token.isFlippedX() ? image.getWidth() : 0;
-          int workY = token.isFlippedY() ? image.getHeight() : 0;
-
-          Graphics2D wig = workImage.createGraphics();
-          wig.drawImage(image, workX, workY, workW, workH, null);
-          wig.dispose();
-        }
-        // on the iso plane
-        double iso_ho = 0;
-        if (getZone().getGrid().isIsometric()) {
-          if (token.getIsFlippedIso()) {
-            if (flipIsoImageMap.get(token) == null) {
-              workImage = IsometricGrid.isoImage(workImage);
-            } else {
-              workImage = flipIsoImageMap.get(token);
-            }
-            token.setHeight(workImage.getHeight());
-            token.setWidth(workImage.getWidth());
-            footprintBounds = token.getBounds(zone);
-          }
-          iso_ho = ImageUtil.getIsoFigureHeightOffset(token, footprintBounds) * getScale();
-        }
-
-        // Draw token
-        Dimension imgSize = new Dimension(workImage.getWidth(), workImage.getHeight());
-        SwingUtil.constrainTo(imgSize, footprintBounds.width, footprintBounds.height);
-
-        int offsetX = 0;
-        int offsetY = 0;
-        if (token.isSnapToScale()) {
-          offsetX =
-              (int)
-                  (imgSize.width < footprintBounds.width
-                      ? (footprintBounds.width - imgSize.width) / 2 * getScale()
-                      : 0);
-          offsetY =
-              (int)
-                  (imgSize.height < footprintBounds.height
-                      ? (footprintBounds.height - imgSize.height) / 2 * getScale()
-                      : 0);
-        }
-        int tx = x + offsetX;
-        int ty = y + offsetY + (int) iso_ho;
-
-        AffineTransform at = new AffineTransform();
-        at.translate(tx, ty);
-
-        if (token.hasFacing() && token.getShape() == Token.TokenShape.TOP_DOWN) {
-          at.rotate(
-              Math.toRadians(token.getFacingInDegrees()),
-              scaledWidth / 2d - token.getAnchor().x * scale - offsetX,
-              scaledHeight / 2d
-                  - token.getAnchor().y * scale
-                  - offsetY); // facing defaults to down, or -90 degrees
-        }
-        if (token.isSnapToScale()) {
-          at.scale(
-              (double) imgSize.width / workImage.getWidth(),
-              (double) imgSize.height / workImage.getHeight());
-          at.scale(getScale(), getScale());
-        } else {
-          if (token.getShape() == TokenShape.FIGURE) {
-            at.scale(
-                (double) scaledWidth / workImage.getWidth(),
-                (double) scaledWidth / workImage.getWidth());
-          } else {
-            at.scale(
-                (double) scaledWidth / workImage.getWidth(),
-                (double) scaledHeight / workImage.getHeight());
-          }
-        }
-
-        g.drawImage(workImage, at, this);
+        // We need a shifted version of the position, to wherever the token is being dragged.
+        var position = viewModel.getTokenPositions().get(token.getId());
+        var newBounds =
+            new Rectangle2D.Double(
+                position.footprintBounds().getX() + set.getOffsetX(),
+                position.footprintBounds().getY() + set.getOffsetY(),
+                position.footprintBounds().getWidth(),
+                position.footprintBounds().getHeight());
+        var newArea = new Area(position.transformedBounds());
+        newArea.transform(AffineTransform.getTranslateInstance(set.getOffsetX(), set.getOffsetY()));
+        var newPosition = new ZoneViewModel.TokenPosition(token, newBounds, newArea);
+        tokenRenderer.renderToken(token, newPosition, g, 1);
 
         // Other details.
         // If the token is visible on the screen it will be in the location cache
         var tokenPosition = viewModel.getTokenPositions().get(token.getId());
-        if (token == keyToken
+        if (tokenPosition != null
+            && token == keyToken
             && (isOwner || shouldShowMovementLabels(token, set, clearArea))
-            && viewModel.getViewport().intersects(tokenPosition.footprintBounds())
-            && zoneView.getVisibleArea(view).intersects(tokenPosition.footprintBounds())) {
-          var labelY = y + 10 + scaledHeight;
-          var labelX = x + scaledWidth / 2;
+            && viewModel.getViewport().intersects(tokenPosition.footprintBounds())) {
+          var screenBounds = zoneScale.toScreenSpace(newPosition.footprintBounds());
+
+          var labelY = (int) screenBounds.getMaxY() + 10;
+          var labelX = (int) screenBounds.getCenterX();
 
           if (token.getLayer().supportsWalker() && AppState.getShowMovementMeasurements()) {
             double distanceTraveled = calculateTraveledDistance(set);
@@ -2009,39 +1912,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       BufferedImage image = ImageUtil.getTokenImage(token, this);
       timer.stop("token-list-1b");
 
-      timer.start("token-list-5");
-      // handle flipping
-      BufferedImage workImage = image;
-      if (token.isFlippedX() || token.isFlippedY()) {
-        workImage = flipImageMap.get(token);
-        if (workImage == null) {
-          workImage =
-              new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
-
-          int workW = image.getWidth() * (token.isFlippedX() ? -1 : 1);
-          int workH = image.getHeight() * (token.isFlippedY() ? -1 : 1);
-          int workX = token.isFlippedX() ? image.getWidth() : 0;
-          int workY = token.isFlippedY() ? image.getHeight() : 0;
-
-          Graphics2D wig = workImage.createGraphics();
-          wig.drawImage(image, workX, workY, workW, workH, null);
-          wig.dispose();
-
-          flipImageMap.put(token, workImage);
-        }
-      }
-      timer.stop("token-list-5");
-
       timer.start("token-list-5a");
       if (token.getIsFlippedIso() && getZone().getGrid().isIsometric()) {
-        if (flipIsoImageMap.get(token) == null) {
-          workImage = IsometricGrid.isoImage(workImage);
-          flipIsoImageMap.put(token, workImage);
-        } else {
-          workImage = flipIsoImageMap.get(token);
-        }
-        token.setHeight(workImage.getHeight());
-        token.setWidth(workImage.getWidth());
+        int newSize = (image.getWidth() + image.getHeight());
+        token.setWidth(newSize);
+        token.setHeight(newSize / 2);
       }
       timer.stop("token-list-5a");
 
@@ -2096,9 +1971,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       timer.start("token-list-8");
       // Facing
-      if (token.hasFacing()) {
-        facingArrowRenderer.paintArrow(tokenG, position);
-      }
+      facingArrowRenderer.paintArrow(tokenG, position);
       timer.stop("token-list-8");
 
       timer.start("token-list-9");
@@ -2575,7 +2448,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   private void clearZoomDependantCaches() {
     invalidateCurrentViewCache();
-    tokenRenderer.zoomChanged();
   }
 
   public double getScale() {

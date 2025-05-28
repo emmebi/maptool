@@ -15,7 +15,6 @@
 package net.rptools.maptool.client.ui.zone.renderer;
 
 import java.awt.Composite;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -48,49 +47,59 @@ public class RenderHelper {
   private void doRender(Graphics2D g, Consumer<Graphics2D> render) {
     var timer = CodeTimer.get();
 
-    Dimension size = renderer.getSize();
-    Scale scale = renderer.getZoneScale();
-    g.setClip(new Area(new Rectangle(0, 0, size.width, size.height)));
+    timer.start("RenderHelper-useAA");
     SwingUtil.useAntiAliasing(g);
+    timer.stop("RenderHelper-useAA");
 
+    timer.start("RenderHelper-setTransform");
+    Scale scale = renderer.getZoneScale();
     AffineTransform af = new AffineTransform();
     af.translate(scale.getOffsetX(), scale.getOffsetY());
     af.scale(scale.getScale(), scale.getScale());
     g.setTransform(af);
+    timer.stop("RenderHelper-setTransform");
 
-    timer.start("bufferRender-render");
+    timer.start("RenderHelper-render");
     render.accept(g);
-    timer.stop("bufferRender-render");
+    timer.stop("RenderHelper-render");
   }
 
   public void render(Graphics2D g, Consumer<Graphics2D> render) {
+    var timer = CodeTimer.get();
+    timer.start("RenderHelper-createContext");
     g = (Graphics2D) g.create();
+    timer.stop("RenderHelper-createContext");
     try {
+      timer.start("RenderHelper-doRender");
       doRender(g, render);
     } finally {
+      timer.stop("RenderHelper-doRender");
+      timer.start("RenderHelper-disposeContext");
       g.dispose();
+      timer.stop("RenderHelper-disposeContext");
     }
   }
 
   public void bufferedRender(Graphics2D g, Composite blitComposite, Consumer<Graphics2D> render) {
     var timer = CodeTimer.get();
     g = (Graphics2D) g.create();
-    timer.start("bufferRender-acquireBuffer");
+    timer.start("RenderHelper-acquireBuffer");
     try (final var entry = tempBufferPool.acquire()) {
       final var buffer = entry.get();
-      timer.stop("bufferRender-acquireBuffer");
+      timer.stop("RenderHelper-acquireBuffer");
 
       Graphics2D buffG = buffer.createGraphics();
       try {
+        buffG.setClip(new Area(new Rectangle(0, 0, buffer.getWidth(), buffer.getHeight())));
         doRender(buffG, render);
       } finally {
         buffG.dispose();
       }
 
-      timer.start("bufferRender-blit");
+      timer.start("RenderHelper-blit");
       g.setComposite(blitComposite);
       g.drawImage(buffer, 0, 0, renderer);
-      timer.stop("bufferRender-blit");
+      timer.stop("RenderHelper-blit");
     } finally {
       g.dispose();
     }
