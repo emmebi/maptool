@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.model;
 
+import com.google.gson.JsonObject;
 import com.google.protobuf.StringValue;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -446,6 +447,21 @@ public class LookupTable {
         dto.setImageId(StringValue.of(imageId.toString()));
       }
       return dto.build();
+    }
+
+    public JsonObject toJson() {
+      JsonObject entryDetails = new JsonObject();
+      entryDetails.addProperty("min", this.min);
+      entryDetails.addProperty("max", this.max);
+      entryDetails.addProperty("value", this.value);
+      entryDetails.addProperty("picked", this.picked);
+
+      if (this.imageId != null) {
+        entryDetails.addProperty("assetid", "asset://" + this.imageId.toString());
+      } else {
+        entryDetails.addProperty("assetid", "");
+      }
+      return entryDetails;
     }
   }
 
