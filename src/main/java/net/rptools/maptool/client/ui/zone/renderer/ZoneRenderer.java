@@ -61,7 +61,6 @@ import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.LookupTable.LookupEntry;
 import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.*;
 import net.rptools.maptool.model.player.Player;
@@ -70,7 +69,6 @@ import net.rptools.maptool.util.CollectionUtil;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.StringUtil;
-import net.rptools.parser.ParserException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -356,14 +354,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     set.toggleWaypoint(location);
     repaintDebouncer.dispatch();
-  }
-
-  public ZonePoint getLastWaypoint(GUID keyToken) {
-    SelectionSet set = selectionSetMap.get(keyToken);
-    if (set == null) {
-      return null;
-    }
-    return set.getLastWaypoint();
   }
 
   public void removeMoveSelectionSet(GUID keyToken) {
@@ -662,15 +652,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   public void zoomOut(int x, int y) {
     zoneScale.zoomOut(x, y);
-    MapTool.getFrame().getZoomStatusBar().update();
-    GdxRenderer.getInstance().setScale(zoneScale);
-  }
-
-  public void setView(int x, int y, double scale) {
-
-    setViewOffset(x, y);
-
-    zoneScale.setScale(scale);
     MapTool.getFrame().getZoomStatusBar().update();
     GdxRenderer.getInstance().setScale(zoneScale);
   }
@@ -1566,41 +1547,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRendering);
   }
 
-  public void drawText(String text, int x, int y) {
-    Graphics g = this.getGraphics();
-
-    Grid grid = zone.getGrid();
-    double cWidth = grid.getCellWidth() * getScale();
-    double cHeight = grid.getCellHeight() * getScale();
-
-    double iWidth = cWidth;
-    double iHeight = cHeight;
-
-    ScreenPoint sp = ScreenPoint.fromZonePoint(this, x, y);
-
-    int cellX = (int) (sp.x - iWidth / 2);
-    int cellY = (int) (sp.y - iHeight / 2);
-
-    // Draw distance for each cell
-    int fontSize = (int) (getScale() * 12);
-    int textOffset = (int) (getScale() * 7); // 7 pixels at 100% zoom
-
-    Font font = new Font(Font.DIALOG, Font.BOLD, fontSize);
-    Font originalFont = g.getFont();
-
-    FontMetrics fm = g.getFontMetrics(font);
-    int textWidth = fm.stringWidth(text);
-
-    g.setFont(font);
-    g.setColor(Color.BLACK);
-
-    g.drawString(
-        text,
-        (int) (cellX + cWidth - textWidth - textOffset),
-        (int) (cellY + cHeight - textOffset));
-    g.setFont(originalFont);
-  }
-
   private Shape shape;
   private Shape shape2;
   private Shape shape3;
@@ -2105,10 +2051,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     return true;
   }
 
-  private boolean canSeeMarker(Token token) {
-    return MapTool.getPlayer().isGM() || !StringUtil.isEmpty(token.getNotes());
-  }
-
   public Set<GUID> getSelectedTokenSet() {
     return selectionModel.getSelectedTokenIds();
   }
@@ -2586,38 +2528,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     AppActions.copyTokens(tokens);
     AppActions.updateActions();
     requestFocusInWindow();
-  }
-
-  /**
-   * Checks to see if token has an image table and references that if the token has a facing
-   * otherwise uses basic image
-   *
-   * @param token the token to get the image from.
-   * @return BufferedImage
-   */
-  private BufferedImage getTokenImage(Token token) {
-    BufferedImage image = null;
-    // Get the basic image
-    if (token.getHasImageTable() && token.hasFacing() && token.getImageTableName() != null) {
-      LookupTable lookupTable =
-          MapTool.getCampaign().getLookupTableMap().get(token.getImageTableName());
-      if (lookupTable != null) {
-        try {
-          LookupEntry result = lookupTable.getLookup(Integer.toString(token.getFacing()));
-          if (result != null) {
-            image = ImageManager.getImage(result.getImageId(), this);
-          }
-        } catch (ParserException ignored) {
-          // do nothing
-        }
-      }
-    }
-
-    if (image == null) {
-      // So we can repaint once the image is ready, add this as observer. Fixes #1700.
-      image = ImageManager.getImage(token.getImageAssetId(), this);
-    }
-    return image;
   }
 
   /*
