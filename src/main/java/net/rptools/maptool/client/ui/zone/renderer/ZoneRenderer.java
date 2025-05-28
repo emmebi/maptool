@@ -2256,9 +2256,22 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   /**
-   * Selects the tokens inside a selection rectangle.
+   * Gets the tokens inside the viewport.
    *
-   * @param screenRect the selection rectangle
+   * <p>This is a convenience method for {@link #getTokenIdsInBounds(Rectangle)} that supplies the
+   * viewport as the rectangle.
+   *
+   * @return A list of token IDs for tokens whose footprint intersects with the current viewport.
+   */
+  public List<GUID> getTokenIdsOnScreen() {
+    return getTokenIdsInBounds(getBounds());
+  }
+
+  /**
+   * Gets the tokens inside a rectangle.
+   *
+   * @param screenRect the bounds in which to look for tokens.
+   * @return A list of token IDs for tokens whose footprint intersects with {@code screenRect}.
    */
   public List<GUID> getTokenIdsInBounds(Rectangle screenRect) {
     var rect = zoneScale.toWorldSpace(screenRect);
@@ -2307,13 +2320,16 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   public Area getTokenBounds(Token token) {
-    for (ZoneViewModel.TokenPosition position :
-        viewModel.getTokenPositionsForLayer(token.getLayer())) {
-      if (position.token() == token) {
-        return new Area(position.transformedBounds());
-      }
+    if (!viewModel.getOnScreenTokens().contains(token.getId())) {
+      return null;
     }
-    return null;
+
+    var position = viewModel.getTokenPositions().get(token.getId());
+    if (position == null) {
+      return null;
+    }
+
+    return new Area(position.transformedBounds());
   }
 
   public Area getMarkerBounds(Token token) {
