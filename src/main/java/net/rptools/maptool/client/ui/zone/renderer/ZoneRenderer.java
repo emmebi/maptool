@@ -1250,14 +1250,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           continue;
         }
 
-        // Don't bother if it's not visible
-        if (!token.isVisible() && !view.isGMView()) {
-          continue;
-        }
-
-        // ... or if it's visible only to the owner and that's not us!
-        final boolean isOwner = view.isGMView() || AppUtil.playerOwns(token);
-        if (token.isVisibleOnlyToOwner() && !isOwner) {
+        var position = viewModel.getTokenPositions().get(token.getId());
+        if (position == null) {
+          // Token not visible to this player.
           continue;
         }
 
@@ -1274,11 +1269,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         if (walker != null && DeveloperOptions.Toggle.ShowAiDebugging.isEnabled()) {
           Map<CellPoint, Set<CellPoint>> blockedMovesByTarget = walker.getBlockedMoves();
           for (var entry : blockedMovesByTarget.entrySet()) {
-            var position = entry.getKey();
+            var targetPoint = entry.getKey();
             var blockedMoves = entry.getValue();
 
             for (CellPoint point : blockedMoves) {
-              ZonePoint zp = point.midZonePoint(getZone().getGrid(), position);
+              ZonePoint zp = point.midZonePoint(getZone().getGrid(), targetPoint);
               double r = (zp.x - 1) * 45;
               showBlockedMoves(
                   g, zp, r, RessourceManager.getImage(Images.ZONE_RENDERER_BLOCK_MOVE), 1.0f);
@@ -1287,7 +1282,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         }
 
         // We need a shifted version of the position, to wherever the token is being dragged.
-        var position = viewModel.getTokenPositions().get(token.getId());
         var newBounds =
             new Rectangle2D.Double(
                 position.footprintBounds().getX() + set.getOffsetX(),
@@ -1297,15 +1291,14 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         var newArea = new Area(position.transformedBounds());
         newArea.transform(AffineTransform.getTranslateInstance(set.getOffsetX(), set.getOffsetY()));
         var newPosition = new ZoneViewModel.TokenPosition(token, newBounds, newArea);
+
         tokenRenderer.renderToken(token, newPosition, g, 1);
 
         // Other details.
-        // If the token is visible on the screen it will be in the location cache
-        var tokenPosition = viewModel.getTokenPositions().get(token.getId());
-        if (tokenPosition != null
-            && token == keyToken
-            && (isOwner || shouldShowMovementLabels(token, set, clearArea))
-            && viewModel.getViewport().intersects(tokenPosition.footprintBounds())) {
+        // Only draw these if the token is visible on screen where it is dragged to.
+        if (token == keyToken
+            && (AppUtil.playerOwns(token) || shouldShowMovementLabels(token, set, clearArea))
+            && viewModel.getViewport().intersects(newPosition.footprintBounds())) {
           var screenBounds = zoneScale.toScreenSpace(newPosition.footprintBounds());
 
           var labelY = (int) screenBounds.getMaxY() + 10;
