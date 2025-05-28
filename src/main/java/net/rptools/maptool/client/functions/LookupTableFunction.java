@@ -15,6 +15,7 @@
 package net.rptools.maptool.client.functions;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -310,7 +311,7 @@ public class LookupTableFunction extends AbstractFunction {
       if (rollInt < entry.getMin() || rollInt > entry.getMax()) {
         return ""; // entry was found but doesn't match
       }
-      return entry.toJson();
+      return convertLookUpEntrytoJson(entry);
 
     } else if ("getTableEntryAtIndex".equalsIgnoreCase(function)) {
       /*
@@ -322,10 +323,10 @@ public class LookupTableFunction extends AbstractFunction {
       String name = params.get(0).toString();
       int index = ((BigDecimal) params.get(1)).intValue();
       LookupTable lookupTable = getMaptoolTable(name, function);
-      List<LookupEntry> entries = lookupTable.getEntryList();
-      if (index >= 0 && index < entries.size()) {
-        LookupEntry entry = entries.get(index);
-        return entry.toJson();
+      List<LookupEntry> entriesList = lookupTable.getEntryList();
+      if (index >= 0 && index < entriesList.size()) {
+        LookupEntry entry = entriesList.get(index);
+        return convertLookUpEntrytoJson(entry);
       } else {
         return "";
       }
@@ -360,7 +361,7 @@ public class LookupTableFunction extends AbstractFunction {
       }
       JsonArray jarrEntries = new JsonArray();
       for (LookupEntry entry : entriesList) {
-        jarrEntries.add(entry.toJson());
+        jarrEntries.add(convertLookUpEntrytoJson(entry));
       }
       return jarrEntries;
 
@@ -570,5 +571,28 @@ public class LookupTableFunction extends AbstractFunction {
               "macro.function.LookupTableFunctions.unknownTable", functionName, tableName));
     }
     return lookupTable;
+  }
+
+  /**
+   * Function to convert a LookupEntry into a Json Object
+   *
+   * @param entry The LookupEntry to be converted
+   * @return entryDetails A Json Object representation of the LookupEntry details
+   * @throws ParserException if there were more or less parameters than allowed
+   */
+  private JsonObject convertLookUpEntrytoJson(LookupEntry entry) {
+    JsonObject entryDetails = new JsonObject();
+    entryDetails.addProperty("min", entry.getMin());
+    entryDetails.addProperty("max", entry.getMax());
+    entryDetails.addProperty("value", entry.getValue());
+    entryDetails.addProperty("picked", entry.getPicked());
+
+    MD5Key imageId = entry.getImageId();
+    if (imageId != null) {
+      entryDetails.addProperty("assetid", "asset://" + imageId.toString());
+    } else {
+      entryDetails.addProperty("assetid", "");
+    }
+    return entryDetails;
   }
 }
