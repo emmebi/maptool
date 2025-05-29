@@ -46,7 +46,6 @@ import net.rptools.CaseInsensitiveHashMap;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.lib.transferable.TokenTransferData;
-import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
@@ -285,8 +284,7 @@ public class Token implements Cloneable {
       MapTool.getCampaign().getCampaignProperties().getDefaultTokenPropertyType();
 
   private Integer haloColorValue;
-  private transient Color haloColor =
-      new Color(ImageUtil.negativeColourInt(AppPreferences.defaultGridColor.getDefault().getRGB()));
+  private transient Color haloColor;
 
   private Integer visionOverlayColorValue;
   private transient Color visionOverlayColor;
