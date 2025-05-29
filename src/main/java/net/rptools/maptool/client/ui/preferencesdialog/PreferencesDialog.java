@@ -903,16 +903,16 @@ public class PreferencesDialog extends JDialog {
 
     // jpackage config files can't be written to. Show a warning to the user describing the
     // situation.
+    var manualCopyPrimary = I18N.getText("startup.preferences.info.manualCopy.primary");
+    var manualCopySecondary = I18N.getText("startup.preferences.info.manualCopy.secondary");
+    configFileWarningLabel.setText(
+        String.format("<html>%s<br>%s</html>", manualCopyPrimary, manualCopySecondary));
+
     if (appCfgFile != null) {
-      configFileWarningLabel.setText(I18N.getText("startup.preferences.info.manualCopy"));
       configFileWarningLabel.setVisible(true);
     } else {
-      configFileWarningLabel.setText(null);
       configFileWarningLabel.setVisible(false);
     }
-
-    String startupInfoMsg = I18N.getText("startup.preferences.info");
-    startupInfoLabel.setText(startupInfoMsg);
 
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
     languageModel.addAll(getLanguages());
