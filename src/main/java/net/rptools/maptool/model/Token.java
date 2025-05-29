@@ -671,10 +671,16 @@ public class Token implements Cloneable {
     haloColor = color;
   }
 
-  public Color getHaloColor() {
-    if (haloColor == null && haloColorValue != null) {
+  public @Nullable Color getHaloColor() {
+    if (haloColorValue == null) {
+      return null;
+    }
+
+    // Cache the Color from the int.
+    if (haloColor == null) {
       haloColor = new Color(haloColorValue);
     }
+
     return haloColor;
   }
 
