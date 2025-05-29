@@ -28,7 +28,8 @@ public class HaloRenderer {
 
   // Render Halos
   public void renderHalo(Graphics2D g2d, Token token, ZoneViewModel.TokenPosition position) {
-    if (!token.hasHalo()) {
+    Color haloColor = token.getHaloColor();
+    if (haloColor == null) {
       return;
     }
 
@@ -38,7 +39,7 @@ public class HaloRenderer {
           worldG.setStroke(
               new BasicStroke(
                   AppPreferences.haloLineWidth.get() / (float) worldG.getTransform().getScaleX()));
-          worldG.setColor(token.getHaloColor());
+          worldG.setColor(haloColor);
           worldG.draw(position.transformedBounds());
         });
   }

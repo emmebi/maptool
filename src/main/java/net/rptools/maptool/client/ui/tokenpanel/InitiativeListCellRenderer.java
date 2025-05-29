@@ -345,12 +345,13 @@ public class InitiativeListCellRenderer extends JPanel
 
       // Paint the halo if needed
       Token token = tokenInitiative.getToken();
-      if (panel.isShowTokenStates() && token.hasHalo()) {
+      Color haloColor = token.getHaloColor();
+      if (panel.isShowTokenStates() && haloColor != null) {
         Graphics2D g2d = (Graphics2D) g;
         Stroke oldStroke = g2d.getStroke();
         Color oldColor = g.getColor();
         g2d.setStroke(new BasicStroke(AppPreferences.haloLineWidth.get()));
-        g.setColor(token.getHaloColor());
+        g.setColor(haloColor);
         g2d.draw(new Rectangle2D.Double(x, y, ICON_SIZE, ICON_SIZE));
         g2d.setStroke(oldStroke);
         g.setColor(oldColor);

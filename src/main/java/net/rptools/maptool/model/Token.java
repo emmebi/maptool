@@ -650,10 +650,6 @@ public class Token implements Cloneable {
     gmName = name;
   }
 
-  public boolean hasHalo() {
-    return haloColorValue != null;
-  }
-
   public String getLabel() {
     return label;
   }
