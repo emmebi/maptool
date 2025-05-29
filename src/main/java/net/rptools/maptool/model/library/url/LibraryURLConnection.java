@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import net.rptools.maptool.client.ui.htmlframe.HTMLContent;
+import net.rptools.maptool.client.ui.htmlframe.content.HTMLContent;
 
 /**
  * This class is a URL connection that fetches HTML content from a specified URL for library
@@ -43,11 +43,16 @@ public class LibraryURLConnection extends URLConnection {
 
   @Override
   public InputStream getInputStream() throws IOException {
-    var content = HTMLContent.fromURL(url).fetchContent();
+    var content = HTMLContent.fromURL(url).injectJSAPI().InjectContentSecurityPolicy();
+    var query = url.getQuery();
+    if (query != null && query.toLowerCase().contains("mtvuefix=true")) {
+      content = content.injectVueHack();
+    }
+
+    content = content.preprocess();
     if (content.isBinaryAsset()) {
       return content.getAsset().getDataAsInputStream();
     } else {
-      content = content.injectJavaBridge();
       return new ByteArrayInputStream(content.getHtmlString().getBytes());
     }
   }
