@@ -402,7 +402,7 @@ public class PreferencesDialog extends JDialog {
 
   private final AbstractButton copyCfgFilePathButton;
 
-  private final JLabel configFileWarningLabel;
+  private final JPanel configFileWarningPanel;
 
   /** Flag indicating if JVM values have been changed. */
   private boolean jvmValuesChanged = false;
@@ -718,8 +718,9 @@ public class PreferencesDialog extends JDialog {
 
     jamLanguageOverrideComboBox = panel.getComboBox("jvmLanguageOverideComboBox");
 
-    configFileWarningLabel = panel.getLabel("configFileWarningLabel");
-    configFileWarningLabel.setIcon(
+    configFileWarningPanel = (JPanel) panel.getComponent("configFileWarningPanel");
+    JLabel configFileWarningIcon = panel.getLabel("configFileWarningIcon");
+    configFileWarningIcon.setIcon(
         new FlatSVGIcon("net/rptools/maptool/client/image/warning.svg", 16, 16));
 
     cfgFilePath = panel.getTextField("cfgFilePath");
@@ -891,15 +892,11 @@ public class PreferencesDialog extends JDialog {
 
     // jpackage config files can't be written to. Show a warning to the user describing the
     // situation.
-    var manualCopyPrimary = I18N.getText("startup.preferences.info.manualCopy.primary");
-    var manualCopySecondary = I18N.getText("startup.preferences.info.manualCopy.secondary");
-    configFileWarningLabel.setText(
-        String.format("<html>%s<br>%s</html>", manualCopyPrimary, manualCopySecondary));
 
     if (appCfgFile != null) {
-      configFileWarningLabel.setVisible(true);
+      configFileWarningPanel.setVisible(true);
     } else {
-      configFileWarningLabel.setVisible(false);
+      configFileWarningPanel.setVisible(false);
     }
 
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
