@@ -1098,7 +1098,7 @@ public abstract class Grid implements Cloneable {
   protected Area getGridAreaFromCache(int gridRadius) {
     // If not already in cache, create and cache it
     // Or if the flag is enabled, recreate cache
-    if (DeveloperOptions.Toggle.IgnoreGridShapeCache.isEnabled()
+    if (DeveloperOptions.Toggle.IgnoreGridShapeCache.get()
         || !getGridShapeCache().containsKey(gridRadius)) {
       var newArea = createGridArea(gridRadius);
       setGridShapeCache(gridRadius, newArea);
