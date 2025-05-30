@@ -48,6 +48,7 @@ public class TokenRenderer {
 
   public void renderToken(Token token, TokenPosition position, Graphics2D g2d, float opacity) {
     var timer = CodeTimer.get();
+    timer.increment("TokenRenderer-renderToken");
     timer.start("TokenRenderer-renderToken");
 
     timer.start("TokenRenderer-loadImageTable");

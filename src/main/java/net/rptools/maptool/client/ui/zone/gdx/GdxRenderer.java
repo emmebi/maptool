@@ -1528,8 +1528,10 @@ public class GdxRenderer extends ApplicationAdapter {
         }
       } else {
         // fallthrough normal token rendered against visible area
-
-        if (zoneCache.getZoneRenderer().isTokenInNeedOfClipping(token, tokenCellArea, isGMView)) {
+        if (zoneCache
+            .getZoneRenderer()
+            .isTokenInNeedOfClipping(
+                token, viewModel.getZoneScale().toWorldSpace(tokenCellArea), isGMView)) {
           paintClipped(image, tokenCellArea, cellArea);
         } else image.draw(batch);
       }
