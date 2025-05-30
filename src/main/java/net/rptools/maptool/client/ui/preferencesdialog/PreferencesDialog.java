@@ -402,9 +402,7 @@ public class PreferencesDialog extends JDialog {
 
   private final AbstractButton copyCfgFilePathButton;
 
-  private final JLabel configFileWarningLabel;
-
-  private final JLabel startupInfoLabel;
+  private final JPanel configFileWarningPanel;
 
   /** Flag indicating if JVM values have been changed. */
   private boolean jvmValuesChanged = false;
@@ -709,31 +707,22 @@ public class PreferencesDialog extends JDialog {
     themeFilterCombo = panel.getComboBox("themeFilterCombo");
 
     jvmXmxTextField = panel.getTextField("jvmXmxTextField");
-    jvmXmxTextField.setToolTipText(I18N.getText("prefs.jvm.xmx.tooltip"));
     jvmXmsTextField = panel.getTextField("jvmXmsTextField");
-    jvmXmsTextField.setToolTipText(I18N.getText("prefs.jvm.xms.tooltip"));
     jvmXssTextField = panel.getTextField("jvmXssTextField");
-    jvmXssTextField.setToolTipText(I18N.getText("prefs.jvm.xss.tooltip"));
 
     dataDirTextField = panel.getTextField("dataDirTextField");
 
     jvmDirect3dCheckbox = panel.getCheckBox("jvmDirect3dCheckbox");
-    jvmDirect3dCheckbox.setToolTipText(I18N.getText("prefs.jvm.advanced.direct3d.tooltip"));
-
     jvmOpenGLCheckbox = panel.getCheckBox("jvmOpenGLCheckbox");
-    jvmOpenGLCheckbox.setToolTipText(I18N.getText("prefs.jvm.advanced.opengl.tooltip"));
-
     jvmInitAwtCheckbox = panel.getCheckBox("jvmInitAwtCheckbox");
-    jvmInitAwtCheckbox.setToolTipText(I18N.getText("prefs.jvm.advanced.initAWTbeforeJFX.tooltip"));
 
     jamLanguageOverrideComboBox = panel.getComboBox("jvmLanguageOverideComboBox");
-    jamLanguageOverrideComboBox.setToolTipText(I18N.getText("prefs.language.override.tooltip"));
 
-    configFileWarningLabel = panel.getLabel("configFileWarningLabel");
-    configFileWarningLabel.setIcon(
+    configFileWarningPanel = (JPanel) panel.getComponent("configFileWarningPanel");
+    JLabel configFileWarningIcon = panel.getLabel("configFileWarningIcon");
+    configFileWarningIcon.setIcon(
         new FlatSVGIcon("net/rptools/maptool/client/image/warning.svg", 16, 16));
 
-    startupInfoLabel = panel.getLabel("startupInfoLabel");
     cfgFilePath = panel.getTextField("cfgFilePath");
     copyCfgFilePathButton = panel.getButton("copyCfgPath");
     copyCfgFilePathButton.addActionListener(
@@ -903,16 +892,12 @@ public class PreferencesDialog extends JDialog {
 
     // jpackage config files can't be written to. Show a warning to the user describing the
     // situation.
-    if (appCfgFile != null) {
-      configFileWarningLabel.setText(I18N.getText("startup.preferences.info.manualCopy"));
-      configFileWarningLabel.setVisible(true);
-    } else {
-      configFileWarningLabel.setText(null);
-      configFileWarningLabel.setVisible(false);
-    }
 
-    String startupInfoMsg = I18N.getText("startup.preferences.info");
-    startupInfoLabel.setText(startupInfoMsg);
+    if (appCfgFile != null) {
+      configFileWarningPanel.setVisible(true);
+    } else {
+      configFileWarningPanel.setVisible(false);
+    }
 
     DefaultComboBoxModel<String> languageModel = new DefaultComboBoxModel<String>();
     languageModel.addAll(getLanguages());
