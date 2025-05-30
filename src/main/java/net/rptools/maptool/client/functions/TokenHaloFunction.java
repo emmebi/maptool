@@ -64,8 +64,9 @@ public class TokenHaloFunction extends AbstractFunction {
    * @return the halo.
    */
   public static Object getHalo(Token token) {
-    if (token.getHaloColor() != null) {
-      return "#" + Integer.toHexString(token.getHaloColor().getRGB()).substring(2);
+    var haloColor = token.getHaloColor();
+    if (haloColor != null) {
+      return "#" + Integer.toHexString(haloColor.getRGB()).substring(2);
     } else {
       return "None";
     }

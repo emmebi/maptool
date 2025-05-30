@@ -1468,8 +1468,9 @@ public class GdxRenderer extends ApplicationAdapter {
       prepareTokenSprite(image, token, footprintBounds);
 
       // Render Halo
-      if (token.hasHalo()) {
-        Color.argb8888ToColor(tmpColor, token.getHaloColor().getRGB());
+      var haloColor = token.getHaloColor();
+      if (haloColor != null) {
+        Color.argb8888ToColor(tmpColor, haloColor.getRGB());
         tmpColor.premultiplyAlpha();
         areaRenderer.setColor(tmpColor);
         areaRenderer.drawArea(
