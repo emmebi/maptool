@@ -1351,7 +1351,7 @@ public class MapTool {
     new MapToolEventBus().getMainEventBus().register(new StatSheetListener());
     new MapToolEventBus().getMainEventBus().register(new TokenHoverListener());
 
-    final var enabledDeveloperOptions = DeveloperOptions.getEnabledOptions();
+    final var enabledDeveloperOptions = DeveloperOptions.Toggle.getEnabledOptions();
     if (!enabledDeveloperOptions.isEmpty()) {
       final var message = new StringBuilder();
       message

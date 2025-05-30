@@ -1271,7 +1271,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         }
 
         // Show current Blocked Movement directions for A*
-        if (walker != null && DeveloperOptions.Toggle.ShowAiDebugging.isEnabled()) {
+        if (walker != null && DeveloperOptions.Toggle.ShowAiDebugging.get()) {
           Map<CellPoint, Set<CellPoint>> blockedMovesByTarget = walker.getBlockedMoves();
           for (var entry : blockedMovesByTarget.entrySet()) {
             var position = entry.getKey();
@@ -1718,7 +1718,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     int textOffset = (int) (getScale() * 7 * fontScale); // 7 pixels at 100% zoom & grid size of 50
 
     String distanceText = NumberFormat.getInstance().format(distance);
-    if (DeveloperOptions.Toggle.ShowAiDebugging.isEnabled()) {
+    if (DeveloperOptions.Toggle.ShowAiDebugging.get()) {
       distanceText += " (" + NumberFormat.getInstance().format(distanceWithoutTerrain) + ")";
       fontSize = (int) (fontSize * 0.75);
     }

@@ -64,6 +64,7 @@ import net.rptools.maptool.util.UserJvmOptions;
 import net.rptools.maptool.util.UserJvmOptions.JVM_OPTION;
 import net.rptools.maptool.util.cipher.CipherUtil;
 import net.rptools.maptool.util.cipher.PublicPrivateKeyStore;
+import net.rptools.maptool.util.preferences.Preference;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -872,7 +873,7 @@ public class PreferencesDialog extends JDialog {
       checkboxConstraints.weighty = 1.;
       checkboxConstraints.fill = GridBagConstraints.HORIZONTAL;
 
-      for (final var option : DeveloperOptions.Toggle.values()) {
+      for (final var option : DeveloperOptions.Toggle.getOptions()) {
         labelConstraints.gridy += 1;
         checkboxConstraints.gridy += 1;
 
@@ -882,9 +883,8 @@ public class PreferencesDialog extends JDialog {
         label.setHorizontalTextPosition(SwingConstants.TRAILING);
 
         final var checkbox = new JCheckBox();
-        checkbox.setName(option.getKey());
         checkbox.setModel(new DeveloperToggleModel(option));
-        checkbox.addActionListener(e -> option.setEnabled(!checkbox.isSelected()));
+        checkbox.addActionListener(e -> option.set(!checkbox.isSelected()));
 
         label.setLabelFor(checkbox);
 
@@ -1830,21 +1830,21 @@ public class PreferencesDialog extends JDialog {
   }
 
   private static class DeveloperToggleModel extends DefaultButtonModel {
-    private final DeveloperOptions.Toggle option;
+    private final Preference<Boolean> option;
 
-    public DeveloperToggleModel(DeveloperOptions.Toggle option) {
+    public DeveloperToggleModel(Preference<Boolean> option) {
       this.option = option;
     }
 
     @Override
     public boolean isSelected() {
-      return option.isEnabled();
+      return option.get();
     }
 
     @Override
     public void setSelected(boolean b) {
-      option.setEnabled(b);
-      super.setEnabled(b);
+      option.set(b);
+      super.setSelected(b);
     }
   }
 
