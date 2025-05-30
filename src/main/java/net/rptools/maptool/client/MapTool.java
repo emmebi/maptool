@@ -1352,7 +1352,7 @@ public class MapTool {
     new MapToolEventBus().getMainEventBus().register(new TokenHoverListener());
 
     final var enabledDeveloperOptions = DeveloperOptions.Toggle.getEnabledOptions();
-    if (!enabledDeveloperOptions.isEmpty()) {
+    if (!enabledDeveloperOptions.isEmpty() && !MapTool.isDevelopment()) {
       final var message = new StringBuilder();
       message
           .append("<p>")
