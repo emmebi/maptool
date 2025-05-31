@@ -15,7 +15,6 @@
 package net.rptools.maptool.client.ui.htmlframe;
 
 import java.awt.event.ActionListener;
-import net.rptools.maptool.client.ui.htmlframe.content.HTMLContent;
 
 /** Interface for the HTML Panel holding the HTML Pane. */
 interface HTMLPanelInterface {
