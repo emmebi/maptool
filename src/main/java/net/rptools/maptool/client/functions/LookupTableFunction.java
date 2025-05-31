@@ -311,7 +311,7 @@ public class LookupTableFunction extends AbstractFunction {
       if (rollInt < entry.getMin() || rollInt > entry.getMax()) {
         return ""; // entry was found but doesn't match
       }
-      return convertLookUpEntrytoJson(entry);
+      return convertLookUpEntryToJson(entry);
 
     } else if ("getTableEntryAtIndex".equalsIgnoreCase(function)) {
       /*
@@ -321,12 +321,12 @@ public class LookupTableFunction extends AbstractFunction {
        */
       FunctionUtil.checkNumberParam(function, params, 2, 2);
       String name = params.get(0).toString();
-      int index = ((BigDecimal) params.get(1)).intValue();
+      int index = FunctionUtil.paramAsInteger(function, params, 1, false);
       LookupTable lookupTable = getMaptoolTable(name, function);
       List<LookupEntry> entriesList = lookupTable.getEntryList();
       if (index >= 0 && index < entriesList.size()) {
         LookupEntry entry = entriesList.get(index);
-        return convertLookUpEntrytoJson(entry);
+        return convertLookUpEntryToJson(entry);
       } else {
         return "";
       }
@@ -342,8 +342,9 @@ public class LookupTableFunction extends AbstractFunction {
       FunctionUtil.checkNumberParam(function, params, 1, 4);
       String name = params.get(0).toString();
       String pattern = (params.size() > 1) ? params.get(1).toString() : "";
-      int limit = (params.size() > 2) ? ((BigDecimal) params.get(2)).intValue() : 0;
-      int offset = (params.size() > 3) ? ((BigDecimal) params.get(3)).intValue() : 0;
+      int limit = (params.size() > 2) ? FunctionUtil.paramAsInteger(function, params, 2, false) : 0;
+      int offset =
+          (params.size() > 3) ? FunctionUtil.paramAsInteger(function, params, 3, false) : 0;
 
       LookupTable lookupTable = getMaptoolTable(name, function);
       List<LookupEntry> entriesList = lookupTable.getEntryList();
@@ -351,7 +352,13 @@ public class LookupTableFunction extends AbstractFunction {
       // Filter by regex pattern, then apply offset, then apply limit
       if (!pattern.isEmpty()) {
         entriesList =
-            entriesList.stream().filter(entry -> entry.getValue().matches(pattern)).toList();
+            entriesList.stream()
+                .filter(
+                    entry -> {
+                      assert entry.getValue() != null;
+                      return entry.getValue().matches(pattern);
+                    })
+                .toList();
       }
       if (offset > 0) {
         entriesList = entriesList.stream().skip(offset).toList();
@@ -361,7 +368,7 @@ public class LookupTableFunction extends AbstractFunction {
       }
       JsonArray jarrEntries = new JsonArray();
       for (LookupEntry entry : entriesList) {
-        jarrEntries.add(convertLookUpEntrytoJson(entry));
+        jarrEntries.add(convertLookUpEntryToJson(entry));
       }
       return jarrEntries;
 
@@ -378,7 +385,13 @@ public class LookupTableFunction extends AbstractFunction {
       List<LookupEntry> entriesList = lookupTable.getEntryList();
       if (!pattern.isEmpty()) {
         entriesList =
-            entriesList.stream().filter(entry -> entry.getValue().matches(pattern)).toList();
+            entriesList.stream()
+                .filter(
+                    entry -> {
+                      assert entry.getValue() != null;
+                      return entry.getValue().matches(pattern);
+                    })
+                .toList();
       }
       return entriesList.size();
 
@@ -580,7 +593,7 @@ public class LookupTableFunction extends AbstractFunction {
    * @return entryDetails A Json Object representation of the LookupEntry details
    * @throws ParserException if there were more or less parameters than allowed
    */
-  private JsonObject convertLookUpEntrytoJson(LookupEntry entry) {
+  private JsonObject convertLookUpEntryToJson(LookupEntry entry) throws ParserException {
     JsonObject entryDetails = new JsonObject();
     entryDetails.addProperty("min", entry.getMin());
     entryDetails.addProperty("max", entry.getMax());
