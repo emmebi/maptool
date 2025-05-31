@@ -2161,17 +2161,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         Collections.singletonList(visibleTokens.get(newSelection).getId()));
   }
 
-  public Area getMarkerBounds(Token token) {
-    // Note: this method must iterate only over markers. It cannot be implemented on top of
-    // getTokenBounds().
-    for (ZoneViewModel.TokenPosition position : viewModel.getMarkerPositions()) {
-      if (position.token() == token) {
-        return new Area(position.transformedBounds());
-      }
-    }
-    return null;
-  }
-
   public Rectangle getLabelBounds(Label label) {
     for (LabelLocation location : labelLocationList) {
       if (location.label == label) {
