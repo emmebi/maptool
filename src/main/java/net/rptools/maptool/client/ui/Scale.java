@@ -202,8 +202,8 @@ public class Scale implements Serializable {
         worldRect.getHeight() * scale);
   }
 
-  public ScreenPoint toScreenSpace(Point2D.Double worldSpace) {
-    return toScreenSpace(worldSpace.x, worldSpace.y);
+  public ScreenPoint toScreenSpace(Point2D worldSpace) {
+    return toScreenSpace(worldSpace.getX(), worldSpace.getY());
   }
 
   public ScreenPoint toScreenSpace(double x, double y) {

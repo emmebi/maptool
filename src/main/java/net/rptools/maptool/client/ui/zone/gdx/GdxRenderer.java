@@ -661,7 +661,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
     if (zoneCache.getZoneRenderer().shouldRenderLayer(Zone.Layer.TOKEN, view)) {
       timer.start("lightSourceIconOverlay.paintOverlay");
-      paintlightSourceIconOverlay(view);
+      paintLightSourceIconOverlay(view);
       timer.stop("lightSourceIconOverlay.paintOverlay");
     }
 
@@ -762,36 +762,16 @@ public class GdxRenderer extends ApplicationAdapter {
     batch.setProjectionMatrix(cam.combined);
   }
 
-  private void paintlightSourceIconOverlay(PlayerView view) {
+  private void paintLightSourceIconOverlay(PlayerView view) {
     if (!AppState.isShowLightSources() || !view.isGMView()) {
       return;
     }
 
-    var lightbulb = zoneCache.fetch("lightbulb");
-    for (Token token : zoneCache.getZone().getAllTokens()) {
-
-      if (token.hasLightSources()) {
-        boolean foundNormalLight = false;
-        for (AttachedLightSource attachedLightSource : token.getLightSources()) {
-          LightSource lightSource = attachedLightSource.resolve(token, MapTool.getCampaign());
-          if (lightSource != null && lightSource.getType() == LightSource.Type.NORMAL) {
-            foundNormalLight = true;
-            break;
-          }
-        }
-        if (!foundNormalLight) {
-          continue;
-        }
-
-        Area area = zoneCache.getZoneRenderer().getTokenBounds(token);
-        if (area == null) {
-          continue;
-        }
-
-        int x = area.getBounds().x + (area.getBounds().width - lightbulb.getRegionWidth()) / 2;
-        int y = -area.getBounds().y - (area.getBounds().height + lightbulb.getRegionHeight()) / 2;
-        batch.draw(lightbulb, x, y);
-      }
+    TextureRegion lightbulb = zoneCache.fetch("lightbulb");
+    for (var point : viewModel.getLightPositions()) {
+      var x = point.getX() - lightbulb.getRegionWidth() / 2.;
+      var y = -point.getY() - lightbulb.getRegionHeight() / 2.;
+      batch.draw(lightbulb, (float) x, (float) y);
     }
   }
 
