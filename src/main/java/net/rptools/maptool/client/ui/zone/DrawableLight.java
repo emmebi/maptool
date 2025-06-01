@@ -20,6 +20,8 @@ import net.rptools.maptool.model.drawing.DrawablePaint;
 
 public class DrawableLight {
 
+  // TODO Wrap a JTS MultiPolygon or Collection<Polygon> instead or in addition to the Area.
+
   private @Nonnull DrawablePaint paint;
   private @Nonnull Area area;
   private int lumens;
