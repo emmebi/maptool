@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
@@ -84,6 +85,7 @@ import space.earlygrey.shapedrawer.ShapeDrawer;
 public class GdxRenderer extends ApplicationAdapter {
 
   private static final Logger log = LogManager.getLogger(GdxRenderer.class);
+  private static final int BLENDING_TEXTURE_INDEX = 1;
 
   public static final float POINTS_PER_BEZIER = 10f;
   private static GdxRenderer _instance;
@@ -111,6 +113,8 @@ public class GdxRenderer extends ApplicationAdapter {
   private float stateTime = 0f;
   private boolean renderZone = false;
   private boolean showAstarDebugging = false;
+
+  private ShaderProgram environmentalLightingShader;
 
   // general resources
   private OrthographicCamera cam;
@@ -191,6 +195,12 @@ public class GdxRenderer extends ApplicationAdapter {
       boldFont = null;
     }
 
+    environmentalLightingShader =
+        new ShaderProgram(
+            Gdx.files.classpath("net/rptools/maptool/client/ui/zone/gdx/environmentalLighting.vsh"),
+            Gdx.files.classpath(
+                "net/rptools/maptool/client/ui/zone/gdx/environmentalLighting.fsh"));
+
     manager = new com.badlogic.gdx.assets.AssetManager();
     loadAssets();
 
@@ -239,6 +249,7 @@ public class GdxRenderer extends ApplicationAdapter {
 
   @Override
   public void dispose() {
+    environmentalLightingShader.dispose();
     manager.dispose();
     batch.dispose();
     if (zoneCache != null) {
@@ -271,6 +282,39 @@ public class GdxRenderer extends ApplicationAdapter {
     batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
     setProjectionMatrix(cam.combined);
     // Leave results buffer current for the next folks.
+  }
+
+  private void drawBackBuffer(ShaderProgram shader) {
+    var oldShader = batch.getShader();
+
+    setProjectionMatrix(hudCam.combined);
+    spareBuffer.begin();
+    batch.setShader(shader);
+    ScreenUtils.clear(Color.CLEAR);
+    BlendFunction.SRC_ONLY.applyToBatch(batch);
+    try {
+      shader.setUniformi("u_dst", BLENDING_TEXTURE_INDEX);
+      try {
+        resultsBuffer.getColorBufferTexture().bind(BLENDING_TEXTURE_INDEX);
+        // Avoid affecting resultsResults.getColorBufferTexture() any more (OpenGL state machine)
+        Gdx.gl.glActiveTexture(GL20.GL_TEXTURE0);
+
+        batch.draw(backBuffer.getColorBufferTexture(), 0, 0, width, height, 0, 0, 1, 1);
+      } finally {
+        batch.flush();
+
+        // Swap buffers
+        var tmp = resultsBuffer;
+        resultsBuffer = spareBuffer;
+        spareBuffer = tmp;
+
+        // Leave results buffer current for the next folks.
+      }
+    } finally {
+      batch.setShader(oldShader);
+    }
+
+    setProjectionMatrix(cam.combined);
   }
 
   private void updateCam() {
@@ -1244,7 +1288,11 @@ public class GdxRenderer extends ApplicationAdapter {
         batch.flush();
         backBuffer.end();
 
-        drawBackBuffer(BlendFunction.ALPHA_SRC_OVER);
+        if (zoneCache.getZone().getLightingStyle() == Zone.LightingStyle.ENVIRONMENTAL) {
+          drawBackBuffer(environmentalLightingShader);
+        } else {
+          drawBackBuffer(BlendFunction.ALPHA_SRC_OVER);
+        }
       }
       timer.stop("renderLights:renderLightOverlay");
     }
