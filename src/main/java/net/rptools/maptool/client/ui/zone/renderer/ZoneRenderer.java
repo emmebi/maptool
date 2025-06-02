@@ -706,15 +706,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         timer -> {
           timer.setThreshold(10);
 
-          timer.start("update");
-          viewModel.update();
-          final var skipDrawing = viewModel.isUsingGdxRenderer();
-          timer.stop("update");
-
-          if (!skipDrawing) {
-            // Clear internal state
-            itemRenderList.clear();
-
+          if (!MapTool.getFrame().getGdxPanel().isVisible()) {
             timer.start("paintComponent");
             Graphics2D g2d = (Graphics2D) g;
 
@@ -731,11 +723,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
               // Keep the clip to avoid rendering more than we have to.
               bufferG2d.setClip(g2d.getClip());
 
-              timer.start("paintComponent:createView");
-              PlayerView pl = getPlayerView();
-              timer.stop("paintComponent:createView");
-
-              renderZone(bufferG2d, pl);
+              renderZone(bufferG2d, null);
 
               int noteVPos = 20;
               bufferG2d.setFont(AppStyle.labelFont);
@@ -743,7 +731,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
                 noteVPos += 40;
               }
               if (!AppPreferences.mapVisibilityWarning.get()
-                  && (!zone.isVisible() && pl.isGMView())) {
+                  && (!zone.isVisible() && getPlayerView().isGMView())) {
                 GraphicsUtil.drawBoxedString(
                     bufferG2d, I18N.getText("zone.map_not_visible"), getSize().width / 2, noteVPos);
                 noteVPos += 20;
@@ -808,12 +796,24 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * visible to players" and "Player View" as appropriate.
    *
    * @param g2d Graphics2D object normally passed in by {@link #paintComponent(Graphics)}
-   * @param view PlayerView object that describes whether the view is a Player or GM view
+   * @param view PlayerView object that describes whether the view is a Player or GM view. Pass
+   *     {@code null} to use the current view.
    */
-  public void renderZone(Graphics2D g2d, PlayerView view) {
+  public void renderZone(Graphics2D g2d, @Nullable PlayerView view) {
     final var timer = CodeTimer.get();
 
+    timer.start("update");
+    viewModel.update();
+    timer.stop("update");
+
     timer.start("setup");
+    // Clear internal state
+    itemRenderList.clear();
+
+    if (view == null) {
+      view = getPlayerView();
+    }
+
     g2d = (Graphics2D) g2d.create();
 
     Rectangle viewRect = new Rectangle(getSize().width, getSize().height);
