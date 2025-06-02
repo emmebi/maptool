@@ -23,11 +23,13 @@ import com.badlogic.gdx.utils.ShortArray;
 import java.awt.geom.Area;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import net.rptools.lib.GeometryUtil;
 import net.rptools.lib.gdx.Earcut;
 import net.rptools.lib.gdx.Joiner;
+import org.locationtech.jts.geom.Polygon;
 import space.earlygrey.shapedrawer.DefaultSideEstimator;
 import space.earlygrey.shapedrawer.ShapeDrawer;
 import space.earlygrey.shapedrawer.ShapeUtils;
@@ -77,14 +79,12 @@ public class AreaRenderer {
     this.textureRegion = textureRegion;
   }
 
-  private List<TriangledPolygon> triangulate(Area area) {
-    if (area == null || area.isEmpty()) {
+  public List<TriangledPolygon> triangulate(Collection<Polygon> jts) {
+    if (jts.isEmpty()) {
       return List.of();
     }
 
     var result = new ArrayList<TriangledPolygon>();
-
-    var jts = GeometryUtil.toJtsPolygons(area);
     for (var poly : jts) {
       short[] holeIndices = new short[poly.getNumInteriorRing()];
       tmpFloat.clear();
@@ -104,6 +104,22 @@ public class AreaRenderer {
       result.add(new TriangledPolygon(tmpFloat.toArray(), indices.toArray()));
     }
     return result;
+  }
+
+  public List<TriangledPolygon> triangulate(Area area) {
+    if (area == null || area.isEmpty()) {
+      return List.of();
+    }
+
+    var jts = GeometryUtil.toJtsPolygons(area);
+    return triangulate(jts);
+  }
+
+  public void fill(PolygonSpriteBatch batch, List<TriangledPolygon> polygons) {
+    for (var poly : polygons) {
+      var polyRegion = new PolygonRegion(textureRegion, poly.vertices, poly.indices);
+      paintRegion(batch, polyRegion);
+    }
   }
 
   public void fillArea(PolygonSpriteBatch batch, Area area) {

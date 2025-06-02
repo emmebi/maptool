@@ -1354,9 +1354,10 @@ public class GdxRenderer extends ApplicationAdapter {
         tmpColor.premultiplyAlpha();
       }
       areaRenderer.setColor(tmpColor);
-      areaRenderer.fillArea(batch, light.getArea());
-    }
 
+      var triangulation = areaRenderer.triangulate(light.getAreaAsPolygons());
+      areaRenderer.fill(batch, triangulation);
+    }
     timer.stop("renderLightOverlay:drawLights");
   }
 
