@@ -132,7 +132,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private ZonePoint previousZonePoint;
 
   private final EnumSet<Layer> disabledLayers = EnumSet.noneOf(Layer.class);
-  private final ZoneCompositor compositor;
   private final GridRenderer gridRenderer;
   private final HaloRenderer haloRenderer;
   private final TokenRenderer tokenRenderer;
@@ -169,8 +168,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             Zone.Layer.class, layer -> new PartitionedDrawableRenderer(zone));
 
     var renderHelper = new RenderHelper(this, tempBufferPool);
-    this.compositor = new ZoneCompositor();
-    this.gridRenderer = new GridRenderer();
+    this.gridRenderer = new GridRenderer(this);
     this.haloRenderer = new HaloRenderer(renderHelper);
     this.tokenRenderer = new TokenRenderer(renderHelper, zone);
     this.facingArrowRenderer = new FacingArrowRenderer(renderHelper, zone);
@@ -717,13 +715,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             // Clear internal state
             itemRenderList.clear();
 
-            if (!compositor.isInitialised()) {
-              compositor.setRenderer(this);
-            }
-            if (!gridRenderer.isInitialised()) {
-              gridRenderer.setRenderer(this);
-            }
-
             timer.start("paintComponent");
             Graphics2D g2d = (Graphics2D) g;
 
@@ -858,8 +849,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       invalidateCurrentViewCache();
     }
     lastView = view;
-
-    Map<Token, Set<Token>> drawThese = compositor.drawWhat(viewRect);
 
     timer.stop("setup");
 
@@ -1038,9 +1027,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.stop("overlays");
 
     timer.start("renderCoordinates");
-    if (!gridRenderer.isInitialised()) {
-      gridRenderer.setRenderer(this);
-    }
     gridRenderer.renderCoordinates(g2d, view);
     timer.stop("renderCoordinates");
 
