@@ -61,8 +61,6 @@ import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.model.Label;
-import net.rptools.maptool.model.LookupTable.LookupEntry;
-import net.rptools.maptool.model.Token.TokenShape;
 import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.*;
 import net.rptools.maptool.model.player.Player;
@@ -71,7 +69,6 @@ import net.rptools.maptool.util.CollectionUtil;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.StringUtil;
-import net.rptools.parser.ParserException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -112,8 +109,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   // Optimizations
   final Map<GUID, BufferedImage> labelRenderingCache = new HashMap<>();
-  private final Map<Token, BufferedImage> flipImageMap = new HashMap<>();
-  private final Map<Token, BufferedImage> flipIsoImageMap = new HashMap<>();
   private Token tokenUnderMouse;
 
   private ScreenPoint pointUnderMouse;
@@ -137,7 +132,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private ZonePoint previousZonePoint;
 
   private final EnumSet<Layer> disabledLayers = EnumSet.noneOf(Layer.class);
-  private final ZoneCompositor compositor;
   private final GridRenderer gridRenderer;
   private final HaloRenderer haloRenderer;
   private final TokenRenderer tokenRenderer;
@@ -174,8 +168,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             Zone.Layer.class, layer -> new PartitionedDrawableRenderer(zone));
 
     var renderHelper = new RenderHelper(this, tempBufferPool);
-    this.compositor = new ZoneCompositor();
-    this.gridRenderer = new GridRenderer();
+    this.gridRenderer = new GridRenderer(this);
     this.haloRenderer = new HaloRenderer(renderHelper);
     this.tokenRenderer = new TokenRenderer(renderHelper, zone);
     this.facingArrowRenderer = new FacingArrowRenderer(renderHelper, zone);
@@ -359,14 +352,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     set.toggleWaypoint(location);
     repaintDebouncer.dispatch();
-  }
-
-  public ZonePoint getLastWaypoint(GUID keyToken) {
-    SelectionSet set = selectionSetMap.get(keyToken);
-    if (set == null) {
-      return null;
-    }
-    return set.getLastWaypoint();
   }
 
   public void removeMoveSelectionSet(GUID keyToken) {
@@ -560,17 +545,14 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   /**
-   * Remove the token from: {@link #flipImageMap}, {@link #flipIsoImageMap}, {@link
-   * #labelRenderingCache}. Set the {@link #visibleScreenArea} to null. Flush the token from {@link
-   * #zoneView}.
+   * Remove the token from: {@link #labelRenderingCache}. Set the {@link #visibleScreenArea} to
+   * null. Flush the token from {@link #zoneView}.
    *
    * @param token the token to flush
    */
   public void flush(Token token) {
     // This method can be called from a non-EDT thread so if that happens, make sure we synchronize
     // with the EDT.
-    flipImageMap.remove(token);
-    flipIsoImageMap.remove(token);
     labelRenderingCache.remove(token.getId());
 
     // This should be smarter, but whatever
@@ -605,8 +587,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     ImageManager.flushImage(zone.getMapAssetId());
 
     flushDrawableRenderer();
-    flipImageMap.clear();
-    flipIsoImageMap.clear();
     zoneView.flushFog();
   }
 
@@ -674,15 +654,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     GdxRenderer.getInstance().setScale(zoneScale);
   }
 
-  public void setView(int x, int y, double scale) {
-
-    setViewOffset(x, y);
-
-    zoneScale.setScale(scale);
-    MapTool.getFrame().getZoomStatusBar().update();
-    GdxRenderer.getInstance().setScale(zoneScale);
-  }
-
   public void enforceView(int x, int y, double scale, int gmWidth, int gmHeight) {
     int width = getWidth();
     int height = getHeight();
@@ -735,22 +706,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         timer -> {
           timer.setThreshold(10);
 
-          timer.start("update");
-          viewModel.update();
-          final var skipDrawing = viewModel.isUsingGdxRenderer();
-          timer.stop("update");
-
-          if (!skipDrawing) {
-            // Clear internal state
-            itemRenderList.clear();
-
-            if (!compositor.isInitialised()) {
-              compositor.setRenderer(this);
-            }
-            if (!gridRenderer.isInitialised()) {
-              gridRenderer.setRenderer(this);
-            }
-
+          if (!MapTool.getFrame().getGdxPanel().isVisible()) {
             timer.start("paintComponent");
             Graphics2D g2d = (Graphics2D) g;
 
@@ -767,11 +723,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
               // Keep the clip to avoid rendering more than we have to.
               bufferG2d.setClip(g2d.getClip());
 
-              timer.start("paintComponent:createView");
-              PlayerView pl = getPlayerView();
-              timer.stop("paintComponent:createView");
-
-              renderZone(bufferG2d, pl);
+              renderZone(bufferG2d, null);
 
               int noteVPos = 20;
               bufferG2d.setFont(AppStyle.labelFont);
@@ -779,7 +731,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
                 noteVPos += 40;
               }
               if (!AppPreferences.mapVisibilityWarning.get()
-                  && (!zone.isVisible() && pl.isGMView())) {
+                  && (!zone.isVisible() && getPlayerView().isGMView())) {
                 GraphicsUtil.drawBoxedString(
                     bufferG2d, I18N.getText("zone.map_not_visible"), getSize().width / 2, noteVPos);
                 noteVPos += 20;
@@ -844,12 +796,24 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * visible to players" and "Player View" as appropriate.
    *
    * @param g2d Graphics2D object normally passed in by {@link #paintComponent(Graphics)}
-   * @param view PlayerView object that describes whether the view is a Player or GM view
+   * @param view PlayerView object that describes whether the view is a Player or GM view. Pass
+   *     {@code null} to use the current view.
    */
-  public void renderZone(Graphics2D g2d, PlayerView view) {
+  public void renderZone(Graphics2D g2d, @Nullable PlayerView view) {
     final var timer = CodeTimer.get();
 
+    timer.start("update");
+    viewModel.update();
+    timer.stop("update");
+
     timer.start("setup");
+    // Clear internal state
+    itemRenderList.clear();
+
+    if (view == null) {
+      view = getPlayerView();
+    }
+
     g2d = (Graphics2D) g2d.create();
 
     Rectangle viewRect = new Rectangle(getSize().width, getSize().height);
@@ -885,8 +849,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       invalidateCurrentViewCache();
     }
     lastView = view;
-
-    Map<Token, Set<Token>> drawThese = compositor.drawWhat(viewRect);
 
     timer.stop("setup");
 
@@ -1065,9 +1027,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     timer.stop("overlays");
 
     timer.start("renderCoordinates");
-    if (!gridRenderer.isInitialised()) {
-      gridRenderer.setRenderer(this);
-    }
     gridRenderer.renderCoordinates(g2d, view);
     timer.stop("renderCoordinates");
 
@@ -1237,7 +1196,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
     }
 
-    double scale = zoneScale.getScale();
     for (SelectionSet set : movementSet) {
       Token keyToken = zone.getToken(set.getKeyToken());
       if (keyToken == null) {
@@ -1259,38 +1217,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
           continue;
         }
 
-        // Don't bother if it's not visible
-        if (!token.isVisible() && !view.isGMView()) {
+        var position = viewModel.getTokenPositions().get(token.getId());
+        if (position == null) {
+          // Token not visible to this player.
           continue;
         }
-
-        // ... or if it's visible only to the owner and that's not us!
-        final boolean isOwner = view.isGMView() || AppUtil.playerOwns(token);
-        if (token.isVisibleOnlyToOwner() && !isOwner) {
-          continue;
-        }
-
-        // ... or if it doesn't have an image to display. (Hm, should still show *something*?)
-        Asset asset = AssetManager.getAsset(token.getImageAssetId());
-        if (asset == null) {
-          continue;
-        }
-
-        // OPTIMIZE: combine this with the code in renderTokens()
-        Rectangle footprintBounds = token.getBounds(zone);
-        ScreenPoint newScreenPoint =
-            ScreenPoint.fromZonePoint(
-                this, footprintBounds.x + set.getOffsetX(), footprintBounds.y + set.getOffsetY());
-
-        // get token image, using image table if present
-        BufferedImage image = ImageUtil.getTokenImage(token, this);
-
-        int scaledWidth = (int) (footprintBounds.width * scale);
-        int scaledHeight = (int) (footprintBounds.height * scale);
-
-        // Tokens are centered on the image center point
-        int x = (int) (newScreenPoint.x);
-        int y = (int) (newScreenPoint.y);
 
         // Show path only on the key token on token layer that are visible to the owner or gm while
         // fow and vision is on
@@ -1302,111 +1233,43 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         }
 
         // Show current Blocked Movement directions for A*
-        if (walker != null && DeveloperOptions.Toggle.ShowAiDebugging.isEnabled()) {
+        if (walker != null && DeveloperOptions.Toggle.ShowAiDebugging.get()) {
           Map<CellPoint, Set<CellPoint>> blockedMovesByTarget = walker.getBlockedMoves();
           for (var entry : blockedMovesByTarget.entrySet()) {
-            var position = entry.getKey();
+            var targetPoint = entry.getKey();
             var blockedMoves = entry.getValue();
 
             for (CellPoint point : blockedMoves) {
-              ZonePoint zp = point.midZonePoint(getZone().getGrid(), position);
+              ZonePoint zp = point.midZonePoint(getZone().getGrid(), targetPoint);
               double r = (zp.x - 1) * 45;
               showBlockedMoves(
                   g, zp, r, RessourceManager.getImage(Images.ZONE_RENDERER_BLOCK_MOVE), 1.0f);
             }
           }
         }
-        // handle flipping
-        BufferedImage workImage = image;
-        if (token.isFlippedX() || token.isFlippedY()) {
-          workImage =
-              new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
 
-          int workW = image.getWidth() * (token.isFlippedX() ? -1 : 1);
-          int workH = image.getHeight() * (token.isFlippedY() ? -1 : 1);
-          int workX = token.isFlippedX() ? image.getWidth() : 0;
-          int workY = token.isFlippedY() ? image.getHeight() : 0;
+        // We need a shifted version of the position, to wherever the token is being dragged.
+        var newBounds =
+            new Rectangle2D.Double(
+                position.footprintBounds().getX() + set.getOffsetX(),
+                position.footprintBounds().getY() + set.getOffsetY(),
+                position.footprintBounds().getWidth(),
+                position.footprintBounds().getHeight());
+        var newArea = new Area(position.transformedBounds());
+        newArea.transform(AffineTransform.getTranslateInstance(set.getOffsetX(), set.getOffsetY()));
+        var newPosition = new ZoneViewModel.TokenPosition(token, newBounds, newArea);
 
-          Graphics2D wig = workImage.createGraphics();
-          wig.drawImage(image, workX, workY, workW, workH, null);
-          wig.dispose();
-        }
-        // on the iso plane
-        double iso_ho = 0;
-        if (getZone().getGrid().isIsometric()) {
-          if (token.getIsFlippedIso()) {
-            if (flipIsoImageMap.get(token) == null) {
-              workImage = IsometricGrid.isoImage(workImage);
-            } else {
-              workImage = flipIsoImageMap.get(token);
-            }
-            token.setHeight(workImage.getHeight());
-            token.setWidth(workImage.getWidth());
-            footprintBounds = token.getBounds(zone);
-          }
-          iso_ho = ImageUtil.getIsoFigureHeightOffset(token, footprintBounds) * getScale();
-        }
-
-        // Draw token
-        Dimension imgSize = new Dimension(workImage.getWidth(), workImage.getHeight());
-        SwingUtil.constrainTo(imgSize, footprintBounds.width, footprintBounds.height);
-
-        int offsetX = 0;
-        int offsetY = 0;
-        if (token.isSnapToScale()) {
-          offsetX =
-              (int)
-                  (imgSize.width < footprintBounds.width
-                      ? (footprintBounds.width - imgSize.width) / 2 * getScale()
-                      : 0);
-          offsetY =
-              (int)
-                  (imgSize.height < footprintBounds.height
-                      ? (footprintBounds.height - imgSize.height) / 2 * getScale()
-                      : 0);
-        }
-        int tx = x + offsetX;
-        int ty = y + offsetY + (int) iso_ho;
-
-        AffineTransform at = new AffineTransform();
-        at.translate(tx, ty);
-
-        if (token.hasFacing() && token.getShape() == Token.TokenShape.TOP_DOWN) {
-          at.rotate(
-              Math.toRadians(token.getFacingInDegrees()),
-              scaledWidth / 2d - token.getAnchor().x * scale - offsetX,
-              scaledHeight / 2d
-                  - token.getAnchor().y * scale
-                  - offsetY); // facing defaults to down, or -90 degrees
-        }
-        if (token.isSnapToScale()) {
-          at.scale(
-              (double) imgSize.width / workImage.getWidth(),
-              (double) imgSize.height / workImage.getHeight());
-          at.scale(getScale(), getScale());
-        } else {
-          if (token.getShape() == TokenShape.FIGURE) {
-            at.scale(
-                (double) scaledWidth / workImage.getWidth(),
-                (double) scaledWidth / workImage.getWidth());
-          } else {
-            at.scale(
-                (double) scaledWidth / workImage.getWidth(),
-                (double) scaledHeight / workImage.getHeight());
-          }
-        }
-
-        g.drawImage(workImage, at, this);
+        tokenRenderer.renderToken(token, newPosition, g, 1);
 
         // Other details.
-        // If the token is visible on the screen it will be in the location cache
-        var tokenPosition = viewModel.getTokenPositions().get(token.getId());
+        // Only draw these if the token is visible on screen where it is dragged to.
         if (token == keyToken
-            && (isOwner || shouldShowMovementLabels(token, set, clearArea))
-            && viewModel.getViewport().intersects(tokenPosition.footprintBounds())
-            && zoneView.getVisibleArea(view).intersects(tokenPosition.footprintBounds())) {
-          var labelY = y + 10 + scaledHeight;
-          var labelX = x + scaledWidth / 2;
+            && (AppUtil.playerOwns(token) || shouldShowMovementLabels(token, set, clearArea))
+            && viewModel.getViewport().intersects(newPosition.footprintBounds())) {
+          var screenBounds = zoneScale.toScreenSpace(newPosition.footprintBounds());
+
+          var labelY = (int) screenBounds.getMaxY() + 10;
+          var labelX = (int) screenBounds.getCenterX();
 
           if (token.getLayer().supportsWalker() && AppState.getShowMovementMeasurements()) {
             double distanceTraveled = calculateTraveledDistance(set);
@@ -1670,41 +1533,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldRendering);
   }
 
-  public void drawText(String text, int x, int y) {
-    Graphics g = this.getGraphics();
-
-    Grid grid = zone.getGrid();
-    double cWidth = grid.getCellWidth() * getScale();
-    double cHeight = grid.getCellHeight() * getScale();
-
-    double iWidth = cWidth;
-    double iHeight = cHeight;
-
-    ScreenPoint sp = ScreenPoint.fromZonePoint(this, x, y);
-
-    int cellX = (int) (sp.x - iWidth / 2);
-    int cellY = (int) (sp.y - iHeight / 2);
-
-    // Draw distance for each cell
-    int fontSize = (int) (getScale() * 12);
-    int textOffset = (int) (getScale() * 7); // 7 pixels at 100% zoom
-
-    Font font = new Font(Font.DIALOG, Font.BOLD, fontSize);
-    Font originalFont = g.getFont();
-
-    FontMetrics fm = g.getFontMetrics(font);
-    int textWidth = fm.stringWidth(text);
-
-    g.setFont(font);
-    g.setColor(Color.BLACK);
-
-    g.drawString(
-        text,
-        (int) (cellX + cWidth - textWidth - textOffset),
-        (int) (cellY + cHeight - textOffset));
-    g.setFont(originalFont);
-  }
-
   private Shape shape;
   private Shape shape2;
   private Shape shape3;
@@ -1815,7 +1643,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     int textOffset = (int) (getScale() * 7 * fontScale); // 7 pixels at 100% zoom & grid size of 50
 
     String distanceText = NumberFormat.getInstance().format(distance);
-    if (DeveloperOptions.Toggle.ShowAiDebugging.isEnabled()) {
+    if (DeveloperOptions.Toggle.ShowAiDebugging.get()) {
       distanceText += " (" + NumberFormat.getInstance().format(distanceWithoutTerrain) + ")";
       fontSize = (int) (fontSize * 0.75);
     }
@@ -1914,84 +1742,41 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     timer.stop("createClip");
 
-    double scale = zoneScale.getScale();
-
-    List<Token> tokenPostProcessing = new ArrayList<>(tokenList.size());
+    List<ZoneViewModel.TokenPosition> tokenPostProcessing = new ArrayList<>(tokenList.size());
     for (Token token : tokenList) {
       if (token.getShape() != Token.TokenShape.FIGURE && figuresOnly && !token.isAlwaysVisible()) {
         continue;
       }
 
       timer.start("token-list-1");
+      ZoneViewModel.TokenPosition position;
       try {
         if (token.getLayer().isStampLayer() && viewModel.isTokenMoving(token.getId())) {
           continue;
         }
-        // Don't bother if it's not visible
-        // NOTE: Not going to use zone.isTokenVisible as it is very slow. In fact, it's faster
-        // to just draw the tokens and let them be clipped
-        if ((!token.isVisible() || !token.getLayer().isVisibleToPlayers()) && !isGMView) {
+
+        position = viewModel.getTokenPositions().get(token.getId());
+        if (position == null) {
+          // Unknown token?
           continue;
         }
-        if (token.isVisibleOnlyToOwner() && !AppUtil.playerOwns(token)) {
-          continue;
-        }
-      } finally {
-        // This ensures that the timer is always stopped
-        timer.stop("token-list-1");
-      }
-      timer.start("token-list-1.1");
-      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token.getId());
-      if (position != null && !position.transformedBounds().intersects(viewModel.getViewport())) {
-        timer.stop("token-list-1.1");
-        continue;
-      }
-      timer.stop("token-list-1.1");
-
-      timer.start("token-list-1a");
-      Rectangle footprintBounds = token.getBounds(zone);
-      timer.stop("token-list-1a");
-
-      timer.start("token-list-1c");
-      double scaledWidth = (footprintBounds.width * scale);
-      double scaledHeight = (footprintBounds.height * scale);
-
-      ScreenPoint tokenScreenLocation =
-          ScreenPoint.fromZonePoint(this, footprintBounds.x, footprintBounds.y);
-      timer.stop("token-list-1c");
-
-      timer.start("token-list-1d");
-      // Tokens are centered on the image center point
-      double x = tokenScreenLocation.x;
-      double y = tokenScreenLocation.y;
-
-      Rectangle2D origBounds = new Rectangle2D.Double(x, y, scaledWidth, scaledHeight);
-      Area tokenBounds = new Area(origBounds);
-      if (token.hasFacing() && token.getShape() == Token.TokenShape.TOP_DOWN) {
-        double sx = scaledWidth / 2 + x - (token.getAnchor().x * scale);
-        double sy = scaledHeight / 2 + y - (token.getAnchor().y * scale);
-        tokenBounds.transform(
-            AffineTransform.getRotateInstance(Math.toRadians(token.getFacingInDegrees()), sx, sy));
-        // facing defaults to down or -90 degrees
-      }
-      timer.stop("token-list-1d");
-
-      timer.start("token-list-1e");
-      try {
         if (!viewModel.getVisibleTokens(token.getLayer()).contains(token.getId())) {
           // Token not on screen or otherwise not visible.
           continue;
         }
       } finally {
-        // This ensures that the timer is always stopped
-        timer.stop("token-list-1e");
+        timer.stop("token-list-1");
       }
 
-      // create a per token Graphics object - normally clipped, unless always visible
-      Area tokenCellArea = zone.getGrid().getTokenCellArea(tokenBounds);
       Graphics2D tokenG;
-      if (isTokenInNeedOfClipping(token, tokenCellArea, isGMView)) {
+      if (isTokenInNeedOfClipping(token, position.transformedBounds(), isGMView)) {
         tokenG = (Graphics2D) clippedG.create();
+        if (token.getShape() == Token.TokenShape.FIGURE || token.isAlwaysVisible()) {
+          Area cb =
+              zone.getGrid()
+                  .getTokenCellArea(zoneScale.toScreenSpace(position.transformedBounds()));
+          tokenG.clip(cb);
+        }
       } else {
         tokenG = (Graphics2D) g.create();
         AppPreferences.renderQuality.get().setRenderingHints(tokenG);
@@ -2009,39 +1794,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       BufferedImage image = ImageUtil.getTokenImage(token, this);
       timer.stop("token-list-1b");
 
-      timer.start("token-list-5");
-      // handle flipping
-      BufferedImage workImage = image;
-      if (token.isFlippedX() || token.isFlippedY()) {
-        workImage = flipImageMap.get(token);
-        if (workImage == null) {
-          workImage =
-              new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
-
-          int workW = image.getWidth() * (token.isFlippedX() ? -1 : 1);
-          int workH = image.getHeight() * (token.isFlippedY() ? -1 : 1);
-          int workX = token.isFlippedX() ? image.getWidth() : 0;
-          int workY = token.isFlippedY() ? image.getHeight() : 0;
-
-          Graphics2D wig = workImage.createGraphics();
-          wig.drawImage(image, workX, workY, workW, workH, null);
-          wig.dispose();
-
-          flipImageMap.put(token, workImage);
-        }
-      }
-      timer.stop("token-list-5");
-
       timer.start("token-list-5a");
       if (token.getIsFlippedIso() && getZone().getGrid().isIsometric()) {
-        if (flipIsoImageMap.get(token) == null) {
-          workImage = IsometricGrid.isoImage(workImage);
-          flipIsoImageMap.put(token, workImage);
-        } else {
-          workImage = flipIsoImageMap.get(token);
-        }
-        token.setHeight(workImage.getHeight());
-        token.setWidth(workImage.getWidth());
+        int newSize = (image.getWidth() + image.getHeight());
+        token.setWidth(newSize);
+        token.setHeight(newSize / 2);
       }
       timer.stop("token-list-5a");
 
@@ -2055,67 +1812,27 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
       // Finally render the token image
       timer.start("token-list-7");
-      if (!isGMView && zoneView.isUsingVision() && (token.getShape() == Token.TokenShape.FIGURE)) {
-        Area cb = zone.getGrid().getTokenCellArea(tokenBounds);
-        if (GraphicsUtil.intersects(visibleScreenArea, cb)) {
-          // the cell intersects visible area so
-          if (zone.getGrid().checkCenterRegion(cb.getBounds(), visibleScreenArea)) {
-            // if we can see the centre, draw the whole token
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          } else {
-            // else draw the clipped token
-            Area cellArea = new Area(visibleScreenArea);
-            cellArea.intersect(cb);
-            tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          }
-        }
-      } else if (!isGMView && zoneView.isUsingVision() && token.isAlwaysVisible()) {
-        // Jamz: Always Visible tokens will get rendered again here to place on top of FoW
-        Area cb = zone.getGrid().getTokenCellArea(tokenBounds);
-        if (GraphicsUtil.intersects(visibleScreenArea, cb)) {
-          // if we can see a portion of the stamp/token, draw the whole thing, defaults to 2/9ths
-          if (zone.getGrid()
-              .checkRegion(cb.getBounds(), visibleScreenArea, token.getAlwaysVisibleTolerance())) {
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          } else {
-            // else draw the clipped stamp/token
-            // This will only show the part of the token that does not have VBL on it
-            // as any VBL on the token will block LOS, affecting the clipping.
-            Area cellArea = new Area(visibleScreenArea);
-            cellArea.intersect(cb);
-            tokenG.setClip(cellArea);
-            tokenRenderer.renderToken(token, position, tokenG, opacity);
-          }
-        }
-      } else {
-        // fallthrough normal token rendered against visible area
-        tokenRenderer.renderToken(token, position, tokenG, opacity);
-      }
+      // Clipping is handled in the isTokenInNeedOfClipping() call far above.
+      tokenRenderer.renderToken(token, position, tokenG, opacity);
       timer.stop("token-list-7");
 
       timer.start("token-list-8");
       // Facing
-      if (token.hasFacing()) {
-        facingArrowRenderer.paintArrow(tokenG, position);
-      }
+      facingArrowRenderer.paintArrow(tokenG, position);
       timer.stop("token-list-8");
 
       timer.start("token-list-9");
       // Set up the graphics so that the overlay can just be painted.
+      Rectangle2D tokenBounds = zoneScale.toScreenSpace(position.transformedBounds().getBounds2D());
       Graphics2D locG =
           (Graphics2D)
               tokenG.create(
-                  (int) tokenBounds.getBounds().getX(),
-                  (int) tokenBounds.getBounds().getY(),
-                  (int) tokenBounds.getBounds().getWidth(),
-                  (int) tokenBounds.getBounds().getHeight());
+                  (int) tokenBounds.getX(),
+                  (int) tokenBounds.getY(),
+                  (int) tokenBounds.getWidth(),
+                  (int) tokenBounds.getHeight());
       Rectangle bounds =
-          new Rectangle(
-              0,
-              0,
-              (int) tokenBounds.getBounds().getWidth(),
-              (int) tokenBounds.getBounds().getHeight());
+          new Rectangle(0, 0, (int) tokenBounds.getWidth(), (int) tokenBounds.getHeight());
 
       // Check each of the set values
       for (String state : MapTool.getCampaign().getTokenStatesMap().keySet()) {
@@ -2153,18 +1870,15 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       // Keep track of which tokens have been drawn for post-processing on them later
       // (such as selection borders and names/labels)
       if (getActiveLayer().equals(token.getLayer())) {
-        tokenPostProcessing.add(token);
+        tokenPostProcessing.add(position);
       }
       timer.stop("token-list-11");
     }
-    timer.start("token-list-12");
 
     // Selection and labels
-    for (Token token : tokenPostProcessing) {
-      ZoneViewModel.TokenPosition position = viewModel.getTokenPositions().get(token.getId());
-      if (position == null) {
-        continue;
-      }
+    timer.start("token-list-12");
+    for (ZoneViewModel.TokenPosition position : tokenPostProcessing) {
+      var token = position.token();
 
       // Count moving tokens as "selected" so that a border is drawn around them.
       boolean isSelected =
@@ -2256,8 +1970,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     }
     timer.stop("token-list-12");
 
-    timer.start("token-list-13");
     // Stacks
+    timer.start("token-list-13");
     if (!tokenList.isEmpty() && tokenList.getFirst().getLayer().isTokenLayer()) {
       boolean hideTSI = AppPreferences.hideTokenStackIndicator.get();
       if (!hideTSI) {
@@ -2277,8 +1991,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
     }
 
-    // Markers
-
     if (clippedG != g) {
       clippedG.dispose();
     }
@@ -2295,20 +2007,20 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
    * @return true if the token is need of clipping, false otherwise
    */
   public boolean isTokenInNeedOfClipping(Token token, Area tokenCellArea, boolean isGMView) {
-
     // can view everything or zone is not using vision = no clipping needed
     if (isGMView || !zoneView.isUsingVision()) {
       return false;
     }
 
-    // no clipping if there is no visible screen area
-    if (visibleScreenArea == null) {
+    var visibleArea = viewModel.getVisibleArea();
+    if (visibleArea.isEmpty()) {
+      // No clipping if there is no visible screen area.
       return false;
     }
 
     // If the token is a figure and its center is visible then no clipping
     if (token.getShape() == Token.TokenShape.FIGURE
-        && zone.getGrid().checkCenterRegion(tokenCellArea.getBounds(), visibleScreenArea)) {
+        && zone.getGrid().checkCenterRegion(tokenCellArea.getBounds(), visibleArea)) {
       return false;
     }
 
@@ -2317,16 +2029,12 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     if (token.isAlwaysVisible()
         && zone.getGrid()
             .checkRegion(
-                tokenCellArea.getBounds(), visibleScreenArea, token.getAlwaysVisibleTolerance())) {
+                tokenCellArea.getBounds(), visibleArea, token.getAlwaysVisibleTolerance())) {
       return false;
     }
 
     // clipping needed
     return true;
-  }
-
-  private boolean canSeeMarker(Token token) {
-    return MapTool.getPlayer().isGM() || !StringUtil.isEmpty(token.getNotes());
   }
 
   public Set<GUID> getSelectedTokenSet() {
@@ -2383,9 +2091,22 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   /**
-   * Selects the tokens inside a selection rectangle.
+   * Gets the tokens inside the viewport.
    *
-   * @param screenRect the selection rectangle
+   * <p>This is a convenience method for {@link #getTokenIdsInBounds(Rectangle)} that supplies the
+   * viewport as the rectangle.
+   *
+   * @return A list of token IDs for tokens whose footprint intersects with the current viewport.
+   */
+  public List<GUID> getTokenIdsOnScreen() {
+    return getTokenIdsInBounds(getBounds());
+  }
+
+  /**
+   * Gets the tokens inside a rectangle.
+   *
+   * @param screenRect the bounds in which to look for tokens.
+   * @return A list of token IDs for tokens whose footprint intersects with {@code screenRect}.
    */
   public List<GUID> getTokenIdsInBounds(Rectangle screenRect) {
     var rect = zoneScale.toWorldSpace(screenRect);
@@ -2434,13 +2155,16 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   }
 
   public Area getTokenBounds(Token token) {
-    for (ZoneViewModel.TokenPosition position :
-        viewModel.getTokenPositionsForLayer(token.getLayer())) {
-      if (position.token() == token) {
-        return new Area(position.transformedBounds());
-      }
+    if (!viewModel.getOnScreenTokens().contains(token.getId())) {
+      return null;
     }
-    return null;
+
+    var position = viewModel.getTokenPositions().get(token.getId());
+    if (position == null) {
+      return null;
+    }
+
+    return new Area(position.transformedBounds());
   }
 
   public Area getMarkerBounds(Token token) {
@@ -2575,7 +2299,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
   private void clearZoomDependantCaches() {
     invalidateCurrentViewCache();
-    tokenRenderer.zoomChanged();
   }
 
   public double getScale() {
@@ -2791,38 +2514,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     AppActions.copyTokens(tokens);
     AppActions.updateActions();
     requestFocusInWindow();
-  }
-
-  /**
-   * Checks to see if token has an image table and references that if the token has a facing
-   * otherwise uses basic image
-   *
-   * @param token the token to get the image from.
-   * @return BufferedImage
-   */
-  private BufferedImage getTokenImage(Token token) {
-    BufferedImage image = null;
-    // Get the basic image
-    if (token.getHasImageTable() && token.hasFacing() && token.getImageTableName() != null) {
-      LookupTable lookupTable =
-          MapTool.getCampaign().getLookupTableMap().get(token.getImageTableName());
-      if (lookupTable != null) {
-        try {
-          LookupEntry result = lookupTable.getLookup(Integer.toString(token.getFacing()));
-          if (result != null) {
-            image = ImageManager.getImage(result.getImageId(), this);
-          }
-        } catch (ParserException ignored) {
-          // do nothing
-        }
-      }
-    }
-
-    if (image == null) {
-      // So we can repaint once the image is ready, add this as observer. Fixes #1700.
-      image = ImageManager.getImage(token.getImageAssetId(), this);
-    }
-    return image;
   }
 
   /*

@@ -17,195 +17,139 @@ package net.rptools.maptool.client.ui.zone.renderer.tokenRender;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import net.rptools.lib.CodeTimer;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.ui.zone.ZoneViewModel;
+import net.rptools.maptool.client.ui.zone.ZoneViewModel.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
-import net.rptools.maptool.model.Token;
+import net.rptools.maptool.model.Token.TokenShape;
 import net.rptools.maptool.model.Zone;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 public class FacingArrowRenderer {
   private static final Logger log = LogManager.getLogger(FacingArrowRenderer.class);
-  private final CodeTimer timer;
-  private final Map<ArrowType, Map<Double, Shape>> quivers = new HashMap<>();
+
+  /** An arrow facing horizontally to the positive x-axis, with its point at (0, 0). */
+  private static final Path2D UNIT_ARROW;
+
+  static {
+    final double tailX = -0.25;
+    final double tailY = .35;
+    UNIT_ARROW = new Path2D.Double();
+    UNIT_ARROW.moveTo(0, 0);
+    UNIT_ARROW.lineTo(tailX, -tailY);
+    UNIT_ARROW.lineTo(tailX, tailY);
+    UNIT_ARROW.closePath();
+  }
 
   private final RenderHelper renderHelper;
   private final Zone zone;
 
-  private ArrayList<Color> fillColours = new ArrayList<>();
-  private Color fillColour = Color.YELLOW;
-  private Color borderColour = Color.DARK_GRAY;
+  private final ArrayList<Color> figureFillColours = new ArrayList<>();
+  private final Color fillColour = Color.YELLOW;
+  private final Color borderColour = Color.DARK_GRAY;
 
   public FacingArrowRenderer(RenderHelper renderHelper, Zone zone) {
     this.renderHelper = renderHelper;
     this.zone = zone;
     for (int i = 0; i <= 90; i++) {
-      fillColours.add(new Color(1 - 0.5f / 90f * i, 1 - 0.5f / 90f * i, 0));
+      figureFillColours.add(new Color(1 - 0.5f / 90f * i, 1 - 0.5f / 90f * i, 0));
     }
     for (int i = 89; i >= 0; i--) {
-      fillColours.add(fillColours.get(i));
+      figureFillColours.add(figureFillColours.get(i));
     }
-    timer = CodeTimer.get();
   }
 
-  public void paintArrow(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
-    renderHelper.render(tokenG, worldG -> paintArrowWorld(worldG, position));
+  public void paintArrow(Graphics2D tokenG, TokenPosition position) {
+    var timer = CodeTimer.get();
+    var token = position.token();
+    var tokenShape = token.getShape();
+
+    timer.start("FacingArrowRenderer-preCheck");
+    if (!token.hasFacing()) {
+      return;
+    }
+    final var forceFacing = AppPreferences.forceFacingArrow.get();
+    if (!forceFacing) {
+      if (TokenShape.TOP_DOWN.equals(tokenShape)) {
+        return;
+      }
+      if (TokenShape.FIGURE.equals(tokenShape) && token.getHasImageTable()) {
+        return;
+      }
+    }
+    timer.stop("FacingArrowRenderer-preCheck");
+
+    timer.start("FacingArrowRenderer-render");
+    renderHelper.render(
+        tokenG,
+        worldG ->
+            paintArrowWorld(worldG, token.getFacing(), tokenShape, position.footprintBounds()));
+    timer.stop("FacingArrowRenderer-render");
   }
 
-  private void paintArrowWorld(Graphics2D tokenG, ZoneViewModel.TokenPosition position) {
+  private void paintArrowWorld(
+      Graphics2D tokenG, int facing, TokenShape tokenShape, Rectangle2D footprintBounds) {
+    var timer = CodeTimer.get();
+    timer.start("FacingArrowRenderer-paintArrow");
     try {
-      var token = position.token();
-
-      var tokenType = token.getShape();
-      if (tokenType.equals(Token.TokenShape.TOP_DOWN) && !AppPreferences.forceFacingArrow.get()) {
-        return;
-      }
-      if (tokenType.equals(Token.TokenShape.FIGURE)
-          && token.getHasImageTable()
-          && !AppPreferences.forceFacingArrow.get()) {
-        return;
-      }
-
       final var isIsometric = zone.getGrid().isIsometric();
 
-      timer.start("ArrowRenderer-paintArrow");
-      AffineTransform oldAT = tokenG.getTransform();
-      double facing = token.getFacing();
-      facing = isIsometric ? facing + 45 : facing;
-      while (facing < 0) {
-        facing += 360;
-      }
-      if (facing > 360) {
-        facing %= 360;
-      }
-      double radFacing = Math.toRadians(facing);
-      double cx = position.footprintBounds().getX() + position.footprintBounds().getWidth() / 2d;
-      double cy = position.footprintBounds().getY() + position.footprintBounds().getHeight() / 2d;
+      timer.start("FacingArrowRenderer-calculateTransform");
+      int angle = Math.floorMod(facing + (isIsometric ? 45 : 0), 360);
+      AffineTransform transform =
+          buildArrowTransform(tokenShape, footprintBounds, angle, isIsometric);
+      timer.stop("FacingArrowRenderer-calculateTransform");
 
-      AffineTransform transform = AffineTransform.getRotateInstance(-radFacing);
-      if (isIsometric) {
-        transform.preConcatenate(AffineTransform.getScaleInstance(1.0, 0.5));
-      }
-      Shape facingArrow = transform.createTransformedShape(getArrow(position, isIsometric));
+      timer.start("FacingArrowRenderer-transformArrow");
+      Shape facingArrow = transform.createTransformedShape(UNIT_ARROW);
+      timer.stop("FacingArrowRenderer-transformArrow");
 
-      if (tokenType.equals(Token.TokenShape.SQUARE) && !isIsometric) {
-        double xp = position.footprintBounds().getWidth() / 2;
-        double yp = position.footprintBounds().getHeight() / 2;
-        if (facing >= 45 && facing <= 135 || facing >= 225 && facing <= 315) {
-          xp = yp / Math.tan(Math.toRadians(facing));
-          if (facing > 180) {
-            xp = -xp;
-            yp = -yp;
-          }
-        } else {
-          yp = xp * Math.tan(Math.toRadians(facing));
-          if (facing > 90 && facing < 270) {
-            xp = -xp;
-            yp = -yp;
-          }
-        }
-        cx += xp;
-        cy -= yp;
-      }
-      tokenG.translate(cx, cy);
-
-      if (tokenType.equals(Token.TokenShape.FIGURE) && facing <= 180) {
-        tokenG.setColor(fillColours.get((int) facing));
+      timer.start("FacingArrowRenderer-fill");
+      if (TokenShape.FIGURE.equals(tokenShape) && angle <= 180) {
+        tokenG.setColor(figureFillColours.get(angle));
       } else {
         tokenG.setColor(fillColour);
       }
-
       tokenG.fill(facingArrow);
+      timer.stop("FacingArrowRenderer-fill");
+
+      timer.start("FacingArrowRenderer-draw");
       tokenG.setColor(borderColour);
       tokenG.draw(facingArrow);
-
-      tokenG.setTransform(oldAT);
+      timer.stop("FacingArrowRenderer-draw");
     } catch (Exception e) {
-      log.error("Failed to paint facing arrow.");
+      log.error("Failed to paint facing arrow.", e);
+    } finally {
+      timer.stop("FacingArrowRenderer-paintArrow");
     }
-    timer.stop("ArrowRenderer-paintArrow");
   }
 
-  private Shape getArrow(ZoneViewModel.TokenPosition position, boolean isIsometric) {
-    var tokenType = position.token().getShape();
-    if ((!AppPreferences.forceFacingArrow.get() && tokenType.equals(Token.TokenShape.TOP_DOWN))
-        || (!AppPreferences.forceFacingArrow.get() && position.token().getHasImageTable())) {
-      return null;
-    }
-    Shape arrow = new Path2D.Double();
-    final ArrowType arrowType;
+  private static AffineTransform buildArrowTransform(
+      TokenShape shape, Rectangle2D footprintBounds, int angle, boolean isIsometric) {
+    double radFacing = Math.toRadians(angle);
+
+    AffineTransform transform = new AffineTransform();
+    transform.translate(footprintBounds.getCenterX(), footprintBounds.getCenterY());
     if (isIsometric) {
-      arrowType = ArrowType.ISOMETRIC;
-    } else {
-      switch (tokenType) {
-        case FIGURE, CIRCLE -> arrowType = ArrowType.CIRCLE;
-        case SQUARE -> arrowType = ArrowType.SQUARE;
-        default -> arrowType = ArrowType.NONE;
+      transform.scale(1.0, 0.5);
+    }
+    transform.rotate(-radFacing);
+
+    double distanceToPoint = footprintBounds.getWidth() / 2;
+    if (TokenShape.SQUARE.equals(shape) && !isIsometric) {
+      if (angle >= 45 && angle <= 135 || angle >= 225 && angle <= 315) { // Top or bottom face.
+        distanceToPoint = footprintBounds.getHeight() / 2 / Math.abs(Math.sin(radFacing));
+      } else { // Left or right face
+        distanceToPoint = footprintBounds.getWidth() / 2 / Math.abs(Math.cos(radFacing));
       }
     }
-    double size = position.footprintBounds().getWidth() / 2d;
-    Map<Double, Shape> quiver;
-    if (quivers.containsKey(arrowType)) {
-      quiver = quivers.get(arrowType);
-    } else {
-      quiver = new HashMap<>();
-    }
-    if (quiver.containsKey(size)) {
-      return quiver.get(size);
-    } else {
-      switch (arrowType) {
-        case CIRCLE -> arrow = getCircleFacingArrow(size);
-        case ISOMETRIC -> arrow = getFigureFacingArrow(size);
-        case SQUARE -> arrow = getSquareFacingArrow(size);
-      }
-      quiver.put(size, arrow);
-      quivers.put(arrowType, quiver);
-    }
-    return arrow;
-  }
+    transform.translate(distanceToPoint, 0);
 
-  protected Shape getCircleFacingArrow(double size) {
-    double base = size * .75;
-    double y = size * .35;
-    Path2D facingArrow = new Path2D.Double();
-    facingArrow.moveTo(base, -y);
-    facingArrow.lineTo(size, 0);
-    facingArrow.lineTo(base, y);
-    facingArrow.lineTo(base, -y);
-    return facingArrow;
-  }
-
-  protected Shape getFigureFacingArrow(double size) {
-    double base = size * .75;
-    double y = size * .35;
-    Path2D facingArrow = new Path2D.Double();
-    facingArrow.moveTo(base, -y);
-    facingArrow.lineTo(size, 0);
-    facingArrow.lineTo(base, y);
-    facingArrow.lineTo(base, -y);
-    return facingArrow;
-  }
-
-  protected Shape getSquareFacingArrow(double size) {
-    double base = size * .75;
-    double y = size * .35;
-    Path2D facingArrow = new Path2D.Double();
-    facingArrow.moveTo(0, 0);
-    facingArrow.lineTo(-(size - base), -y);
-    facingArrow.lineTo(-(size - base), y);
-    facingArrow.lineTo(0, 0);
-    return facingArrow;
-  }
-
-  private enum ArrowType {
-    CIRCLE,
-    ISOMETRIC,
-    SQUARE,
-    NONE
+    var size = footprintBounds.getWidth() / 2d;
+    transform.scale(size, size);
+    return transform;
   }
 }

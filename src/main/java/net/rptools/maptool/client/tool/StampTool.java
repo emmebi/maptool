@@ -1166,7 +1166,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
         return;
       }
 
-      final boolean debugEnabled = DeveloperOptions.Toggle.DebugTokenDragging.isEnabled();
+      final boolean debugEnabled = DeveloperOptions.Toggle.DebugTokenDragging.get();
 
       if (debugEnabled) {
         renderer.setShape3(
