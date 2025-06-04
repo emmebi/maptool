@@ -1976,16 +1976,23 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       boolean hideTSI = AppPreferences.hideTokenStackIndicator.get();
       if (!hideTSI) {
         for (Token token : viewModel.getTokenStackMap().keySet()) {
-          Area bounds = getTokenBounds(token);
-          if (bounds == null) {
-            // token is off-screen
+          var position = viewModel.getTokenPositions().get(token.getId());
+          if (position == null) {
+            // Shouldn't happen, but should handle the case anyway.
             continue;
           }
+          if (!viewModel.getOnScreenTokens().contains(token.getId())) {
+            // Don't draw indicator for offscreen tokens.
+            continue;
+          }
+
+          var bounds = zoneScale.toScreenSpace(position.transformedBounds().getBounds2D());
+
           BufferedImage stackImage = RessourceManager.getImage(Images.ZONE_RENDERER_STACK_IMAGE);
           clippedG.drawImage(
               stackImage,
-              bounds.getBounds().x + bounds.getBounds().width - stackImage.getWidth() + 2,
-              bounds.getBounds().y - 2,
+              AffineTransform.getTranslateInstance(
+                  bounds.getMaxX() - stackImage.getWidth() + 2, bounds.getMinY() - 2),
               null);
         }
       }
@@ -2152,30 +2159,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     // Make the selection
     selectionModel.replaceSelection(
         Collections.singletonList(visibleTokens.get(newSelection).getId()));
-  }
-
-  public Area getTokenBounds(Token token) {
-    if (!viewModel.getOnScreenTokens().contains(token.getId())) {
-      return null;
-    }
-
-    var position = viewModel.getTokenPositions().get(token.getId());
-    if (position == null) {
-      return null;
-    }
-
-    return new Area(position.transformedBounds());
-  }
-
-  public Area getMarkerBounds(Token token) {
-    // Note: this method must iterate only over markers. It cannot be implemented on top of
-    // getTokenBounds().
-    for (ZoneViewModel.TokenPosition position : viewModel.getMarkerPositions()) {
-      if (position.token() == token) {
-        return new Area(position.transformedBounds());
-      }
-    }
-    return null;
   }
 
   public Rectangle getLabelBounds(Label label) {
