@@ -552,7 +552,7 @@ public class Token implements Cloneable {
 
     // Try and silently catch any errors if there is an issue with sightType...
     try {
-      if (!MapTool.getCampaign().getCampaignProperties().getSightTypeMap().containsKey(sightType)) {
+      if (MapTool.getCampaign().getCampaignProperties().getSightTypes().get(sightType).isEmpty()) {
         sightType = MapTool.getCampaign().getCampaignProperties().getDefaultSightType();
       }
     } catch (Exception e) {
@@ -849,8 +849,8 @@ public class Token implements Cloneable {
     return imageTableName;
   }
 
-  public @Nonnull Collection<LightSource> getUniqueLightSources() {
-    return uniqueLightSources.values();
+  public @Nonnull Lights getUniqueLightSources() {
+    return Lights.copyOf(uniqueLightSources.values());
   }
 
   public @Nullable LightSource getUniqueLightSource(GUID lightSourceId) {

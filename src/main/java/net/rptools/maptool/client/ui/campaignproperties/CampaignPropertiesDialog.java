@@ -17,7 +17,6 @@ package net.rptools.maptool.client.ui.campaignproperties;
 import static org.apache.commons.text.WordUtils.capitalize;
 import static org.apache.commons.text.WordUtils.uncapitalize;
 
-import com.google.common.collect.Iterables;
 import com.google.protobuf.util.JsonFormat;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -31,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -48,9 +46,8 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.AssetManager;
 import net.rptools.maptool.model.Campaign;
 import net.rptools.maptool.model.CampaignProperties;
-import net.rptools.maptool.model.GUID;
-import net.rptools.maptool.model.LightSource;
-import net.rptools.maptool.model.SightType;
+import net.rptools.maptool.model.CategorizedLights;
+import net.rptools.maptool.model.Sights;
 import net.rptools.maptool.server.proto.CampaignPropertiesDto;
 import net.rptools.maptool.util.AuraSyntax;
 import net.rptools.maptool.util.LightSyntax;
@@ -237,25 +234,22 @@ public class CampaignPropertiesDialog extends JDialog {
     tokenPropertiesPanel.copyCampaignToUI(campaignProperties);
     updateRepositoryList(campaignProperties);
 
-    String sightText = new SightSyntax().stringify(campaignProperties.getSightTypeMap());
+    String sightText = new SightSyntax().stringify(campaignProperties.getSightTypes());
     view.getSightPanel().setText(sightText);
     view.getSightPanel().setCaretPosition(0);
 
     // Separate auras from lights before populating fields.
-    Map<String, Map<GUID, LightSource>> lightSources = new TreeMap<>();
-    Map<String, Map<GUID, LightSource>> auras = new TreeMap<>();
-    for (var entry : campaignProperties.getLightSourcesMap().entrySet()) {
-      String category = entry.getKey();
-      for (var sourceEntry : entry.getValue().entrySet()) {
-        GUID guid = sourceEntry.getKey();
-        LightSource source = sourceEntry.getValue();
+    CategorizedLights lightSources = new CategorizedLights();
+    CategorizedLights auras = new CategorizedLights();
 
-        Map<String, Map<GUID, LightSource>> targetMap =
+    for (var category : campaignProperties.getLightSources().getCategories()) {
+      for (var source : category.lights()) {
+        CategorizedLights targetMap =
             switch (source.getType()) {
               case NORMAL -> lightSources;
               case AURA -> auras;
             };
-        targetMap.computeIfAbsent(category, c -> new HashMap<>()).put(guid, source);
+        targetMap.addToCategory(category.name(), source);
       }
     }
 
@@ -293,28 +287,17 @@ public class CampaignPropertiesDialog extends JDialog {
       campaign.getRemoteRepositoryList().add(repo);
     }
 
-    Map<String, Map<GUID, LightSource>> existingLightSources = campaign.getLightSourcesMap();
+    CategorizedLights existingLightSources = campaign.getLightSources();
 
-    Map<String, Map<GUID, LightSource>> newLights = new TreeMap<>();
+    CategorizedLights lights =
+        new LightSyntax()
+            .parseCategorizedLights(view.getLightPanel().getText(), existingLightSources);
+    CategorizedLights auras =
+        new AuraSyntax().parseCategorizedAuras(view.getAuraPanel().getText(), existingLightSources);
+    lights.addAll(auras);
+    campaign.setLightSources(lights);
 
-    Map<String, Map<GUID, LightSource>> lightMap =
-        commitLightMap(view.getLightPanel().getText(), existingLightSources);
-    Map<String, Map<GUID, LightSource>> aurasMap =
-        commitAurasMap(view.getAuraPanel().getText(), existingLightSources);
-
-    for (var entry : Iterables.concat(lightMap.entrySet(), aurasMap.entrySet())) {
-      var category = entry.getKey();
-      for (var sourceEntry : entry.getValue().entrySet()) {
-        var guid = sourceEntry.getKey();
-        var source = sourceEntry.getValue();
-
-        newLights.computeIfAbsent(category, c -> new HashMap<>()).put(guid, source);
-      }
-    }
-
-    campaign.setLightSourcesMap(newLights);
-
-    List<SightType> sightMap = commitSightMap(view.getSightPanel().getText());
+    Sights sightMap = commitSightMap(view.getSightPanel().getText());
     campaign.setSightTypes(sightMap);
 
     tokenStatesController.copyUIToCampaign(campaign);
@@ -329,72 +312,8 @@ public class CampaignPropertiesDialog extends JDialog {
     }
   }
 
-  private List<SightType> commitSightMap(final String text) {
+  private Sights commitSightMap(final String text) {
     return new SightSyntax().parse(text);
-  }
-
-  /**
-   * Converts the string stored in <code>getLightPanel().getText()</code> into a Map that relates a
-   * group of light sources to a Map of GUID and LightSource.
-   *
-   * <p>The format for the text is as follows:
-   *
-   * <ol>
-   *   <li>Any line starting with a dash ("-") is a comment and is ignored.
-   *   <li>Blank lines (those containing only zero or more spaces) are group separators.
-   *   <li>The first line of a sequence is the group name.
-   *   <li>Within a group, any line without a colon (":") is ignored.
-   *   <li>Remaining lines are of the following format:
-   *       <p><b> <code>
-   *       [Gm | Owner] [Circle+ | Square | Cone] [Normal+ | Aura] [Arc=angle] [Offset=angle] distance [#rrggbb]
-   *       </code> </b>
-   *       <p>Brackets indicate optional components. A plus sign follows any default value for a
-   *       given field. Fields starting with an uppercase letter are literal text (although they are
-   *       case-insensitive). Fields that do not start with an uppercase letter represent
-   *       user-supplied values, typically numbers (such as <code>angle</code>, <code>distance
-   *       </code>, and <code>#rrggbb</code>). The <code>GM</code>/<code>Owner</code> field is only
-   *       valid for Auras.
-   * </ol>
-   *
-   * @param text The light definitions to parse.
-   * @param originalLightSourcesMap Used to compare names in the new text to existing names so that
-   *     GUIDs can be preserved. This is only necessary because we don't have a UI for lights.
-   */
-  private Map<String, Map<GUID, LightSource>> commitLightMap(
-      final String text, final Map<String, Map<GUID, LightSource>> originalLightSourcesMap) {
-    return new LightSyntax().parseCategorizedLights(text, originalLightSourcesMap);
-  }
-
-  /**
-   * Converts the string stored in <code>getAurasPanel().getText()</code> into a Map that relates a
-   * group of auras to a Map of GUID and LightSource.
-   *
-   * <p>The format for the text is as follows:
-   *
-   * <ol>
-   *   <li>Any line starting with a dash ("-") is a comment and is ignored.
-   *   <li>Blank lines (those containing only zero or more spaces) are group separators.
-   *   <li>The first line of a sequence is the group name.
-   *   <li>Within a group, any line without a colon (":") is ignored.
-   *   <li>Remaining lines are of the following format:
-   *       <p><b> <code>
-   *       [Gm | Owner] [Circle+ | Square | Cone] [Normal+ | Aura] [Arc=angle] [Offset=angle] distance [#rrggbb]
-   *       </code> </b>
-   *       <p>Brackets indicate optional components. A plus sign follows any default value for a
-   *       given field. Fields starting with an uppercase letter are literal text (although they are
-   *       case-insensitive). Fields that do not start with an uppercase letter represent
-   *       user-supplied values, typically numbers (such as <code>angle</code>, <code>distance
-   *       </code>, and <code>#rrggbb</code>). The <code>GM</code>/<code>Owner</code> field is only
-   *       valid for Auras.
-   * </ol>
-   *
-   * @param text The area definitions to parse.
-   * @param originalLightSourcesMap Used to compare names in the new text to existing names so that
-   *     GUIDs can be preserved. This is only necessary because we don't have a UI for auras.
-   */
-  private Map<String, Map<GUID, LightSource>> commitAurasMap(
-      final String text, final Map<String, Map<GUID, LightSource>> originalLightSourcesMap) {
-    return new AuraSyntax().parseCategorizedAuras(text, originalLightSourcesMap);
   }
 
   public JTextArea getTokenPropertiesTextArea() {
