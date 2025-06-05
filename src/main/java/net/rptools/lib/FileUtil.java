@@ -370,6 +370,9 @@ public class FileUtil {
   public static void unzipFile(File sourceFile, File destDir) throws IOException {
     if (!sourceFile.exists()) throw new IOException("source file does not exist: " + sourceFile);
 
+    // Canonicalize destination directory path
+    File canonicalDestDir = destDir.getCanonicalFile();
+
     try (ZipFile zipFile = new ZipFile(sourceFile)) {
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
@@ -377,12 +380,21 @@ public class FileUtil {
         ZipEntry entry = entries.nextElement();
         if (entry.isDirectory()) continue;
 
-        File file = new File(destDir, entry.getName());
-        String path = file.getAbsolutePath();
+        // Create file object and validate path
+        File file = new File(canonicalDestDir, entry.getName());
+        File canonicalFile = file.getCanonicalFile();
+
+        // Prevent zip slip - check if file path is within destination directory
+        if (!canonicalFile.toPath().startsWith(canonicalDestDir.toPath())) {
+          throw new IOException("Entry is outside of the target directory: " + entry.getName());
+        }
+
+        // Create parent directories
         file.getParentFile().mkdirs();
 
+        // Extract file content
         try (InputStream is = zipFile.getInputStream(entry);
-            OutputStream os = new BufferedOutputStream(new FileOutputStream(path))) {
+            OutputStream os = new BufferedOutputStream(new FileOutputStream(canonicalFile))) {
           IOUtils.copy(is, os);
         }
       }
