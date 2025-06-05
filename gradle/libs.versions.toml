@@ -108,7 +108,7 @@ apache-commons-beanutils = { group = "commons-beanutils", name = "commons-beanut
 # XPath parsing, used for UPNP
 apache-commons-jxpath = { group = "commons-jxpath", name = "commons-jxpath", version = "1.3" }
 # For determining file type
-apache-tika = { group = "org.apache.tika", name = "tika-core", version = "3.0.0" }
+apache-tika = { group = "org.apache.tika", name = "tika-core", version = "3.2.0" }
 
 # Parsing and serialization
 # Better JSON functions
