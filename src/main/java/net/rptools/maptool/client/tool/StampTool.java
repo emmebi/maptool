@@ -992,13 +992,8 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
           return;
         }
         // Show sizing controls
-        // getTokenBounds() pulls the data from the tokenLocationCache in ZoneRenderer. That cache
-        // is populated inside renderer.renderTokens(). As long as the cache is created first, we
-        // should
-        // be good, right? This code relies on the order of operations in another class! Ugh!
-        // Double-ugh! :)
-        Area bounds = renderer.getTokenBounds(token);
-        if (bounds == null || renderer.isTokenMoving(token)) {
+        if (!renderer.getViewModel().getOnScreenTokens().contains(token.getId())
+            || renderer.isTokenMoving(token)) {
           continue;
         }
         // Resize

@@ -17,6 +17,7 @@ package net.rptools.maptool.client.ui.zone;
 import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import net.rptools.lib.MD5Key;
+import net.rptools.maptool.client.AppState;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.events.ZoneLoaded;
@@ -36,7 +38,9 @@ import net.rptools.maptool.client.ui.Scale;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.Asset;
 import net.rptools.maptool.model.AssetManager;
+import net.rptools.maptool.model.AttachedLightSource;
 import net.rptools.maptool.model.GUID;
+import net.rptools.maptool.model.LightSource;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.model.player.Player;
@@ -115,6 +119,8 @@ public class ZoneViewModel {
 
   private final Map<Zone.Layer, Set<GUID>> visibleTokensByLayer =
       CollectionUtil.newFilledEnumMap(Zone.Layer.class, layer -> new HashSet<>());
+
+  private final List<Point2D> lightPositions = new ArrayList<>();
 
   // endregion
 
@@ -234,6 +240,10 @@ public class ZoneViewModel {
     affectedTokens.stream().map(Token::getId).forEach(highlightCommonMacros::add);
   }
 
+  public List<Point2D> getLightPositions() {
+    return Collections.unmodifiableList(lightPositions);
+  }
+
   public void update() {
     updateIsUsingGdxRenderer();
     updateIsLoading();
@@ -246,6 +256,7 @@ public class ZoneViewModel {
     updateMarkerPositions();
     updateTokenStacks();
     updateVisibleTokens();
+    updateLightPosition();
   }
 
   private void updateIsUsingGdxRenderer() {
@@ -463,6 +474,38 @@ public class ZoneViewModel {
 
     for (final var selectionSet : renderer.getSelectionSetMap().values()) {
       movingTokens.addAll(selectionSet.getTokens());
+    }
+  }
+
+  private void updateLightPosition() {
+    lightPositions.clear();
+
+    if (!AppState.isShowLightSources() || !playerView.isGMView()) {
+      return;
+    }
+
+    for (TokenPosition position : tokenPositions.values()) {
+      var token = position.token();
+
+      if (!token.hasLightSources()) {
+        continue;
+      }
+      if (!onScreenTokens.contains(token.getId())) {
+        continue;
+      }
+
+      boolean foundNormalLight = false;
+      for (AttachedLightSource attachedLightSource : token.getLightSources()) {
+        LightSource lightSource = attachedLightSource.resolve(token, MapTool.getCampaign());
+        if (lightSource != null && lightSource.getType() == LightSource.Type.NORMAL) {
+          foundNormalLight = true;
+          break;
+        }
+      }
+      if (foundNormalLight) {
+        var bounds = position.transformedBounds().getBounds2D();
+        lightPositions.add(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
+      }
     }
   }
 }
