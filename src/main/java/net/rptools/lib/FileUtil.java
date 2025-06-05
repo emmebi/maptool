@@ -383,7 +383,7 @@ public class FileUtil {
         // Create file object and validate path
         File file = new File(canonicalDestDir, entry.getName());
         File canonicalFile = file.getCanonicalFile();
-        
+
         // Prevent zip slip - check if file path is within destination directory
         if (!canonicalFile.toPath().startsWith(canonicalDestDir.toPath())) {
           throw new IOException("Entry is outside of the target directory: " + entry.getName());
