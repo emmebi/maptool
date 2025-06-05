@@ -31,7 +31,7 @@ websocket = { group = "org.java-websocket", name = "Java-WebSocket", version = "
 webrtc = { group = "dev.onvoid.webrtc", name = "webrtc-java", version = "0.9.0" }
 # compression of messages between client and server
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1" }
-zstd = { group = "com.github.luben", name = "zstd-jni", version = "1.5.5-11" }
+zstd = { group = "com.github.luben", name = "zstd-jni", version = "1.5.7-3" }
 # Protobuf
 protobuf-grpc = { group = "io.grpc", name = "grpc-protobuf", version = "1.61.1" }
 protobuf-java = { group = "com.google.protobuf", name = "protobuf-java-util", version.ref = "protoc" }
