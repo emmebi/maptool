@@ -509,7 +509,7 @@ public class ThemeSupport {
             .findFirst()
             .orElse(currentThemeDetails);
     if (AppPreferences.useCustomThemeFontProperties.get()) {
-      ThemeTools.flatusInterruptus();
+      ThemeFontTools.flatusInterruptus();
     }
     if (themeDetails != null) {
       var laf = themeDetails.themeClass.getDeclaredConstructor().newInstance();

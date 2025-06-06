@@ -403,7 +403,7 @@ public class AppPreferences {
       store.defineString("iconTheme", "Rod Takehara");
 
   public static final Preference<Boolean> useCustomThemeFontProperties =
-      BooleanType.create("useCustomUIProperties", true);
+      store.defineBoolean("useCustomUIProperties", true);
 
   static {
     var prefs = store.getStorage();

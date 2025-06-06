@@ -20,21 +20,42 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.swing.*;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.client.swing.FontChooser;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ThemeTools {
-  private static final Logger log = LogManager.getLogger(ThemeTools.class);
+public class ThemeFontTools {
+  private static final Logger log = LogManager.getLogger(ThemeFontTools.class);
   public static final Properties MODEL_FLAT_PROPERTIES = new Properties();
   public static final List<String> MODEL_FLAT_PROPERTY_NAMES = new ArrayList<>();
   public static final Properties USER_FLAT_PROPERTIES = new Properties();
   public static final List<String> USER_FLAT_PROPERTY_NAMES = new ArrayList<>();
+
+  private static final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+  public static final List<Font> FONT_LIST =
+      Arrays.stream(ge.getAllFonts()).sorted(Comparator.comparing(Font::getName)).toList();
+  public static final Map<String, Integer> FONT_MAX_NAME_WIDTHS =
+      new HashMap<>() {
+        {
+          put("name", 0);
+          put("fontName", 0);
+          put("familyName", 0);
+        }
+      };
+
+  private static final int WIN_DEFAULT_FONT_SIZE =
+      ((Font) Toolkit.getDefaultToolkit().getDesktopProperty("win.messagebox.font")).getSize();
+  public static final int OS_DEFAULT_FONT_SIZE =
+      SystemUtils.IS_OS_WINDOWS ? WIN_DEFAULT_FONT_SIZE : SystemUtils.IS_OS_MAC ? 13 : 12;
+  public static final Map<String, Integer> FLAT_LAF_DEFAULT_FONT_SIZES = new HashMap<>();
+  public static final Set<String> GENERAL_FONT_KEYS = FLAT_LAF_DEFAULT_FONT_SIZES.keySet();
+  public static final List<String> FONT_STYLE_FAMILIES =
+      new ArrayList<>(List.of("defaultFont", "light.font", "semibold.font", "monospaced.font"));
 
   static {
     if (AppPreferences.useCustomThemeFontProperties.get()) {
@@ -45,59 +66,68 @@ public class ThemeTools {
       } catch (IOException ignored) {
       }
       try (InputStream is =
-          ThemeTools.class.getResourceAsStream(
+          ThemeFontTools.class.getResourceAsStream(
               "/net/rptools/maptool/client/ui/themes/modelUserTheme.properties")) {
         MODEL_FLAT_PROPERTIES.load(is);
         MODEL_FLAT_PROPERTY_NAMES.addAll(MODEL_FLAT_PROPERTIES.stringPropertyNames());
+        for (String key : MODEL_FLAT_PROPERTY_NAMES) {
+          FLAT_LAF_DEFAULT_FONT_SIZES.put(
+              key, Integer.parseInt((String) MODEL_FLAT_PROPERTIES.get(key)));
+        }
       } catch (IOException ignored) {
       }
     }
+    Graphics g =
+        ge.getDefaultScreenDevice()
+            .getDefaultConfiguration()
+            .createCompatibleVolatileImage(300, 50)
+            .getGraphics();
+    FONT_LIST.forEach(
+        font -> {
+          font = font.deriveFont(OS_DEFAULT_FONT_SIZE * 1f);
+          int nameWidth = SwingUtilities.computeStringWidth(g.getFontMetrics(font), font.getName());
+          int fontNameWidth =
+              SwingUtilities.computeStringWidth(g.getFontMetrics(font), font.getFontName());
+          int familyNameWidth =
+              SwingUtilities.computeStringWidth(g.getFontMetrics(font), font.getFamily());
+          if (nameWidth > FONT_MAX_NAME_WIDTHS.get("name")) {
+            FONT_MAX_NAME_WIDTHS.put("name", nameWidth);
+          }
+          if (fontNameWidth > FONT_MAX_NAME_WIDTHS.get("fontName")) {
+            FONT_MAX_NAME_WIDTHS.put("fontName", fontNameWidth);
+          }
+          if (familyNameWidth > FONT_MAX_NAME_WIDTHS.get("familyName")) {
+            FONT_MAX_NAME_WIDTHS.put("familyName", familyNameWidth);
+          }
+        });
+    g.dispose();
   }
 
-  private static final int WIN_DEFAULT_FONT_SIZE =
-      ((Font) Toolkit.getDefaultToolkit().getDesktopProperty("win.messagebox.font")).getSize();
-  public static final Font UNSCALED_BASE_FONT = UIManager.getFont("Label.font");
-  public static final float OS_DEFAULT_FONT_SIZE =
-      SystemUtils.IS_OS_WINDOWS ? WIN_DEFAULT_FONT_SIZE : SystemUtils.IS_OS_MAC ? 13 : 12;
-  public static final Map<String, Float> FLAT_LAF_DEFAULT_FONT_SIZES =
-      new HashMap<>() {
-        {
-          for (String key : MODEL_FLAT_PROPERTY_NAMES) {
-            put(key, Float.parseFloat((String) MODEL_FLAT_PROPERTIES.get(key)));
-          }
-        }
-      };
-  public static final Set<String> GENERAL_FONT_KEYS = FLAT_LAF_DEFAULT_FONT_SIZES.keySet();
-  public static final List<String> FONT_STYLE_FAMILIES =
-      new ArrayList<>(List.of("defaultFont", "light.font", "semibold.font", "monospaced.font"));
-  private static final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-  public static final List<Font> FONT_LIST =
-      Arrays.stream(ge.getAllFonts()).sorted(Comparator.comparing(Font::getName)).toList();
-  public static final Map<String, Font> FONT_MAP =
-      FONT_LIST.stream().collect(Collectors.toMap(Font::getName, font -> font));
-
+  /**
+   * Call before applying Flat look and feel to register additional/changed properties
+   */
   public static void flatusInterruptus() {
     FlatLaf.registerCustomDefaultsSource(AppUtil.getAppHome("config"));
     if (USER_FLAT_PROPERTY_NAMES.contains("defaultFont")) {
-      Font font = parseString(USER_FLAT_PROPERTIES.getProperty("defaultFont"));
+      Font font = parseFlatPropertyString(USER_FLAT_PROPERTIES.getProperty("defaultFont"));
       if (font != null) {
         FlatLaf.setPreferredFontFamily(font.getFamily());
       }
     }
     if (USER_FLAT_PROPERTY_NAMES.contains("light.font")) {
-      Font font = parseString(USER_FLAT_PROPERTIES.getProperty("light.font"));
+      Font font = parseFlatPropertyString(USER_FLAT_PROPERTIES.getProperty("light.font"));
       if (font != null) {
         FlatLaf.setPreferredLightFontFamily(font.getFamily());
       }
     }
     if (USER_FLAT_PROPERTY_NAMES.contains("semibold.font")) {
-      Font font = parseString(USER_FLAT_PROPERTIES.getProperty("semibold.font"));
+      Font font = parseFlatPropertyString(USER_FLAT_PROPERTIES.getProperty("semibold.font"));
       if (font != null) {
         FlatLaf.setPreferredSemiboldFontFamily(font.getFamily());
       }
     }
     if (USER_FLAT_PROPERTY_NAMES.contains("monospaced.font")) {
-      Font font = parseString(USER_FLAT_PROPERTIES.getProperty("monospaced.font"));
+      Font font = parseFlatPropertyString(USER_FLAT_PROPERTIES.getProperty("monospaced.font"));
       if (font != null) {
         FlatLaf.setPreferredMonospacedFontFamily(font.getFamily());
       }
@@ -105,21 +135,30 @@ public class ThemeTools {
   }
 
   public static final Function<String, Font> getFontByName =
-      name ->
-          FONT_LIST.stream()
-              .dropWhile(
-                  font ->
-                      !(font.getName().equalsIgnoreCase(name)
-                          || font.getFontName().equalsIgnoreCase(name)
-                          || font.getPSName().equalsIgnoreCase(name)))
-              .findAny()
-              .orElse(
-                  FONT_LIST.stream()
-                      .dropWhile(font -> !font.getFamily().equalsIgnoreCase(name))
-                      .findAny()
-                      .orElse(null));
+      name -> {
+        Font font = Font.getFont(name);
+        if (font == null) {
+          font =
+              FONT_LIST.stream()
+                  .dropWhile(
+                      f ->
+                          !(f.getName().equalsIgnoreCase(name)
+                              || f.getFontName().equalsIgnoreCase(name)
+                              || f.getPSName().equalsIgnoreCase(name)))
+                  .findAny()
+                  .orElse(null);
+        }
+        if (font == null) {
+          font =
+              FONT_LIST.stream()
+                  .dropWhile(f -> !f.getFamily().equalsIgnoreCase(name))
+                  .findAny()
+                  .orElse(null);
+        }
+        return font;
+      };
 
-  protected static Font parseString(String s) {
+  protected static Font parseFlatPropertyString(String s) {
     if (s != null && !s.isBlank()) {
       s = s.replaceAll(" {2,}", " ");
       // split on spaces not contained within quotes
@@ -129,10 +168,11 @@ public class ThemeTools {
         split[i] = split[i].replaceAll("\"", "");
       }
       if (split.length > 0) {
-        if (split.length == 4) {
-          return new FontData(split).toFont();
-        }
         Font font = null;
+        if (split.length == 4) {
+          font = Font.getFont(split[3]);
+          return font.deriveFont(Font.BOLD + Font.ITALIC, Float.parseFloat(split[0]));
+        }
         boolean bold = false;
         boolean italic = false;
         float size = Float.NaN;
@@ -153,22 +193,24 @@ public class ThemeTools {
             }
           }
         }
-        if (font != null) {
-          font =
-              font.deriveFont(
-                  (bold ? Font.BOLD : Font.PLAIN) + (italic ? Font.ITALIC : Font.PLAIN),
-                  Float.isNaN(size) ? 1f : size);
-          return font;
+
+        if (font == null) {
+          font = getFontByName.apply("Webdings");
         }
+        font =
+            font.deriveFont(
+                (bold ? Font.BOLD : Font.PLAIN) + (italic ? Font.ITALIC : Font.PLAIN),
+                Float.isNaN(size) ? 1f : size);
+        return font;
       }
     }
     return null;
   }
 
-  public static boolean writeCustomProperties(Map<String, FontData> properties) {
+  public static boolean writeCustomProperties(Map<String, FontChooser> properties) {
     for (String key : MODEL_FLAT_PROPERTY_NAMES) {
       if (properties.containsKey(key)) {
-        String entry = properties.get(key).toPropertyString(key);
+        String entry = properties.get(key).toFlatPropertyString();
         if (entry.isBlank()) {
           USER_FLAT_PROPERTIES.remove(key);
         } else {

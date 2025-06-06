@@ -602,7 +602,7 @@ public class PreferencesDialog extends JDialog {
                 JOptionPane.WARNING_MESSAGE);
           }
         });
-    JPanel ui = (JPanel) panel.getComponent("uiPrefs");
+    JPanel ui = (JPanel) panel.getComponent("uiFontPrefs");
     ui.add(themeFontPreferences, BorderLayout.CENTER);
 
     tabbedPane = panel.getTabbedPane("TabPane");
