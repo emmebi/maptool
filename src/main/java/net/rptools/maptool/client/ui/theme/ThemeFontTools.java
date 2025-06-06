@@ -17,6 +17,8 @@ package net.rptools.maptool.client.ui.theme;
 import com.formdev.flatlaf.FlatLaf;
 import java.awt.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
@@ -59,6 +61,13 @@ public class ThemeFontTools {
 
   static {
     if (AppPreferences.useCustomThemeFontProperties.get()) {
+      // create file if it does not exist
+      Path p = Path.of(AppUtil.getAppHome("config").getPath(), "/FlatLaf.properties");
+      try {
+        Files.createFile(p);
+      } catch (IOException e) {
+        log.warn("Unable to create user theme properties file.");
+      }
       try (InputStream is =
           new FileInputStream(AppUtil.getAppHome("config/FlatLaf.properties").toPath().toFile())) {
         USER_FLAT_PROPERTIES.load(is);
