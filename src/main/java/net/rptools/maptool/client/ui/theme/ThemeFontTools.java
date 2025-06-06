@@ -103,7 +103,7 @@ public class ThemeFontTools {
     g.dispose();
   }
 
-  /**
+  /*
    * Call before applying Flat look and feel to register additional/changed properties
    */
   public static void flatusInterruptus() {
