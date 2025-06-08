@@ -19,9 +19,6 @@ import com.jidesoft.plaf.UIDefaultsLookup;
 import com.jidesoft.plaf.basic.ThemePainter;
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
-import io.sentry.SentryClientFactory;
-import io.sentry.event.BreadcrumbBuilder;
-import io.sentry.event.UserBuilder;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -1546,8 +1543,15 @@ public class MapTool {
     }
 
     // Initialize Sentry.io logging
-    Sentry.init();
-    sentry = SentryClientFactory.sentryClient();
+    Sentry.init(
+        options -> {
+          options.setEnableExternalConfiguration(true);
+          options.addEventProcessor(
+              (event, hint) -> {
+                event.setRelease(getVersion());
+                return event;
+              });
+        });
 
     // Jamz: Overwrite version for testing if passed as command line argument using -v or
     // -version
@@ -1628,11 +1632,10 @@ public class MapTool {
     }
 
     // Set MapTool version
-    sentry.setRelease(getVersion());
-    sentry.addTag("os", System.getProperty("os.name"));
-    sentry.addTag("version", MapTool.getVersion());
-    sentry.addTag("versionImplementation", versionImplementation);
-    sentry.addTag("versionOverride", versionOverride);
+    Sentry.setTag("os", System.getProperty("os.name"));
+    Sentry.setTag("version", MapTool.getVersion());
+    Sentry.setTag("versionImplementation", versionImplementation);
+    Sentry.setTag("versionOverride", versionOverride);
 
     if (listMacros) {
       StringBuilder logOutput = new StringBuilder();
