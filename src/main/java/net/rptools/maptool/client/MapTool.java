@@ -1470,43 +1470,6 @@ public class MapTool {
     return StringUtil.parseInteger(cmd.getOptionValue(searchValue), defaultValue);
   }
 
-  /** An example method that throws an exception. */
-  static void unsafeMethod() {
-    throw new UnsupportedOperationException("You shouldn't call this either!");
-  }
-
-  /** Examples using the (recommended) static API. */
-  static void testSentryAPI() {
-    // Note that all fields set on the context are optional. Context data is copied onto
-    // all future events in the current context (until the context is cleared).
-
-    // Record a breadcrumb in the current context. By default the last 100 breadcrumbs are kept.
-    Sentry.getContext()
-        .recordBreadcrumb(new BreadcrumbBuilder().setMessage("User made an action").build());
-
-    // Set the user in the current context.
-    Sentry.getContext().setUser(new UserBuilder().setEmail("hello@sentry.io").build());
-
-    // Add extra data to future events in this context.
-    Sentry.getContext().addExtra("extra", "thing");
-
-    // Add an additional tag to future events in this context.
-    Sentry.getContext().addTag("tagName", "tagValue");
-
-    /*
-     * This sends a simple event to Sentry using the statically stored instance that was created in the ``main`` method.
-     */
-    Sentry.capture("This is another logWithStaticAPI test");
-
-    try {
-      unsafeMethod();
-    } catch (Exception e) {
-      // This sends an exception event to Sentry using the statically stored instance
-      // that was created in the ``main`` method.
-      Sentry.capture(e);
-    }
-  }
-
   public static String getLoggerFileName() {
     org.apache.logging.log4j.core.Logger loggerImpl = (org.apache.logging.log4j.core.Logger) log;
     Appender appender = loggerImpl.getAppenders().get("LogFile");
@@ -1585,7 +1548,6 @@ public class MapTool {
     // Initialize Sentry.io logging
     Sentry.init();
     sentry = SentryClientFactory.sentryClient();
-    // testSentryAPI(); // purely for testing...
 
     // Jamz: Overwrite version for testing if passed as command line argument using -v or
     // -version
