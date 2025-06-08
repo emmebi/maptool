@@ -18,6 +18,7 @@ import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.plaf.UIDefaultsLookup;
 import com.jidesoft.plaf.basic.ThemePainter;
 import io.sentry.EventProcessor;
+import io.sentry.Hint;
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
 import io.sentry.SentryEvent;
@@ -1551,7 +1552,7 @@ public class MapTool {
           options.addEventProcessor(
               new EventProcessor() {
                 @Override
-                public SentryEvent process(@Nonnull SentryEvent event, @Nullable Object hint) {
+                public SentryEvent process(@Nonnull SentryEvent event, @Nullable Hint hint) {
                   event.setRelease(getVersion());
                   return event;
                 }
