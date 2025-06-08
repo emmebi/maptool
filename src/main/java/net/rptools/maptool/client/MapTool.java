@@ -17,8 +17,10 @@ package net.rptools.maptool.client;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.plaf.UIDefaultsLookup;
 import com.jidesoft.plaf.basic.ThemePainter;
+import io.sentry.EventProcessor;
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
+import io.sentry.SentryEvent;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -1547,9 +1549,12 @@ public class MapTool {
         options -> {
           options.setEnableExternalConfiguration(true);
           options.addEventProcessor(
-              (event, hint) -> {
-                event.setRelease(getVersion());
-                return event;
+              new EventProcessor() {
+                @Override
+                public SentryEvent process(@Nonnull SentryEvent event, @Nullable Object hint) {
+                  event.setRelease(getVersion());
+                  return event;
+                }
               });
         });
 
