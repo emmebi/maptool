@@ -169,7 +169,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
     var renderHelper = new RenderHelper(this, tempBufferPool);
     this.gridRenderer = new GridRenderer(this);
-    this.haloRenderer = new HaloRenderer(renderHelper, this);
+    this.haloRenderer = new HaloRenderer(renderHelper);
     this.tokenRenderer = new TokenRenderer(renderHelper, zone);
     this.facingArrowRenderer = new FacingArrowRenderer(renderHelper, zone);
     this.selectionRenderer = new SelectionRenderer(renderHelper, viewModel, zoneView);

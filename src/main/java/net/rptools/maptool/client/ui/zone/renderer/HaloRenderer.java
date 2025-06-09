@@ -37,14 +37,16 @@ public class HaloRenderer {
   private Shape paintShape;
   private final int gridLineWeight = AppState.getGridSize();
 
-  public HaloRenderer(RenderHelper renderHelper, ZoneRenderer renderer) {
+  public HaloRenderer(RenderHelper renderHelper) {
     this.renderHelper = renderHelper;
-    setRenderer(renderer);
   }
 
   public void setRenderer(ZoneRenderer zoneRenderer) {
     Zone zone = zoneRenderer.getZone();
     grid = zone.getGrid();
+    if (grid == null) {
+      return;
+    }
     shapeMap = GRID_SHAPE_MAP.get(grid);
     if (shapeMap == null) {
       shapeMap = new HashMap<>();
@@ -60,12 +62,12 @@ public class HaloRenderer {
               .createTransformedShape(haloShape);
     }
 
-    log.info("HaloRenderer - ZoneRenderer updated.");
+    log.info("HaloRenderer - ZoneRenderer updated - Grid set.");
   }
 
   // Render Halos
   public void renderHalo(Graphics2D g2d, Token token, ZoneViewModel.TokenPosition position) {
-    if (token.getHaloColor() == null) {
+    if (token.getHaloColor() == null || grid == null) {
       return;
     }
     // use cache so we don't have to resize halos every time
@@ -105,10 +107,9 @@ public class HaloRenderer {
     g2d.setStroke(
         new BasicStroke(
             (float)
-                (gridLineWeight
-                    + 2f
-                        * Math.min(1f, token.getFootprint(grid).getScale())
-                        * AppPreferences.haloLineWidth.get())));
+                (2f
+                    * Math.min(1f, token.getFootprint(grid).getScale())
+                    * AppPreferences.haloLineWidth.get())));
     g2d.setColor(token.getHaloColor());
     Shape oldClip = g2d.getClip();
     Area a = new Area(g2d.getClipBounds());
