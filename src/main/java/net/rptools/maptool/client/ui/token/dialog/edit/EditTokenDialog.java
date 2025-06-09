@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client.ui.token.dialog.edit;
 
+import com.google.common.collect.Iterables;
 import com.jidesoft.combobox.MultilineStringExComboBox;
 import com.jidesoft.combobox.PopupPanel;
 import com.jidesoft.grid.MultilineStringCellEditor;
@@ -396,15 +397,15 @@ public class EditTokenDialog extends AbeillePanel<Token> {
                 .toArray());
 
     var uniqueLightsSources = token.getUniqueLightSources();
-    var uniqueLights = new ArrayList<LightSource>();
-    var uniqueAuras = new ArrayList<LightSource>();
+    var uniqueLights = new Lights();
+    var uniqueAuras = new Lights();
     for (var lightSource : uniqueLightsSources) {
-      var list =
+      var lights =
           switch (lightSource.getType()) {
             case NORMAL -> uniqueLights;
             case AURA -> uniqueAuras;
           };
-      list.add(lightSource);
+      lights.add(lightSource);
     }
 
     getUniqueLightSourcesTextPane().setText(new LightSyntax().stringifyLights(uniqueLights));
@@ -652,8 +653,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   }
 
   private void updateSightTypeCombo() {
-    List<String> typeList = new ArrayList<String>(MapTool.getCampaign().getSightTypes());
-    Collections.sort(typeList);
+    List<String> typeList = new ArrayList<String>();
+    for (var sightType : MapTool.getCampaign().getSightTypes()) {
+      typeList.add(sightType.getName());
+    }
 
     DefaultComboBoxModel model = new DefaultComboBoxModel(typeList.toArray());
     getSightTypeCombo().setModel(model);
@@ -847,17 +850,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         new HashSet<>(getTerrainModifiersIgnoredList().getSelectedValuesList()));
 
     var existingUniqueLightSources = token.getUniqueLightSources();
-    var uniqueLightSources = new ArrayList<LightSource>();
     var uniqueLights =
         new LightSyntax()
             .parseLights(getUniqueLightSourcesTextPane().getText(), existingUniqueLightSources);
     var uniqueAuras =
         new AuraSyntax().parseAuras(getUniqueAurasTextPane().getText(), existingUniqueLightSources);
-    uniqueLightSources.addAll(uniqueLights.values());
-    uniqueLightSources.addAll(uniqueAuras.values());
-
     token.removeAllUniqueLightsources();
-    for (var lightSource : uniqueLightSources) {
+    for (var lightSource : Iterables.concat(uniqueLights, uniqueAuras)) {
       token.addUniqueLightSource(lightSource);
     }
 
