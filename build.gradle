@@ -361,7 +361,6 @@ dependencies {
     implementation(libs.servicediscovery)
     implementation(libs.upnplib)
     implementation(libs.okhttp)
-    implementation(libs.protobuf.grpc)
     implementation(libs.protobuf.java)
 
     implementation(libs.bundles.imageio)
