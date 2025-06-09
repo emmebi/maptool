@@ -283,7 +283,7 @@ public class AddResourceDialog extends AbeillePanel<AddResourceDialog.Model> {
           if (obj instanceof String) {
             MapTool.showMessage(
                 "dialog.addresource.warn.badresourceid", "Error", JOptionPane.ERROR_MESSAGE, obj);
-            Sentry.capture("Add Resource to Library Error\nResource: " + obj);
+            Sentry.captureMessage("Add Resource to Library Error\nResource: " + obj);
             // Move on to next one...
             continue;
           }

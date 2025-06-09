@@ -2,7 +2,7 @@
 log4j = "2.24.3"
 junit = "5.13.0"
 imageio = "3.12.0"
-sentry = "1.7.29"
+sentry = "7.22.5"
 jide = "3.7.9"
 flatlaf = "3.5.4"
 handlebars = "4.4.0"
