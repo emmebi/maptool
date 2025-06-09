@@ -39,7 +39,7 @@ protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref 
 # find running instances in LAN
 servicediscovery = { group = "net.tsc.servicediscovery", name = "servicediscovery", version = "1.0.b5" }
 # UPNP. Maybe replace with jupnp
-upnplib = { group = "com.github.fishface60", name = "upnplib", version = "0351d7502a57f6c5dc8653220bc03ad99af58b21" }
+upnplib = { group = "com.github.RPTools", name = "upnplib", version = "1.2.0" }
 # For RESTful functions
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version = "4.12.0" }
 
