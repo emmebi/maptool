@@ -17,11 +17,11 @@ package net.rptools.maptool.client.ui.theme;
 import com.formdev.flatlaf.FlatLaf;
 import java.awt.*;
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 import javax.swing.*;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppUtil;
@@ -51,7 +51,11 @@ public class ThemeFontTools {
       };
 
   private static final int WIN_DEFAULT_FONT_SIZE =
-      ((Font) Toolkit.getDefaultToolkit().getDesktopProperty("win.messagebox.font")).getSize();
+      (Toolkit.getDefaultToolkit().getDesktopProperty("win.messagebox.font")) == null
+          ? 12
+          : ((Font) Toolkit.getDefaultToolkit().getDesktopProperty("win.messagebox.font"))
+              .getSize();
+
   public static final int OS_DEFAULT_FONT_SIZE =
       SystemUtils.IS_OS_WINDOWS ? WIN_DEFAULT_FONT_SIZE : SystemUtils.IS_OS_MAC ? 13 : 12;
   public static final Map<String, Integer> FLAT_LAF_DEFAULT_FONT_SIZES = new HashMap<>();
@@ -65,6 +69,8 @@ public class ThemeFontTools {
       Path p = Path.of(AppUtil.getAppHome("config").getPath(), "/FlatLaf.properties");
       try {
         Files.createFile(p);
+      } catch (FileAlreadyExistsException ignored) {
+        // expected result
       } catch (IOException e) {
         log.warn("Unable to create user theme properties file.");
       }
@@ -143,29 +149,28 @@ public class ThemeFontTools {
     }
   }
 
-  public static final Function<String, Font> getFontByName =
-      name -> {
-        Font font = Font.getFont(name);
-        if (font == null) {
-          font =
-              FONT_LIST.stream()
-                  .dropWhile(
-                      f ->
-                          !(f.getName().equalsIgnoreCase(name)
-                              || f.getFontName().equalsIgnoreCase(name)
-                              || f.getPSName().equalsIgnoreCase(name)))
-                  .findAny()
-                  .orElse(null);
-        }
-        if (font == null) {
-          font =
-              FONT_LIST.stream()
-                  .dropWhile(f -> !f.getFamily().equalsIgnoreCase(name))
-                  .findAny()
-                  .orElse(null);
-        }
-        return font;
-      };
+  private static Font getFontByName(String name) {
+    Font font = Font.getFont(name);
+    if (font == null) {
+      font =
+          FONT_LIST.stream()
+              .dropWhile(
+                  f ->
+                      !(f.getName().equalsIgnoreCase(name)
+                          || f.getFontName().equalsIgnoreCase(name)
+                          || f.getPSName().equalsIgnoreCase(name)))
+              .findAny()
+              .orElse(null);
+    }
+    if (font == null) {
+      font =
+          FONT_LIST.stream()
+              .dropWhile(f -> !f.getFamily().equalsIgnoreCase(name))
+              .findAny()
+              .orElse(null);
+    }
+    return font;
+  }
 
   protected static Font parseFlatPropertyString(String s) {
     if (s != null && !s.isBlank()) {
@@ -196,7 +201,7 @@ public class ThemeFontTools {
             }
           }
           if (name == null) {
-            font = getFontByName.apply(part);
+            font = getFontByName(part);
             if (font != null) {
               name = font.getName();
             }
@@ -204,8 +209,15 @@ public class ThemeFontTools {
         }
 
         if (font == null) {
-          font = getFontByName.apply("Webdings");
+          font = getFontByName("Webdings");
+          if (font == null) {
+            font = getFontByName("GenesysGlyphsAndDice-3.0");
+            if (font == null) {
+              font = Font.decode(Font.SANS_SERIF);
+            }
+          }
         }
+
         font =
             font.deriveFont(
                 (bold ? Font.BOLD : Font.PLAIN) + (italic ? Font.ITALIC : Font.PLAIN),
@@ -236,7 +248,7 @@ public class ThemeFontTools {
       log.info("User font preferences written to config directory.");
       return true;
     } catch (IOException e) {
-      log.info("Could not write user font preferences to config directory.");
+      // Could not write user font preferences to config directory.
       MapTool.showError("msg.error.cantSaveTheme", e);
       return false;
     }
