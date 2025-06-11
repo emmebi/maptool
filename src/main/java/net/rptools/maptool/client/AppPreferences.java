@@ -402,6 +402,9 @@ public class AppPreferences {
   public static final Preference<String> iconTheme =
       store.defineString("iconTheme", "Rod Takehara");
 
+  public static final Preference<Boolean> useCustomThemeFontProperties =
+      store.defineBoolean("useCustomUIProperties", false);
+
   static {
     var prefs = store.getStorage();
 

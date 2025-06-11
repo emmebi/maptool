@@ -80,7 +80,6 @@ public class PointerTool extends DefaultTool {
 
   // Hovers
   private boolean isShowingHover;
-  private Area hoverTokenBounds;
   private String hoverTokenNotes;
 
   // Track token interactions to hide statsheets when doing other stuff
@@ -398,7 +397,6 @@ public class PointerTool extends DefaultTool {
 
     if (isShowingHover) {
       isShowingHover = false;
-      hoverTokenBounds = null;
       hoverTokenNotes = null;
       markerUnderMouse = renderer.getMarkerAt(e.getX(), e.getY());
       repaint();
@@ -514,12 +512,7 @@ public class PointerTool extends DefaultTool {
             && !isShowingHover
             && tokenDragOp == null) {
           isShowingHover = true;
-          hoverTokenBounds = renderer.getMarkerBounds(markerUnderMouse);
           hoverTokenNotes = createHoverNote(markerUnderMouse);
-          if (hoverTokenBounds == null) {
-            // Uhhhh, where's the token ?
-            isShowingHover = false;
-          }
           repaint();
         }
         // SELECTION BOUND BOX
@@ -1623,16 +1616,8 @@ public class PointerTool extends DefaultTool {
               hoverTokenNotes,
               (int) (renderer.getWidth() * .75),
               (int) (renderer.getHeight() * .75));
-      Point location =
-          new Point(
-              hoverTokenBounds.getBounds().x
-                  + hoverTokenBounds.getBounds().width / 2
-                  - size.width / 2,
-              hoverTokenBounds.getBounds().y);
-
       // Anchor in the bottom left corner
-      location.x = 4 + PADDING;
-      location.y = viewSize.height - size.height - 4 - PADDING;
+      Point location = new Point(4 + PADDING, viewSize.height - size.height - 4 - PADDING);
 
       // Keep it on screen
       if (location.x + size.width > viewSize.width) {

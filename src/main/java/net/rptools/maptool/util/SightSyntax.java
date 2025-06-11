@@ -23,7 +23,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.language.I18N;
@@ -31,14 +30,15 @@ import net.rptools.maptool.model.Light;
 import net.rptools.maptool.model.LightSource;
 import net.rptools.maptool.model.ShapeType;
 import net.rptools.maptool.model.SightType;
+import net.rptools.maptool.model.Sights;
 import net.rptools.maptool.model.drawing.DrawableColorPaint;
 
 public class SightSyntax {
 
   private static final int DEFAULT_LUMENS = 100;
 
-  public List<SightType> parse(String text) {
-    final var sightList = new LinkedList<SightType>();
+  public Sights parse(String text) {
+    final var sightList = new Sights();
     final var reader = new LineNumberReader(new BufferedReader(new StringReader(text)));
     String line;
     String toBeParsed = null, errmsg = null;
@@ -193,9 +193,9 @@ public class SightSyntax {
     return sightList;
   }
 
-  public String stringify(Map<String, SightType> sightTypeMap) {
+  public String stringify(Sights sightTypeMap) {
     StringBuilder builder = new StringBuilder();
-    for (SightType sight : sightTypeMap.values()) {
+    for (SightType sight : sightTypeMap) {
       builder.append(sight.getName()).append(": ");
 
       builder.append(sight.getShape().name().toLowerCase()).append(" ");
