@@ -9,7 +9,7 @@ handlebars = "4.4.0"
 jai-imageio = "1.4.0"
 graalvm-js = "21.2.0"
 pdfbox = "3.0.0"
-protoc = "4.29.3"
+protoc = "4.31.1"
 gdx = "1.13.5"
 
 [libraries]
