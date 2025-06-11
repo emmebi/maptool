@@ -54,15 +54,19 @@ public class ThemeFontPreferences extends AbeillePanel {
 
     // everything is relative to "defaultFont" so we pull that out and grab some values
     Font defaultFont = LAF_DEFAULTS.getFont(DF);
+    int referenceSize = defaultFont.getSize();
+    int defaultFontRelativeSizeValue;
     String defaultFontProperty;
+    Font referenceFont = null;
     if (ThemeFontTools.USER_FLAT_PROPERTY_NAMES.contains(DF)) {
       defaultFontProperty = ThemeFontTools.USER_FLAT_PROPERTIES.getProperty(DF);
-    } else {
-      defaultFontProperty = ThemeFontTools.MODEL_FLAT_PROPERTIES.getProperty(DF);
+      referenceFont = ThemeFontTools.parseFlatPropertyString(defaultFontProperty);
     }
-    int defaultFontRelativeSizeValue =
-        ThemeFontTools.parseFlatPropertyString(defaultFontProperty).getSize();
-    int referenceSize = defaultFont.getSize();
+    if (referenceFont == null) {
+      defaultFontRelativeSizeValue = referenceSize - ThemeFontTools.OS_DEFAULT_FONT_SIZE;
+    } else {
+      defaultFontRelativeSizeValue = referenceFont.getSize();
+    }
 
     // Keys for general font sizes as well as generic font styles
     List<String> allKeys =
@@ -75,7 +79,12 @@ public class ThemeFontPreferences extends AbeillePanel {
       JCheckBox cb = getCheckBox(key + ".enable");
       cb.setSelected(enabled);
       cb.addItemListener(enableListener);
-
+      cb.addItemListener(
+          item -> {
+            if (((JCheckBox) item.getSource()).isSelected()) {
+              useCustomUIProperties.setSelected(true);
+            }
+          });
       // set up the labels to display the various fonts and sizes
       FlatLabel label = new FlatLabel();
       label.setText(((JLabel) getComponent(key + ".label")).getText());
@@ -191,7 +200,8 @@ public class ThemeFontPreferences extends AbeillePanel {
     String[] keys = FONT_CHOOSER_MAP.keySet().toArray(new String[0]);
 
     for (int i = keys.length - 1; i > -1; i--) {
-      if (!FONT_CHOOSER_MAP.get(keys[i]).isEnabled()) {
+      if (!(FONT_CHOOSER_MAP.get(keys[i]).isEnabled()
+          && AppPreferences.useCustomThemeFontProperties.get())) {
         FONT_CHOOSER_MAP.remove(keys[i]);
       }
     }

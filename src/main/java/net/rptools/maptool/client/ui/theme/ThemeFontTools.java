@@ -80,18 +80,20 @@ public class ThemeFontTools {
         USER_FLAT_PROPERTY_NAMES.addAll(USER_FLAT_PROPERTIES.stringPropertyNames());
       } catch (IOException ignored) {
       }
-      try (InputStream is =
-          ThemeFontTools.class.getResourceAsStream(
-              "/net/rptools/maptool/client/ui/themes/modelUserTheme.properties")) {
-        MODEL_FLAT_PROPERTIES.load(is);
-        MODEL_FLAT_PROPERTY_NAMES.addAll(MODEL_FLAT_PROPERTIES.stringPropertyNames());
-        for (String key : MODEL_FLAT_PROPERTY_NAMES) {
-          FLAT_LAF_DEFAULT_FONT_SIZES.put(
-              key, Integer.parseInt((String) MODEL_FLAT_PROPERTIES.get(key)));
-        }
-      } catch (IOException ignored) {
-      }
     }
+    // load the model properties regardless - otherwise the preferences section fails
+    try (InputStream is =
+        ThemeFontTools.class.getResourceAsStream(
+            "/net/rptools/maptool/client/ui/themes/modelUserTheme.properties")) {
+      MODEL_FLAT_PROPERTIES.load(is);
+      MODEL_FLAT_PROPERTY_NAMES.addAll(MODEL_FLAT_PROPERTIES.stringPropertyNames());
+      for (String key : MODEL_FLAT_PROPERTY_NAMES) {
+        FLAT_LAF_DEFAULT_FONT_SIZES.put(
+            key, Integer.parseInt((String) MODEL_FLAT_PROPERTIES.get(key)));
+      }
+    } catch (IOException ignored) {
+    }
+
     Graphics g =
         ge.getDefaultScreenDevice()
             .getDefaultConfiguration()
@@ -209,13 +211,7 @@ public class ThemeFontTools {
         }
 
         if (font == null) {
-          font = getFontByName("Webdings");
-          if (font == null) {
-            font = getFontByName("GenesysGlyphsAndDice-3.0");
-            if (font == null) {
-              font = Font.decode(Font.SANS_SERIF);
-            }
-          }
+          font = Font.decode(Font.SANS_SERIF);
         }
 
         font =
