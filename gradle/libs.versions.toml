@@ -101,7 +101,7 @@ apache-commons-io = { group = "commons-io", name = "commons-io", version = "2.19
 #  ftp client
 apache-commons-net = { group = "commons-net", name = "commons-net", version = "3.11.1" }
 # commandline parsing
-apache-commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
+apache-commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.9.0" }
 # String utilities
 apache-commons-lang = { group = "org.apache.commons", name = "commons-lang3", version = "3.17.0" }
 # needed for preference dialog at runtime
