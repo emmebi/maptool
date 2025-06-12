@@ -35,7 +35,6 @@ public class HaloRenderer {
   private Grid grid;
   private Shape haloShape;
   private Shape paintShape;
-  private final int gridLineWeight = AppState.getGridSize();
 
   public HaloRenderer(RenderHelper renderHelper) {
     this.renderHelper = renderHelper;
