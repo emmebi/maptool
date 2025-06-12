@@ -21,7 +21,6 @@ import java.awt.geom.Ellipse2D;
 import java.util.HashMap;
 import java.util.Map;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.AppState;
 import net.rptools.maptool.client.ui.zone.ZoneViewModel;
 import net.rptools.maptool.model.*;
 import org.apache.logging.log4j.LogManager;
