@@ -86,7 +86,6 @@ public class GridRenderer {
         v += scaledMinorRadius) {
       double offsetU = (int) ((count & 1) == 0 ? 0 : -(scaledEdgeProjection + scaledEdgeLength));
       count++;
-
       double start =
           offU % (2 * scaledEdgeLength + 2 * scaledEdgeProjection)
               - (2 * scaledEdgeLength + 2 * scaledEdgeProjection);
