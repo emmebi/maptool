@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'RPTools/maptool'  # Don't run nightly releases on contributor forks.
     permissions:
       contents: write
     runs-on: ubuntu-latest
