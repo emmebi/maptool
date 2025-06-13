@@ -241,8 +241,9 @@ public class ExpressionParser {
 
   private final List<Pair<Pattern, String>> preprocessPatterns =
       List.of(
-          new Pair<>(Pattern.compile("^([A-z]+)!\"([^\"]*)\"$"), "advancedRoll('$1', " + "'$2')"),
-          new Pair<>(Pattern.compile("^([A-z]+)!'([^']*)'$"), "advancedRoll('$1', " + "'$2')"));
+          new Pair<>(
+              Pattern.compile("^([A-Za-z]+)!\"([^\"]*)\"$"), "advancedRoll('$1', " + "'$2')"),
+          new Pair<>(Pattern.compile("^([A-Za-z]+)!'([^']*)'$"), "advancedRoll('$1', " + "'$2')"));
 
   public ExpressionParser() {
     this(DICE_PATTERNS);
