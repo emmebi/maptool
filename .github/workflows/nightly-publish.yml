@@ -14,7 +14,7 @@ jobs:
       - name: Set Vars
         id: set-vars
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_BUILD_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "LATEST_STABLE_TAG=$(gh release list -R ${{ github.repository}} | grep -v nightly | awk '{ print $1}' | head -1)"  >> $GITHUB_ENV
           echo "Latest Stable Tag: $LATEST_STABLE_TAG"
@@ -23,12 +23,12 @@ jobs:
       - name: Create Release
         id: create-release
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_BUILD_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create  nightly-${NIGHTLY_DATE} -R ${{github.repository}} --title "MapTool Nightly ${NIGHTLY_DATE}"  --notes "MapTool Nightly Build for ${NIGHTLY_DATE}" --generate-notes -p --target develop
       - name: Delete old Nightly releases
         id: delete-old
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_BUILD_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release list -R ${{ github.repository }} --json 'name,tagName' --jq '.[] | select(.tagName | startswith("nightly"))|.tagName' | tail +2 | xargs -n 1 gh release delete -R ${{ github.repository}} -y --cleanup-tag
