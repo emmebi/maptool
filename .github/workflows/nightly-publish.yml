@@ -31,4 +31,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release list -R ${{ github.repository }} --json 'name,tagName' --jq '.[] | select(.tagName | startswith("nightly"))|.tagName' | tail +2 | xargs -n 1 gh release delete -R ${{ github.repository}} -y --cleanup-tag
+          gh release list -R ${{ github.repository }} --json 'name,tagName' --jq '.[] | select(.tagName | startswith("nightly"))|.tagName' | tail +2 | xargs -r -n 1 gh release delete -R ${{ github.repository}} -y --cleanup-tag
