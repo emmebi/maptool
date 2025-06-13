@@ -31,7 +31,7 @@ import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import net.rptools.lib.MD5Key;
@@ -43,7 +43,7 @@ import org.apache.logging.log4j.Logger;
 public class CipherUtil {
 
   /** The algorithm to use for encoding / decoding. */
-  private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
+  private static final String CIPHER_ALGORITHM = "AES/GCM/NoPadding";
 
   /** The size of the block cipher's block size in bytes. */
   public static final int CIPHER_BLOCK_SIZE = 16;
