@@ -70,7 +70,9 @@ public class CipherUtil {
   private static final String KEY_GENERATION_ALGORITHM = "PBKDF2WithHmacSHA1";
 
   /** Asynchronous Key Algorithm */
-  private static final String ASYNC_KEY_ALGORITHM = "RSA";
+  private static final String ASYMMETRIC_KEY_ALGORITHM = "RSA";
+
+  private static final String ASYMMETRIC_CIPHER_ALGORITHM = "RSA";
 
   private static final String PUBLIC_KEY_FIRST_LINE = "====== Begin Public Key ======";
   private static final String PUBLIC_KEY_LAST_LINE = "====== End Public Key ======";
@@ -94,7 +96,6 @@ public class CipherUtil {
       return encodedPublicKeyText(publicKey());
     }
   }
-  ;
 
   public static CipherUtil.Key fromPublicPrivatePair(File publicKeyFile, File privateKeyFile)
       throws IOException,
@@ -172,6 +173,25 @@ public class CipherUtil {
   }
 
   /**
+   * Verifies that {@code key} is usable in asymmetric contexts.
+   *
+   * @throws AssertionError If {@code key} is not suitable.
+   */
+  private static void checkAsymmetricKey(Key key) {
+    // TODO The errors raised here are not properly handled and result in the glass pane remaining
+    // forever.
+    if (!key.asymmetric()) {
+      throw new AssertionError("Expected asymmetric key, got symmetric");
+    }
+
+    var algorithm = key.publicKey().getAlgorithm();
+    if (!algorithm.equals(ASYMMETRIC_KEY_ALGORITHM)) {
+      throw new AssertionError(
+          "Expected Algorithm " + ASYMMETRIC_KEY_ALGORITHM + " got " + algorithm);
+    }
+  }
+
+  /**
    * Returns a {@link Cipher} that can be used to decipher encoded values.
    *
    * @param key the key used for deciphering.
@@ -185,13 +205,7 @@ public class CipherUtil {
           NoSuchAlgorithmException,
           InvalidKeyException,
           InvalidAlgorithmParameterException {
-    if (!key.asymmetric()) {
-      throw new AssertionError("Expected asymmetric key, got symmetric");
-    }
-    if (!key.publicKey.getAlgorithm().equals(ASYNC_KEY_ALGORITHM)) {
-      throw new AssertionError(
-          "Expected Algorithm " + ASYNC_KEY_ALGORITHM + " got " + key.privateKey.getAlgorithm());
-    }
+    checkAsymmetricKey(key);
     return createCipher(Cipher.DECRYPT_MODE, key, null);
   }
 
@@ -234,13 +248,7 @@ public class CipherUtil {
           NoSuchAlgorithmException,
           InvalidKeyException,
           InvalidAlgorithmParameterException {
-    if (!key.asymmetric()) {
-      throw new AssertionError("Expected asymmetric key, got symmetric");
-    }
-    if (!key.publicKey.getAlgorithm().equals(ASYNC_KEY_ALGORITHM)) {
-      throw new AssertionError(
-          "Expected Algorithm " + ASYNC_KEY_ALGORITHM + " got " + key.publicKey.getAlgorithm());
-    }
+    checkAsymmetricKey(key);
     return createCipher(Cipher.ENCRYPT_MODE, key, null);
   }
 
@@ -261,20 +269,20 @@ public class CipherUtil {
           InvalidKeyException,
           InvalidAlgorithmParameterException {
     if (key.asymmetric()) {
-      Cipher cipher = Cipher.getInstance(ASYNC_KEY_ALGORITHM);
+      Cipher cipher = Cipher.getInstance(ASYMMETRIC_CIPHER_ALGORITHM);
       cipher.init(
           encryptMode, encryptMode == Cipher.ENCRYPT_MODE ? key.publicKey() : key.privateKey());
       return cipher;
     } else {
       Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
-      cipher.init(encryptMode, key.secretKeySpec, new IvParameterSpec(iv));
+      cipher.init(encryptMode, key.secretKeySpec, new GCMParameterSpec(128, iv));
       return cipher;
     }
   }
 
   public static byte[] createSalt(int size) {
     SecureRandom secureRandom = new SecureRandom();
-    byte salt[] = new byte[size];
+    byte[] salt = new byte[size];
     secureRandom.nextBytes(salt);
 
     return salt;
@@ -386,7 +394,7 @@ public class CipherUtil {
   public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
     SecureRandom secureRandom = new SecureRandom();
 
-    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(ASYNC_KEY_ALGORITHM);
+    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(ASYMMETRIC_KEY_ALGORITHM);
     keyPairGenerator.initialize(2048, secureRandom);
     return keyPairGenerator.generateKeyPair();
   }
