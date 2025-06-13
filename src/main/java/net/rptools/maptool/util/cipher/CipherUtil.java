@@ -72,7 +72,7 @@ public class CipherUtil {
   /** Asynchronous Key Algorithm */
   private static final String ASYMMETRIC_KEY_ALGORITHM = "RSA";
 
-  private static final String ASYMMETRIC_CIPHER_ALGORITHM = "RSA";
+  private static final String ASYMMETRIC_CIPHER_ALGORITHM = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
 
   private static final String PUBLIC_KEY_FIRST_LINE = "====== Begin Public Key ======";
   private static final String PUBLIC_KEY_LAST_LINE = "====== End Public Key ======";
