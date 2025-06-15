@@ -6,26 +6,29 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'RPTools/maptool'  # Don't run nightly releases on contributor forks.
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Set Vars
         id: set-vars
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_BUILD_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "LATEST_STABLE_TAG=$(gh release list -R ${{ github.repository}} | grep -v nightly | awk '{ print $1}' | head -1)"  >> $GITHUB_ENV
+          echo "LATEST_STABLE_TAG=$(gh release list -R ${{ github.repository}} --exclude-drafts --exclude-pre-releases --order 'desc' --limit 1 --json tagName --jq '.[].tagName')"  >> $GITHUB_ENV
           echo "Latest Stable Tag: $LATEST_STABLE_TAG"
           echo "NIGHTLY_DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
           echo "Creating for Nightly: $NIGHTLY_DATE"
       - name: Create Release
         id: create-release
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_BUILD_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create  nightly-${NIGHTLY_DATE} -R ${{github.repository}} --title "MapTool Nightly ${NIGHTLY_DATE}"  --notes "MapTool Nightly Build for ${NIGHTLY_DATE}" --generate-notes -p --target develop
       - name: Delete old Nightly releases
         id: delete-old
         env:
-          GITHUB_TOKEN: ${{ secrets.NIGHTLY_BUILD_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release list -R ${{ github.repository }} --json 'name,tagName' --jq '.[] | select(.tagName | startswith("nightly"))|.tagName' | tail +2 | xargs -n 1 gh release delete -R ${{ github.repository}} -y --cleanup-tag
+          gh release list -R ${{ github.repository }} --json 'name,tagName' --jq '.[] | select(.tagName | startswith("nightly"))|.tagName' | tail +2 | xargs -r -n 1 gh release delete -R ${{ github.repository}} -y --cleanup-tag
