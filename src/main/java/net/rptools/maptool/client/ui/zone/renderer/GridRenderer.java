@@ -41,6 +41,7 @@ public class GridRenderer {
       return;
     }
     this.zone = renderer.getZone();
+    setGridColours();
   }
 
   private void setGridColours() {

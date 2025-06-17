@@ -49,8 +49,6 @@ import net.rptools.maptool.client.tool.StampTool;
 import net.rptools.maptool.client.ui.Scale;
 import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
-import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
-import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.token.dialog.create.NewTokenDialog;
 import net.rptools.maptool.client.ui.zone.*;
 import net.rptools.maptool.client.ui.zone.gdx.GdxRenderer;
@@ -64,6 +62,8 @@ import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.*;
 import net.rptools.maptool.model.player.Player;
+import net.rptools.maptool.model.token.decoration.overlays.AbstractTokenOverlay;
+import net.rptools.maptool.model.token.decoration.overlays.BarTokenOverlay;
 import net.rptools.maptool.model.zones.*;
 import net.rptools.maptool.util.CollectionUtil;
 import net.rptools.maptool.util.GraphicsUtil;
@@ -1843,10 +1843,10 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         }
         if (overlay == null
             || overlay.isMouseover() && token != tokenUnderMouse
-            || !overlay.showPlayer(token, MapTool.getPlayer())) {
+            || overlay.hideFromPlayer(token, MapTool.getPlayer())) {
           continue;
         }
-        overlay.paintOverlay(locG, token, bounds, stateValue);
+        overlay.paintDecoration(locG, token, bounds, stateValue);
       }
       timer.stop("token-list-9");
 
@@ -1857,11 +1857,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         BarTokenOverlay overlay = MapTool.getCampaign().getTokenBarsMap().get(bar);
         if (overlay == null
             || overlay.isMouseover() && token != tokenUnderMouse
-            || !overlay.showPlayer(token, MapTool.getPlayer())) {
+            || overlay.hideFromPlayer(token, MapTool.getPlayer())) {
           continue;
         }
 
-        overlay.paintOverlay(locG, token, bounds, barValue);
+        overlay.paintDecoration(locG, token, bounds, barValue);
       }
       locG.dispose();
       timer.stop("token-list-10");
@@ -2656,6 +2656,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   private void onGridChanged(GridChanged event) {
     if (event.zone() != this.zone) {
       haloRenderer.gridChanged(this);
+      gridRenderer.setRenderer(this);
       return;
     }
 
