@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.swing.*;
-
 import net.rptools.lib.GeometryUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppUtil;
@@ -727,9 +726,8 @@ public class Zone {
     this.grid = grid;
     grid.setZone(this);
     // invoke later to prevent firing with null zone during initialisation
-    SwingUtilities.invokeLater(() ->
-      new MapToolEventBus().getMainEventBus().post(new GridChanged(this))
-    );
+    SwingUtilities.invokeLater(
+        () -> new MapToolEventBus().getMainEventBus().post(new GridChanged(this)));
   }
 
   public Grid getGrid() {
@@ -2242,7 +2240,8 @@ public class Zone {
     var zone = new Zone();
     zone.creationTime = dto.getCreationTime();
     zone.id = GUID.valueOf(dto.getId());
-    zone.setGrid(Grid.fromDto(dto.getGrid()));
+    zone.grid = Grid.fromDto(dto.getGrid());
+    zone.grid.setZone(zone);
     zone.gridColor = dto.getGridColor();
     zone.imageScaleX = dto.getImageScaleX();
     zone.imageScaleY = dto.getImageScaleY();
