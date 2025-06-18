@@ -15,38 +15,48 @@
 package net.rptools.maptool.client.ui.zone.renderer;
 
 import com.github.weisj.jsvg.util.ColorUtil;
+import com.google.common.eventbus.Subscribe;
 import java.awt.*;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.AppState;
 import net.rptools.maptool.client.ui.zone.PlayerView;
 import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
+import net.rptools.maptool.model.zones.GridChanged;
 
 public class GridRenderer {
-  private ZoneRenderer renderer;
+  private final ZoneRenderer renderer;
   private Zone zone;
   private static float gridLineWeight;
   private static float scale;
   private static float baseWidth = 2f;
   private static Color[] gridColours;
+  private int baseColourInt = -1;
 
   GridRenderer(ZoneRenderer renderer) {
     new MapToolEventBus().getMainEventBus().register(this);
-    setRenderer(renderer);
-  }
-
-  public void setRenderer(ZoneRenderer renderer) {
     this.renderer = renderer;
-    if (renderer.getZone() == null) {
-      return;
-    }
     this.zone = renderer.getZone();
     setGridColours();
   }
 
+  @SuppressWarnings("unused")
+  @Subscribe
+  private void onGridChanged(GridChanged event) {
+    if (event.zone() != null) {
+      this.zone = event.zone();
+      setGridColours();
+    }
+  }
+
   private void setGridColours() {
-    Color gc = new Color(zone.getGridColor());
-    Color contrast = new Color(ImageUtil.negativeColourInt(zone.getGridColor()));
+    int gridColourInt = zone.getGridColor();
+    if (this.baseColourInt == gridColourInt) {
+      return;
+    }
+    this.baseColourInt = gridColourInt;
+    Color gc = new Color(baseColourInt);
+    Color contrast = new Color(ImageUtil.negativeColourInt(baseColourInt));
     gridColours =
         new Color[] {
           gc,
@@ -82,12 +92,8 @@ public class GridRenderer {
   }
 
   public void renderGrid(Graphics2D g, PlayerView view) {
-    if (zone == null
-        || !AppState.isShowGrid()
+    if (!AppState.isShowGrid()
         || zone.getGrid().getSize() * renderer.getScale() < ZoneRendererConstants.MIN_GRID_SIZE) {
-      if (renderer != null) {
-        setRenderer(renderer);
-      }
       return;
     }
     gridLineWeight = AppState.getGridLineWeight();
