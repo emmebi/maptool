@@ -2655,7 +2655,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
   @Subscribe
   private void onGridChanged(GridChanged event) {
     if (event.zone() != this.zone) {
-      haloRenderer.gridChanged(this);
       return;
     }
 

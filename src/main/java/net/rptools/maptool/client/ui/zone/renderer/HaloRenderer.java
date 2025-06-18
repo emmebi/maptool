@@ -14,6 +14,7 @@
  */
 package net.rptools.maptool.client.ui.zone.renderer;
 
+import com.google.common.eventbus.Subscribe;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
@@ -22,7 +23,9 @@ import java.util.HashMap;
 import java.util.Map;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.zone.ZoneViewModel;
+import net.rptools.maptool.events.MapToolEventBus;
 import net.rptools.maptool.model.*;
+import net.rptools.maptool.model.zones.GridChanged;
 
 public class HaloRenderer {
   private final RenderHelper renderHelper;
@@ -38,10 +41,16 @@ public class HaloRenderer {
   public HaloRenderer(RenderHelper renderHelper, Zone zone) {
     this.renderHelper = renderHelper;
     this.zone = zone;
-    gridChanged();
+
+    new MapToolEventBus().getMainEventBus().register(this);
   }
 
-  public void gridChanged() {
+  @Subscribe
+  private void gridChanged(GridChanged event) {
+    if (event.zone() != this.zone) {
+      return;
+    }
+
     shapeMap.clear();
     cachedHaloShape = null;
   }
