@@ -361,13 +361,11 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     /* Updates the Property Type list. */
     updatePropertyTypeCombo();
 
-    /* Set the selected item in Property Type list. Triggers a itemStateChanged event if index != 0 */
-    getPropertyTypeCombo().setSelectedItem(token.getPropertyType());
-
-    /* If index == 0, the itemStateChanged event wasn't triggered, so we update. Fix #1504 */
-    if (getPropertyTypeCombo().getSelectedIndex() == 0) {
-      updatePropertiesTable(token, (String) getPropertyTypeCombo().getSelectedItem());
-    }
+    /* Set the selected item in Property Type list. */
+    var propertyType = token.getPropertyType();
+    getPropertyTypeCombo().setSelectedItem(propertyType);
+    /* Make sure the right properties are displayed. */
+    updatePropertiesTable(token, propertyType);
 
     getSightTypeCombo()
         .setSelectedItem(
