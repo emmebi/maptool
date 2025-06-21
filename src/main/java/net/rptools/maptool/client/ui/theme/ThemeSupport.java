@@ -284,16 +284,6 @@ public class ThemeSupport {
             "Gruvbox-Dark-Hard.png",
             true),
         new ThemeDetails(
-            "Gruvbox Dark Medium",
-            com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme.class,
-            "Gruvbox-Dark-Medium.png",
-            true),
-        new ThemeDetails(
-            "Gruvbox Dark Soft",
-            com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme.class,
-            "Gruvbox-Dark-Soft.png",
-            true),
-        new ThemeDetails(
             "Hiberbee",
             com.formdev.flatlaf.intellijthemes.FlatHiberbeeDarkIJTheme.class,
             "Hiberbee.png",
