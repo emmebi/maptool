@@ -57,7 +57,6 @@ public class ThemeFontPreferences extends AbeillePanel {
               stateChanged
                   | evt.getPropertyName().equals("font")
                   | evt.getPropertyName().equals("enabled");
-          System.out.println(stateChanged);
         }
       };
 
