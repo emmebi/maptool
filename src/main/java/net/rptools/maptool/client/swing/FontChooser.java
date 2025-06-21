@@ -152,8 +152,7 @@ public class FontChooser extends JComponent {
     ChangeListener<Object> changeListener =
         (obs, was, now) -> {
           updateFont();
-          firePropertyChange(
-              obs.equals(referenceSize) ? "referenceSize" : "relativeSize", was, now);
+          firePropertyChange("font", was, now);
         };
 
     bold.addListener(changeListener);
