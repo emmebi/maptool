@@ -436,7 +436,15 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
               var lastPoint = tokenPath.getWayPointList().getLast();
               var endPoint =
                   switch (lastPoint) {
-                    case CellPoint cp -> token.getDragAnchorAsIfLocatedInCell(zone, cp);
+                    case CellPoint cp -> {
+                      // Anchor at the cell center.
+                      var grid = zone.getGrid();
+                      var zp = grid.convert(cp);
+                      var centerOffset = grid.getCenterOffset();
+                      zp.x += (int) centerOffset.x;
+                      zp.y += (int) centerOffset.y;
+                      yield zp;
+                    }
                     case ZonePoint zp -> zp;
                   };
               token.moveDragAnchorTo(zone, endPoint);
