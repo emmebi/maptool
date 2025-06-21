@@ -18,13 +18,14 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.components.FlatLabel;
 import java.awt.*;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.swing.*;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.FontChooser;
 import net.rptools.maptool.language.I18N;
@@ -35,6 +36,9 @@ public class ThemeFontPreferences extends AbeillePanel {
     super(new ThemeFontPreferencesPanel().getRootComponent());
     panelInit();
     validate();
+    for (FontChooser chooser : FONT_CHOOSER_MAP.values()) {
+      chooser.addPropertyChangeListener(changeListener);
+    }
   }
 
   private static final LookAndFeel CURRENT_LAF = UIManager.getLookAndFeel();
@@ -43,8 +47,23 @@ public class ThemeFontPreferences extends AbeillePanel {
   private static final Map<String, FontChooser> FONT_CHOOSER_MAP = new HashMap<>();
   private static final String DF = "defaultFont";
 
+  private final boolean prefAtLoad = AppPreferences.useCustomThemeFontProperties.get();
+  private boolean stateChanged;
+  private final PropertyChangeListener changeListener =
+      new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+          stateChanged =
+              stateChanged
+                  | evt.getPropertyName().equals("font")
+                  | evt.getPropertyName().equals("enabled");
+          System.out.println(stateChanged);
+        }
+      };
+
   @SuppressWarnings("unused")
   public void initComponents() {
+    stateChanged = false;
     // app preference checkbox to use alternate font settings
     JCheckBox useCustomUIProperties = getCheckBox("useCustomUIProperties");
     useCustomUIProperties.setSelected(AppPreferences.useCustomThemeFontProperties.get());
@@ -165,7 +184,6 @@ public class ThemeFontPreferences extends AbeillePanel {
       }
 
       FONT_CHOOSER_MAP.put(key, fontChooser.create());
-
       replaceComponent(placeHolder.getParent().getName(), placeHolder.getName(), fontChooser);
     }
     FONT_CHOOSER_MAP.get(DF).getSpinnerNumberModel().addChangeListener(e -> changeReferenceSize());
@@ -197,6 +215,9 @@ public class ThemeFontPreferences extends AbeillePanel {
 
   @Override
   public boolean commit() {
+    if (prefAtLoad == AppPreferences.useCustomThemeFontProperties.get() && !stateChanged) {
+      return false;
+    }
     String[] keys = FONT_CHOOSER_MAP.keySet().toArray(new String[0]);
 
     for (int i = keys.length - 1; i > -1; i--) {
@@ -207,10 +228,6 @@ public class ThemeFontPreferences extends AbeillePanel {
     }
     boolean write = ThemeFontTools.writeCustomProperties(FONT_CHOOSER_MAP);
     if (write) {
-      MapTool.showMessage(
-          "PreferencesDialog.themeChangeWarning",
-          "PreferencesDialog.themeChangeWarningTitle",
-          JOptionPane.WARNING_MESSAGE);
       FlatLaf.updateUI();
       FlatLaf.revalidateAndRepaintAllFramesAndDialogs();
     }
