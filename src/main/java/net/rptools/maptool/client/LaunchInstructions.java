@@ -58,7 +58,9 @@ public class LaunchInstructions {
 
       MapTool.main(args);
 
-      AppUpdate.gitHubReleases();
+      if (!MapTool.isDevelopment()) {
+        AppUpdate.gitHubReleases();
+      }
     } catch (Throwable e) {
       log.error("Unhandled error during startup", e);
       // Shows a proper error message if MapTool can't initialize. Fix #1678.
