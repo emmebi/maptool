@@ -38,6 +38,7 @@ import net.rptools.maptool.client.RemoteFileDownloader;
 import net.rptools.maptool.client.WebDownloader;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.ButtonKind;
+import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.GenericDialogFactory;
 import net.rptools.maptool.client.ui.theme.Icons;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
@@ -61,7 +62,7 @@ public class AddResourceDialog extends AbeillePanel<AddResourceDialog.Model> {
   }
 
   private final GenericDialogFactory dialogFactory =
-      new GenericDialogFactory()
+          GenericDialog.getFactory()
           .setDialogTitle(I18N.getText("action.addIconSelector"))
           .addButton(ButtonKind.CANCEL)
           .setCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
