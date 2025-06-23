@@ -14,198 +14,233 @@
  */
 package net.rptools.maptool.client.swing;
 
-import com.formdev.flatlaf.ui.FlatRootPaneUI;
-import com.jidesoft.dialog.ButtonPanel;
-import com.jidesoft.dialog.ScrollableButtonPanel;
-import com.jidesoft.dialog.StandardDialog;
-import com.jidesoft.swing.JideBoxLayout;
-import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.language.I18N;
-
+import com.jidesoft.dialog.*;
+import com.jidesoft.swing.*;
+import com.jidesoft.utils.PortingUtils;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import net.rptools.maptool.client.MapTool;
+import net.rptools.maptool.language.I18N;
 
-public class GenericDialog extends StandardDialog {
+public class GenericDialog extends JDialog {
+  public static final String AFFIRM = ButtonPanel.AFFIRMATIVE_BUTTON;
+  public static final String DENY = ButtonPanel.CANCEL_BUTTON;
+
   private boolean hasPositionedItself;
-  private JComponent content = new JPanel();
-  private ButtonPanel buttonPanel;
-  private AbstractAction onCloseAction;
-  public enum ButtonKind {
-    ACCEPT("ACCEPT",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.accept","Button.accept.mnemonic"),
-    ADD("ADD",ButtonPanel.OTHER_BUTTON,"Button.add","Button.add.mnemonic"),
-    APPLY("APPLY",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.apply","Button.apply.mnemonic"),
-    BACK("BACK",ButtonPanel.OTHER_BUTTON,"Button.back","Button.back.mnemonic"),
-    BROWSE("BROWSE",ButtonPanel.OTHER_BUTTON,"Button.browse","Button.browse.mnemonic"),
-    CANCEL("CANCEL",ButtonPanel.CANCEL_BUTTON,"Button.cancel","Button.cancel.mnemonic"),
-    CLEAR("CLEAR",ButtonPanel.OTHER_BUTTON,"Button.clear","Button.clear.mnemonic"),
-    CLEAR_ALL("CLEAR_ALL",ButtonPanel.OTHER_BUTTON,"Button.clearall","Button.clearall.mnemonic"),
-    CLOSE("CLOSE",ButtonPanel.CANCEL_BUTTON,"Button.close","Button.close.mnemonic"),
-    CONTINUE("CONTINUE",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.continue","Button.continue.mnemonic"),
-    DELETE("DELETE",ButtonPanel.OTHER_BUTTON,"Button.delete","Button.delete.mnemonic"),
-    DETAILS("DETAILS",ButtonPanel.OTHER_BUTTON,"Button.details","Button.details.mnemonic"),
-    DISABLE("DISABLE",ButtonPanel.OTHER_BUTTON,"Button.disable","Button.disable.mnemonic"),
-    EDIT("EDIT",ButtonPanel.OTHER_BUTTON,"Button.edit","Button.edit.mnemonic"),
-    ENABLE("ENABLE",ButtonPanel.OTHER_BUTTON,"Button.enable","Button.enable.mnemonic"),
-    EXIT("EXIT",ButtonPanel.CANCEL_BUTTON,"Button.exit","Button.exit.mnemonic"),
-    EXPORT("EXPORT",ButtonPanel.OTHER_BUTTON,"Button.export","Button.export.mnemonic"),
-    FIND("FIND",ButtonPanel.OTHER_BUTTON,"Button.find","Button.find.mnemonic"),
-    FIND_NEXT("FIND_NEXT",ButtonPanel.OTHER_BUTTON,"Button.findNext","Button.findNext.mnemonic"),
-    FINISH("FINISH",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.finish","Button.finish.mnemonic"),
-    FORWARD("FORWARD",ButtonPanel.OTHER_BUTTON,"Button.forward","Button.forward.mnemonic"),
-    HELP("HELP",ButtonPanel.HELP_BUTTON,"Button.help","Button.help.mnemonic"),
-    HIDE_DETAILS("HIDE_DETAILS",ButtonPanel.OTHER_BUTTON,"Button.hideDetails","Button.hideDetails.mnemonic"),
-    IMPORT("IMPORT",ButtonPanel.OTHER_BUTTON,"Button.import","Button.import.mnemonic"),
-    NEW("NEW",ButtonPanel.OTHER_BUTTON,"Button.new","Button.new.mnemonic"),
-    NEXT("NEXT",ButtonPanel.OTHER_BUTTON,"Button.next","Button.next.mnemonic"),
-    NO("NO",ButtonPanel.CANCEL_BUTTON,"Button.no","Button.no.mnemonic"),
-    OK("OK",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.ok","Button.ok.mnemonic"),
-    OPEN("OPEN",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.open","Button.open.mnemonic"),
-    PRINT("PRINT",ButtonPanel.OTHER_BUTTON,"Button.print","Button.print.mnemonic"),
-    REFRESH("REFRESH",ButtonPanel.OTHER_BUTTON,"Button.refresh","Button.refresh.mnemonic"),
-    REPLACE("REPLACE",ButtonPanel.OTHER_BUTTON,"Button.replace","Button.replace.mnemonic"),
-    RESET("RESET",ButtonPanel.OTHER_BUTTON,"Button.reset","Button.reset.mnemonic"),
-    RETRY("RETRY",ButtonPanel.OTHER_BUTTON,"Button.retry","Button.retry.mnemonic"),
-    REVERT("REVERT",ButtonPanel.OTHER_BUTTON,"Button.revert","Button.revert.mnemonic"),
-    SAVE("SAVE",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.save","Button.save.mnemonic"),
-    SAVE_AS("SAVE_AS",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.saveAs","Button.saveAs.mnemonic"),
-    SHOW_DETAILS("SHOW_DETAILS",ButtonPanel.OTHER_BUTTON,"Button.showDetails","Button.showDetails.mnemonic"),
-    STOP("STOP",ButtonPanel.OTHER_BUTTON,"Button.stop","Button.stop.mnemonic"),
-    UPDATE("UPDATE",ButtonPanel.OTHER_BUTTON,"Button.update","Button.update.mnemonic"),
-    YES("YES",ButtonPanel.AFFIRMATIVE_BUTTON,"Button.yes","Button.yes.mnemonic"),
-    MOVE_UP("MOVE_UP",ButtonPanel.OTHER_BUTTON,"Button.up","Button.up.mnemonic"),
-    MOVE_DOWN("MOVE_DOWN",ButtonPanel.OTHER_BUTTON,"Button.down","Button.down.mnemonic")
-;
-    final String name;
-    final String buttonPanelButtonType;
-    final String i18nKey;
-    final String i18nMnemonicKey;
-    ButtonKind(String name, String buttonPanelButtonType, String i18nKey, String i18nMnemonicKey) {
-      this.name = name;
-      this.buttonPanelButtonType = buttonPanelButtonType;
-      this.i18nKey = i18nKey;
-      this.i18nMnemonicKey = i18nMnemonicKey;
-    }
-  }
-  public GenericDialog(){
-    super(MapTool.getFrame());
-    super.setResizable(true);
-    getRootPane().setBorder(
-                    BorderFactory.createCompoundBorder(
-                            new FlatRootPaneUI.FlatWindowBorder(),
-                            BorderFactory.createEmptyBorder(0, 4, 4, 3)));
-    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-  }
-  public GenericDialog(String title, Frame parent, JPanel panel) {
-    this(title, parent, panel, true);
+  private String _dialogResult = ButtonPanel.CANCEL_BUTTON;
+  protected final Resizable _resizable;
+  private final JComponent _contentPane = new JPanel();
+  private JComponent _content = new JPanel();
+  private final JScrollPane _scrollPane = new JScrollPane();
+  private ButtonPanel _buttonPanel;
+  private boolean _usingAbeillePanel = false;
+  private ActionListener _onCloseAction;
+  private ActionListener _onShowAction;
+
+  public static GenericDialogFactory getFactory() {
+    return new GenericDialogFactory();
   }
 
-  public GenericDialog(String title, Frame parent, JPanel panel, boolean modal) {
+  public GenericDialog() {
+    super(MapTool.getFrame());
+    super.setContentPane(_contentPane);
+    initComponents();
+
+    _resizable =
+        new Resizable(getRootPane()) {
+          public void resizing(int resizeDir, int newX, int newY, int newW, int newH) {
+            Container container = GenericDialog.this.getContentPane();
+            PortingUtils.setPreferredSize(container, new Dimension(newW, newH));
+            if (GenericDialog.this.isUndecorated()) {
+              GenericDialog.this.setBounds(newX, newY, newW, newH);
+            }
+          }
+        };
+    _resizable.setResizeCornerSize(18);
+    _resizable.setResizableCorners(Resizable.LOWER_LEFT | Resizable.LOWER_RIGHT);
+    super.setResizable(true);
+
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+    addWindowListener(
+        new WindowAdapter() {
+          @Override
+          public void windowClosing(WindowEvent e) {
+            closeDialog();
+          }
+        });
+  }
+
+  public GenericDialog(String title, JPanel panel) {
+    this(title, panel, false);
+  }
+
+  public GenericDialog(String title, JComponent panel, boolean modal) {
     this();
-    setTitle(title);
+    setDialogTitle(title);
     setModal(modal);
     setContent(panel);
   }
 
-  @Override
-  public ButtonPanel createButtonPanel() {
-    buttonPanel = new ScrollableButtonPanel();
-    return buttonPanel;
+  protected void initComponents() {
+    JideBoxLayout layout = new JideBoxLayout(this.getContentPane(), JideBoxLayout.PAGE_AXIS);
+    this.getContentPane().setLayout(layout);
+    this._scrollPane.setViewportView(getContentPanel());
+    this.getContentPane().add(this._scrollPane, JideBoxLayout.VARY);
+    this.getContentPane().add(this.getButtonPanel(), JideBoxLayout.FIX);
   }
 
   @Override
-  public JComponent createBannerPanel() {
-    return null;
+  public JComponent getContentPane() {
+    return _contentPane;
   }
 
-  @Override
-  public JComponent createContentPanel() {
-    return content;
+  public JComponent getContentPanel() {
+    return _content;
   }
 
   @SuppressWarnings("UnusedReturnValue")
-  public GenericDialog addButton(ButtonKind buttonKind){
-    if(buttonPanel == null){
-      createButtonPanel();
+  public ButtonPanel getButtonPanel() {
+    if (_buttonPanel == null) {
+      _buttonPanel = new ScrollableButtonPanel();
+      _buttonPanel.setBorder(UIManager.getDefaults().getBorder("DesktopIcon.border"));
     }
-    AbstractButton b = new JButton(I18N.getText(buttonKind.i18nKey));
-    b.setName(buttonKind.name);
-    b.setMnemonic(I18N.getText(buttonKind.i18nMnemonicKey).charAt(0));
-    if(buttonKind.buttonPanelButtonType.equals(ButtonPanel.AFFIRMATIVE_BUTTON)){
-      b.setAction(new AbstractAction(I18N.getText(buttonKind.i18nKey)) {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          GenericDialog.this.setDialogResult(RESULT_AFFIRMED);
-          closeDialog();
-        }
-      });
-    } else if(buttonKind.buttonPanelButtonType.equals(ButtonPanel.CANCEL_BUTTON)){
-      b.setAction(new AbstractAction(I18N.getText(buttonKind.i18nKey)) {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          GenericDialog.this.setDialogResult(RESULT_CANCELLED);
-          closeDialog();
-        }
-      });
+    return _buttonPanel;
+  }
+
+  @SuppressWarnings("UnusedReturnValue")
+  public void setDefaultButton(ButtonKind buttonKind) {
+    JButton button = (JButton) _buttonPanel.getButtonByName(buttonKind.name);
+    if (button == null) {
+      addButton(buttonKind);
+      button = (JButton) _buttonPanel.getButtonByName(buttonKind.name);
     }
-    buttonPanel.addButton(b, buttonKind.buttonPanelButtonType);
-    return this;
+    getRootPane().setDefaultButton(button);
   }
-  @SuppressWarnings("UnusedReturnValue")
-  public GenericDialog makeModal(boolean modal){
-    setModal(modal);
-    return this;
+
+  public void addButton(ButtonKind buttonKind) {
+    addButton(buttonKind, null, null);
   }
-  @SuppressWarnings("UnusedReturnValue")
-  public GenericDialog addOkCancelButtons(){
+
+  public void addButton(ButtonKind buttonKind, Action action) {
+    addButton(buttonKind, action, null);
+  }
+
+  public void addButton(ButtonKind buttonKind, ActionListener listener) {
+    addButton(buttonKind, null, listener);
+  }
+
+  public void addButton(ButtonKind buttonKind, Action action, ActionListener listener) {
+    // check button exists
+    AbstractButton b = (AbstractButton) _buttonPanel.getButtonByName(buttonKind.name);
+    boolean needNewButton = b == null;
+    if (needNewButton) {
+      b = new JButton(I18N.getText(buttonKind.i18nKey));
+      b.setName(buttonKind.name);
+      b.setMnemonic(I18N.getText(buttonKind.i18nMnemonicKey).charAt(0));
+    }
+    if (action != null) {
+      b.setAction(action);
+    } else {
+      if (buttonKind.buttonPanelButtonType.equals(ButtonPanel.AFFIRMATIVE_BUTTON)) {
+        b.setAction(
+            new AbstractAction(I18N.getText(buttonKind.i18nKey)) {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                setDialogResult(AFFIRM);
+                closeDialog();
+              }
+            });
+      } else if (buttonKind.buttonPanelButtonType.equals(ButtonPanel.CANCEL_BUTTON)) {
+        b.setAction(
+            new AbstractAction(I18N.getText(buttonKind.i18nKey)) {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                setDialogResult(DENY);
+                closeDialog();
+              }
+            });
+      }
+    }
+    if (listener != null) {
+      b.addActionListener(listener);
+    }
+    if (needNewButton) {
+      this._buttonPanel.addButton(b, buttonKind.buttonPanelButtonType);
+    }
+  }
+
+  public void createOkCancelButtons() {
     addButton(ButtonKind.OK);
     addButton(ButtonKind.CANCEL);
-    return this;
   }
-  public AbstractButton getButton(ButtonKind buttonKind){
-    return (AbstractButton) buttonPanel.getButtonByName(buttonKind.name);
-  }
-  @SuppressWarnings("UnusedReturnValue")
-  public GenericDialog onClose(AbstractAction action){
-    onCloseAction = action;
-    return this;
-  }
-  @SuppressWarnings("UnusedReturnValue")
-  public GenericDialog setDialogTitle(String title){
-    super.setTitle(title);
-    return this;
-  }
-  @SuppressWarnings("UnusedReturnValue")
-  public GenericDialog setContent(JComponent content){
-    this.content = content;
-    JideBoxLayout layout = new JideBoxLayout(getContentPane(), JideBoxLayout.PAGE_AXIS);
-    getContentPane().setLayout(layout);
-    JScrollPane scrollPane = new JScrollPane(content);
-    getContentPane().add(scrollPane, JideBoxLayout.FLEXIBLE);
 
-    getRootPane().validate();
-    addWindowListener(new WindowAdapter() {
-      @Override
-      public void windowClosing(WindowEvent e) {
-        closeDialog();
-      }
-    });
+  public void onBeforeShow(ActionListener listener) {
+    _onShowAction = listener;
+  }
+
+  public void onBeforeClose(ActionListener listener) {
+    _onCloseAction = listener;
+  }
+
+  public void setDialogTitle(String title) {
+    super.setTitle(title);
+  }
+
+  public void setContent(JComponent content) {
+    this._content = content;
+    _usingAbeillePanel = content instanceof AbeillePanel;
+    this._scrollPane.setViewportView(content);
 
     // ESCAPE cancels the window without committing
-    content.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
-    content.getActionMap().put("cancel", new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        closeDialog();
-      }
-    });
-    return this;
+    content
+        .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+    content
+        .getActionMap()
+        .put(
+            "cancel",
+            new AbstractAction() {
+              public void actionPerformed(ActionEvent e) {
+                closeDialog();
+              }
+            });
   }
 
+  public AbstractButton getOKButton() {
+    return getButton(ButtonKind.OK);
+  }
 
+  public AbstractButton getCancelButton() {
+    return getButton(ButtonKind.CANCEL);
+  }
 
   public void closeDialog() {
-    dispose();
+    if (_usingAbeillePanel && ((AbeillePanel<?>) _content).getModel() != null) {
+      if (getDialogResult().equals(AFFIRM)) {
+        ((AbeillePanel<?>) _content).commit();
+      }
+      ((AbeillePanel<?>) _content).unbind();
+    }
+    if (_onCloseAction != null) {
+      _onCloseAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "close"));
+    }
+    if (getDefaultCloseOperation() == DISPOSE_ON_CLOSE) {
+      dispose();
+    }
+  }
+
+  public AbstractButton getButton(ButtonKind buttonKind) {
+    return (AbstractButton) _buttonPanel.getButtonByName(buttonKind.name);
+  }
+
+  protected void setDialogResult(String result) {
+    _dialogResult = result;
+  }
+
+  public String getDialogResult() {
+    return _dialogResult;
   }
 
   private Dimension getMaxScreenSize() {
@@ -241,15 +276,38 @@ public class GenericDialog extends StandardDialog {
             Math.min(maximumSize.height, screenMax.height)));
   }
 
-  public void showDialog() {
-    // We want to center over our parent, but only the first time.
-    // If this dialog is reused, we want it to show up where it was last.
-    if (!hasPositionedItself) {
-      pack();
-      positionInitialView();
-      hasPositionedItself = true;
+  public String showDialogWithReturnValue() {
+    if (!isModal()) {
+      setModal(true);
     }
     setVisible(true);
+    return this.getDialogResult();
+  }
+
+  public void showDialog() {
+    setVisible(true);
+  }
+
+  @Override
+  public void setVisible(boolean visible) {
+    if (visible) {
+      // We want to center over our parent, but only the first time.
+      // If this dialog is reused, we want it to show up where it was last.
+      pack();
+      if (!hasPositionedItself) {
+        positionInitialView();
+        hasPositionedItself = true;
+      }
+      if (_onShowAction != null) {
+        _onShowAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "show"));
+      }
+      if (getRootPane().getDefaultButton() == null && _buttonPanel.getComponents().length == 1) {
+        getRootPane().setDefaultButton((JButton) _buttonPanel.getComponents()[0]);
+      }
+      super.setVisible(true);
+    } else {
+      super.setVisible(visible);
+    }
   }
 
   protected void positionInitialView() {
