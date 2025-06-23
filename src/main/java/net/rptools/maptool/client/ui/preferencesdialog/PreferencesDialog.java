@@ -590,12 +590,12 @@ public class PreferencesDialog extends JDialog {
         e -> {
           boolean close = true;
           if (close) {
-            themeFontPreferences.commit();
+            themeChanged = themeChanged | themeFontPreferences.commit();
             setVisible(false);
             dispose();
           }
           new MapToolEventBus().getMainEventBus().post(new PreferencesChanged());
-          if (ThemeSupport.needsRestartForNewTheme()) {
+          if (themeChanged || ThemeSupport.needsRestartForNewTheme()) {
             MapTool.showMessage(
                 "PreferencesDialog.themeChangeWarning",
                 "PreferencesDialog.themeChangeWarningTitle",

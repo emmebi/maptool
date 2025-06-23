@@ -1,5 +1,5 @@
 [versions]
-log4j = "2.24.3"
+log4j = "2.25.0"
 junit = "5.13.1"
 imageio = "3.12.0"
 sentry = "7.22.5"
@@ -30,7 +30,7 @@ sentry-log4j = { group = "io.sentry", name = "sentry-log4j2", version.ref = "sen
 # Networking
 # Web RTC
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version = "1.6.0" }
-webrtc = { group = "dev.onvoid.webrtc", name = "webrtc-java", version = "0.9.0" }
+webrtc = { group = "dev.onvoid.webrtc", name = "webrtc-java", version = "0.10.0" }
 # compression of messages between client and server
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1" }
 zstd = { group = "com.github.luben", name = "zstd-jni", version = "1.5.7-3" }
@@ -52,7 +52,7 @@ imageio-tiff = { group = "com.twelvemonkeys.imageio", name = "imageio-tiff", ver
 imageio-batik = { group = "com.twelvemonkeys.imageio", name = "imageio-batik", version.ref = "imageio" }
 imageio-tga = { group = "com.twelvemonkeys.imageio", name = "imageio-tga", version.ref = "imageio" }
 imageio-bmp = { group = "com.twelvemonkeys.imageio", name = "imageio-bmp", version.ref = "imageio" }
-batik = { group = "org.apache.xmlgraphics", name = "batik-all", version = "1.17" }
+batik = { group = "org.apache.xmlgraphics", name = "batik-all", version = "1.19" }
 # PDF image extraction
 pdfbox = { group = "org.apache.pdfbox", name = "pdfbox", version.ref = "pdfbox" }
 pdfbox-tools = { group = "org.apache.pdfbox", name = "pdfbox-tools", version.ref = "pdfbox" }
@@ -86,7 +86,7 @@ flatlaf-intellij-themes = { group = "com.formdev", name = "flatlaf-intellij-them
 flatlaf-extras = { group = "com.formdev", name = "flatlaf-extras", version.ref = "flatlaf" }
 flatlaf-jide-oss = { group = "com.formdev", name = "flatlaf-jide-oss", version.ref = "flatlaf" }
 tinylaf-nocp = { group = "de.muntjak.tinylookandfeel", name = "tinylaf-nocp", version = "1.4.0" }
-jsvg = { group = "com.github.weisj", name = "jsvg", version = "1.4.0" }
+jsvg = { group = "com.github.weisj", name = "jsvg", version = "2.0.0" }
 
 handlebars = { group = "com.github.jknack", name = "handlebars", version.ref = "handlebars" }
 handlebars-helpers = { group = "com.github.jknack", name = "handlebars-helpers", version.ref = "handlebars" }
@@ -101,7 +101,7 @@ apache-commons-io = { group = "commons-io", name = "commons-io", version = "2.19
 #  ftp client
 apache-commons-net = { group = "commons-net", name = "commons-net", version = "3.11.1" }
 # commandline parsing
-apache-commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.6.0" }
+apache-commons-cli = { group = "commons-cli", name = "commons-cli", version = "1.9.0" }
 # String utilities
 apache-commons-lang = { group = "org.apache.commons", name = "commons-lang3", version = "3.17.0" }
 # needed for preference dialog at runtime
@@ -117,7 +117,7 @@ gson = { group = "com.google.code.gson", name = "gson", version = "2.13.1" }
 # JsonPath for java
 jsonpath = { group = "com.jayway.jsonpath", name = "json-path", version = "2.9.0" }
 # HTML parsing
-jsoup = { group = "org.jsoup", name = "jsoup", version = "1.17.2" }
+jsoup = { group = "org.jsoup", name = "jsoup", version = "1.20.1" }
 # XML utilities, for Hero Lab integration
 jcabi-xml = { group = "com.jcabi", name = "jcabi-xml", version = "0.33.5" }
 # Serialization for saving campaigns, maps, tokens, etc.
@@ -128,7 +128,7 @@ javatuples = { group = "com.flipkart.utils", name = "javatuples", version = "3.0
 # Event bus, collections, and other utilities
 guava = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
 # Geometry library for pathfinding, vision, etc.
-jts-core = { group = "org.locationtech.jts", name = "jts-core", version = "1.19.0" }
+jts-core = { group = "org.locationtech.jts", name = "jts-core", version = "1.20.0" }
 # Graph library used for walls
 jgrapht-core = { group = "org.jgrapht", name = "jgrapht-core", version = "1.5.2" }
 # Markdown parsing
@@ -148,7 +148,7 @@ graalvm-js-scriptengine = { group = "org.graalvm.js", name = "js-scriptengine", 
 intellij-forms-tasks = { group = "com.jetbrains.intellij.java", name = "java-compiler-ant-tasks", version = "233.14475.56" }
 intellij-forms-runtime = { group = "com.jetbrains.intellij.java", name = "java-gui-forms-rt", version = "241.12019" }
 # layout for forms created in code
-miglayout-swing = { group = "com.miglayout", name = "miglayout-swing", version = "11.3" }
+miglayout-swing = { group = "com.miglayout", name = "miglayout-swing", version = "11.4.2" }
 
 gdx = { group = "com.badlogicgames.gdx", name = "gdx", version.ref = "gdx" }
 gdx-backend-lwjgl = { group = "com.badlogicgames.gdx", name = "gdx-backend-lwjgl", version.ref = "gdx" }
