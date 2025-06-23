@@ -28,24 +28,6 @@ public class GenericDialogFactory {
     delegate = new GenericDialog();
   }
 
-  public GenericDialogFactory(String title) {
-    this();
-    delegate.setDialogTitle(title);
-  }
-
-  public GenericDialogFactory(String title, JComponent content) {
-    this();
-    delegate.setDialogTitle(title);
-    delegate.setContent(content);
-  }
-
-  public GenericDialogFactory(String title, JComponent content, boolean modal) {
-    this();
-    delegate.setDialogTitle(title);
-    delegate.setContent(content);
-    delegate.setModal(modal);
-  }
-
   @SuppressWarnings("UnusedReturnValue")
   public GenericDialogFactory setDefaultButton(ButtonKind buttonKind) {
     delegate.setDefaultButton(buttonKind);

@@ -63,8 +63,8 @@ public enum ButtonKind {
   STOP           ("STOP"           , ButtonPanel.OTHER_BUTTON      , "Button.stop"          , "Button.stop.mnemonic"          ),
   UPDATE         ("UPDATE"         , ButtonPanel.OTHER_BUTTON      , "Button.update"        , "Button.update.mnemonic"        ),
   YES            ("YES"            , ButtonPanel.AFFIRMATIVE_BUTTON, "Button.yes"           , "Button.yes.mnemonic"           ),
-  MOVE_UP        ("MOVE_UP"        , ButtonPanel.OTHER_BUTTON      , "Button.moveUp"        , "Button.moveUp.mnemonic"        ),
-  MOVE_DOWN      ("MOVE_DOWN"      , ButtonPanel.OTHER_BUTTON      , "Button.moveDown"      , "Button.moveDown.mnemonic"      );
+  MOVE_UP        ("MOVE_UP"        , ButtonPanel.OTHER_BUTTON      , "Button.moveUp", "Button.moveUp.mnemonic"        ),
+  MOVE_DOWN      ("MOVE_DOWN"      , ButtonPanel.OTHER_BUTTON      , "Button.moveDown", "Button.moveDown.mnemonic"      );
   //  @spotless:on
   final String name;
   final String buttonPanelButtonType;

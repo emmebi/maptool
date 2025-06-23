@@ -26,7 +26,7 @@ import net.rptools.maptool.language.I18N;
 public class GenericDialog extends JDialog {
   public static final String AFFIRM = ButtonPanel.AFFIRMATIVE_BUTTON;
   public static final String DENY = ButtonPanel.CANCEL_BUTTON;
-
+  private Dimension _preferredSize = null;
   private boolean hasPositionedItself;
   private String _dialogResult = ButtonPanel.CANCEL_BUTTON;
   protected final Resizable _resizable;
@@ -42,6 +42,7 @@ public class GenericDialog extends JDialog {
     return new GenericDialogFactory();
   }
 
+  /** Whilst this works. You should use the factory method instead. */
   public GenericDialog() {
     super(MapTool.getFrame());
     super.setContentPane(_contentPane);
@@ -254,10 +255,18 @@ public class GenericDialog extends JDialog {
 
   @Override
   public Dimension getPreferredSize() {
-    Dimension superPref = super.getPreferredSize();
-    Dimension screenMax = getMaxScreenSize();
-    return new Dimension(
-        Math.min(superPref.width, screenMax.width), Math.min(superPref.height, screenMax.height));
+    if (_preferredSize == null) {
+      int scrollBarSize = UIManager.getDefaults().getInt("ScrollBar.width");
+      Dimension superPref = super.getPreferredSize();
+      superPref = new Dimension(superPref.width + scrollBarSize, superPref.height + scrollBarSize);
+      Dimension screenMax = getMaxScreenSize();
+      _preferredSize =
+          new Dimension(
+              Math.min(superPref.width, screenMax.width),
+              Math.min(superPref.height, screenMax.height));
+    }
+    System.out.println(_preferredSize);
+    return _preferredSize;
   }
 
   @Override
