@@ -31,10 +31,7 @@ import net.rptools.lib.MathUtil;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.AppConstants;
 import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.swing.AbeillePanel;
-import net.rptools.maptool.client.swing.GenericDialog;
-import net.rptools.maptool.client.swing.SpinnerSliderPaired;
-import net.rptools.maptool.client.swing.VerticalLabel;
+import net.rptools.maptool.client.swing.*;
 import net.rptools.maptool.client.ui.theme.Images;
 import net.rptools.maptool.client.ui.theme.RessourceManager;
 import net.rptools.maptool.language.I18N;
@@ -603,20 +600,18 @@ class TokenLayoutPanelHelper {
 
   private void showHelp() {
     JPanel helpPanel = new JPanel(new BorderLayout());
-    GenericDialog gd = new GenericDialog("Layout Controls", MapTool.getFrame(), helpPanel, true);
-    gd.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    JButton okayButton = new JButton();
-    okayButton.setText(I18N.getString("Button.ok"));
-
+    GenericDialog gd =
+        new GenericDialogFactory("Layout Controls", helpPanel, true)
+            .setCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+            .addButton(
+                ButtonKind.OK,
+                e -> {
+                  flagAsDirty();
+                })
+            .getDialog();
     JLabel helpTextContainer = new JLabel();
     helpTextContainer.setText(helpText);
     helpPanel.add(new JScrollPane(helpTextContainer), BorderLayout.NORTH);
-    helpPanel.add(okayButton, BorderLayout.SOUTH);
-    okayButton.addActionListener(
-        e -> {
-          gd.closeDialog();
-          flagAsDirty();
-        });
     gd.showDialog();
   }
 

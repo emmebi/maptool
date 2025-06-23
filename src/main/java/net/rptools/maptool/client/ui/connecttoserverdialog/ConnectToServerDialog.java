@@ -42,9 +42,7 @@ import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolRegistry;
 import net.rptools.maptool.client.MapToolServiceFinder;
 import net.rptools.maptool.client.RemoteServerConfig;
-import net.rptools.maptool.client.swing.AbeillePanel;
-import net.rptools.maptool.client.swing.GenericDialog;
-import net.rptools.maptool.client.swing.SwingUtil;
+import net.rptools.maptool.client.swing.*;
 import net.rptools.maptool.language.I18N;
 import yasb.Binder;
 
@@ -56,7 +54,11 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
 
   private static MapToolServiceFinder finder = MapToolServiceFinder.getInstance();
 
-  private GenericDialog dialog;
+  private GenericDialogFactory dialogFactory =
+      new GenericDialogFactory()
+          .setDialogTitle(I18N.getText("ConnectToServerDialog.msg.title"))
+          .createOkCancelButtons()
+          .setDefaultButton(ButtonKind.OK);
   private RemoteServerConfig connectionDetails = null;
 
   /** This is the default constructor */
@@ -64,6 +66,7 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
     super(new ConnectToServerDialogView().getRootComponent());
     setPreferredSize(new Dimension(600, 500));
     panelInit();
+    dialogFactory.setContent(this);
   }
 
   @Override
@@ -83,11 +86,8 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
   }
 
   public void showDialog() {
-    dialog =
-        new GenericDialog(
-            I18N.getText("ConnectToServerDialog.msg.title"), MapTool.getFrame(), this);
     bind(new ConnectToServerDialogPreferences());
-    getRootPane().setDefaultButton(getOKButton());
+    getRootPane().setDefaultButton((JButton) dialogFactory.getOKButton());
     getUsePublicKeyCheckBox()
         .addItemListener(
             l -> {
@@ -98,11 +98,7 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
     boolean usePublicKey = getUsePublicKeyCheckBox().isSelected();
     getPasswordTextField().setEnabled(!usePublicKey);
 
-    dialog.showDialog();
-  }
-
-  public JButton getOKButton() {
-    return (JButton) getComponent("okButton");
+    dialogFactory.display();
   }
 
   @Override
@@ -123,20 +119,8 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
     super.unbind();
   }
 
-  public JButton getCancelButton() {
-    return (JButton) getComponent("cancelButton");
-  }
-
-  public void initCancelButton() {
-    getCancelButton()
-        .addActionListener(
-            e -> {
-              dialog.closeDialog();
-            });
-  }
-
   public void initOKButton() {
-    getOKButton().addActionListener(e -> handleOK());
+    dialogFactory.getOKButton().addActionListener(e -> handleOK());
   }
 
   public void initLocalServerList() {
@@ -350,7 +334,7 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
     }
     if (commit()) {
       this.connectionDetails = connectionDetails;
-      dialog.closeDialog();
+      dialogFactory.closeDialog();
     }
   }
 

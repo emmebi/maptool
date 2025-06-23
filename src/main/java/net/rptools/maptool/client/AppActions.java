@@ -41,6 +41,7 @@ import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import net.rptools.lib.FileUtil;
 import net.rptools.lib.MD5Key;
+import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.tool.FacingTool;
 import net.rptools.maptool.client.tool.Toolbox;
@@ -1927,9 +1928,9 @@ public class AppActions {
           }
 
           StartServerDialog dialog = new StartServerDialog();
-          dialog.showDialog();
+          boolean cancelled = dialog.showDialog().equals(GenericDialog.DENY);
 
-          if (!dialog.accepted()) { // Results stored in Preferences.userRoot()
+          if (cancelled) { // Results stored in Preferences.userRoot()
             return;
           }
 
