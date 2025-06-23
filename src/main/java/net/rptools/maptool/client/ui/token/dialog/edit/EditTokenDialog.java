@@ -118,7 +118,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   private boolean tokenSaved;
   private final GenericDialogFactory dialogFactory =
-      new GenericDialogFactory().createOkCancelButtons().setDefaultButton(ButtonKind.OK);
+      GenericDialog.getFactory().createOkCancelButtons().setDefaultButton(ButtonKind.OK);
   private ImageAssetPanel imagePanel;
   private final LibraryManager libraryManager = new LibraryManager();
 
@@ -260,7 +260,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     } else {
       combo.setSelectedItem(new StatSheetManager().getStatSheet(token.getStatSheet().id()));
     }
-    dialogFactory.getDialog().showDialog();
+    dialogFactory.display();
   }
 
   private void validateLibTokenURIAccess(String name) {

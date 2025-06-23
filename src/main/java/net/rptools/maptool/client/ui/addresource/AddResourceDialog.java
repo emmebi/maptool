@@ -62,7 +62,7 @@ public class AddResourceDialog extends AbeillePanel<AddResourceDialog.Model> {
   }
 
   private final GenericDialogFactory dialogFactory =
-          GenericDialog.getFactory()
+      GenericDialog.getFactory()
           .setDialogTitle(I18N.getText("action.addIconSelector"))
           .addButton(ButtonKind.CANCEL)
           .setCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

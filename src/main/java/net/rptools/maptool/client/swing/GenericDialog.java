@@ -104,6 +104,7 @@ public class GenericDialog extends JDialog {
   public ButtonPanel getButtonPanel() {
     if (_buttonPanel == null) {
       _buttonPanel = new ScrollableButtonPanel();
+      _buttonPanel.setSizeConstraint(ButtonPanel.NO_LESS_THAN);
       _buttonPanel.setBorder(UIManager.getDefaults().getBorder("DesktopIcon.border"));
     }
     return _buttonPanel;
@@ -138,7 +139,7 @@ public class GenericDialog extends JDialog {
     if (needNewButton) {
       b = new JButton(I18N.getText(buttonKind.i18nKey));
       b.setName(buttonKind.name);
-      b.setMnemonic(I18N.getText(buttonKind.i18nMnemonicKey).charAt(0));
+      b.setMnemonic(buttonKind.getMnemonicKey());
     }
     if (action != null) {
       b.setAction(action);

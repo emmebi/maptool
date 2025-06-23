@@ -54,8 +54,8 @@ public class ConnectToServerDialog extends AbeillePanel<ConnectToServerDialogPre
 
   private static MapToolServiceFinder finder = MapToolServiceFinder.getInstance();
 
-  private GenericDialogFactory dialogFactory =
-      new GenericDialogFactory()
+  private final GenericDialogFactory dialogFactory =
+      GenericDialog.getFactory()
           .setDialogTitle(I18N.getText("ConnectToServerDialog.msg.title"))
           .createOkCancelButtons()
           .setDefaultButton(ButtonKind.OK);
