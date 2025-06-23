@@ -600,19 +600,17 @@ class TokenLayoutPanelHelper {
 
   private void showHelp() {
     JPanel helpPanel = new JPanel(new BorderLayout());
-    GenericDialog gd =
-        new GenericDialogFactory("Layout Controls", helpPanel, true)
+    GenericDialogFactory gdf =
+        GenericDialog.getFactory()
+            .setDialogTitle(I18N.getText("EditTokenDialog.layout.help.caption"))
+            .setContent(helpPanel)
+            .makeModal(true)
             .setCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
-            .addButton(
-                ButtonKind.OK,
-                e -> {
-                  flagAsDirty();
-                })
-            .getDialog();
+            .addButton(ButtonKind.OK, e -> flagAsDirty());
     JLabel helpTextContainer = new JLabel();
     helpTextContainer.setText(helpText);
     helpPanel.add(new JScrollPane(helpTextContainer), BorderLayout.NORTH);
-    gd.showDialog();
+    gdf.display();
   }
 
   private void initSliders() {

@@ -25,7 +25,7 @@ import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.swing.AbeillePanel;
 import net.rptools.maptool.client.swing.ButtonKind;
-import net.rptools.maptool.client.swing.GenericDialogFactory;
+import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.transfer.AssetConsumer;
@@ -39,7 +39,9 @@ public class TransferProgressDialog extends AbeillePanel<Token> implements Consu
   }
 
   public void showDialog() {
-    new GenericDialogFactory(I18N.getText("TransferProgressDialog.title"), this)
+    GenericDialog.getFactory()
+        .setDialogTitle(I18N.getText("TransferProgressDialog.title"))
+        .setContent(this)
         .onBeforeShow(
             e -> MapTool.getAssetTransferManager().addConsumerListener(TransferProgressDialog.this))
         .onBeforeClose(

@@ -36,7 +36,7 @@ import yasb.Binder;
  */
 public class StartServerDialog extends AbeillePanel<StartServerDialogPreferences> {
   private StartServerDialogPreferences prefs;
-  private GenericDialogFactory dialogFactory =
+  private final GenericDialogFactory dialogFactory =
       GenericDialog.getFactory()
           .setDialogTitle(I18N.getText("ServerDialog.msg.title"))
           .setCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
