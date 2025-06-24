@@ -111,6 +111,10 @@ public class LightSyntax {
           currentGroup.lights().add(source);
         }
       }
+
+      if (currentGroup != null) {
+        categorized.addAllToCategory(currentGroup.name(), currentGroup.lights());
+      }
     } catch (IOException ioe) {
       MapTool.showError("msg.error.mtprops.light.ioexception", ioe);
     }
