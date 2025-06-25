@@ -3,7 +3,7 @@
   <grid id="6db9f" binding="mainPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="5" left="5" bottom="5" right="5"/>
     <constraints>
-      <xy x="10" y="10" width="1475" height="739"/>
+      <xy x="10" y="10" width="1475" height="883"/>
     </constraints>
     <properties>
       <name value="mainForm"/>
@@ -24,7 +24,7 @@
             </constraints>
             <properties>
               <name value="propertiesPanel"/>
-              <visible value="true"/>
+              <visible value="false"/>
             </properties>
             <border type="none"/>
             <children>
@@ -307,7 +307,7 @@
             </constraints>
             <properties>
               <name value="tokenStatesPanel"/>
-              <visible value="false"/>
+              <visible value="true"/>
             </properties>
             <border type="none"/>
             <children>
@@ -578,7 +578,7 @@
                     <properties>
                       <actionCommand value="deleteState&#9;"/>
                       <name value="tokenStatesMoveUp"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.up"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.moveUp"/>
                     </properties>
                   </component>
                   <component id="7b90f" class="javax.swing.JButton">
@@ -588,7 +588,7 @@
                     <properties>
                       <actionCommand value="deleteState&#9;"/>
                       <name value="tokenStatesMoveDown"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.down"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.moveDown"/>
                     </properties>
                   </component>
                 </children>
@@ -891,7 +891,7 @@
                     <properties>
                       <actionCommand value="deleteState&#9;"/>
                       <name value="tokenBarMoveUpImage"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.up"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.moveUp"/>
                     </properties>
                   </component>
                   <component id="45f76" class="javax.swing.JButton">
@@ -901,7 +901,7 @@
                     <properties>
                       <actionCommand value="deleteState&#9;"/>
                       <name value="tokenBarMoveDownImage"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.down"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.moveDown"/>
                     </properties>
                   </component>
                   <vspacer id="2dc6b">
@@ -1074,7 +1074,7 @@
                     <properties>
                       <actionCommand value="deleteState&#9;"/>
                       <name value="tokenBarMoveUp"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.up"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.moveUp"/>
                     </properties>
                   </component>
                   <component id="e577e" class="javax.swing.JButton">
@@ -1084,7 +1084,7 @@
                     <properties>
                       <actionCommand value="deleteState&#9;"/>
                       <name value="tokenBarMoveDown"/>
-                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.down"/>
+                      <text resource-bundle="net/rptools/maptool/language/i18n" key="Button.moveDown"/>
                     </properties>
                   </component>
                   <vspacer id="8d0c7">
