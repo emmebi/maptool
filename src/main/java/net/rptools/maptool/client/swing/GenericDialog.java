@@ -138,9 +138,9 @@ public class GenericDialog extends JDialog {
     AbstractButton b = (AbstractButton) _buttonPanel.getButtonByName(buttonKind.name);
     boolean needNewButton = b == null;
     if (needNewButton) {
-      b = new JButton(I18N.getText(buttonKind.i18nKey));
+      b = new JButton(buttonKind.i18nText);
       b.setName(buttonKind.name);
-      b.setMnemonic(buttonKind.getMnemonicKey());
+      b.setMnemonic(buttonKind.i18nMnemonicKeyCode);
     }
     if (action != null) {
       b.setAction(action);
@@ -258,14 +258,14 @@ public class GenericDialog extends JDialog {
     if (_preferredSize == null) {
       int scrollBarSize = UIManager.getDefaults().getInt("ScrollBar.width");
       Dimension superPref = super.getPreferredSize();
-      superPref = new Dimension(superPref.width + scrollBarSize, superPref.height + scrollBarSize);
+      superPref =
+          new Dimension(superPref.width + 2 * scrollBarSize, superPref.height + scrollBarSize);
       Dimension screenMax = getMaxScreenSize();
       _preferredSize =
           new Dimension(
               Math.min(superPref.width, screenMax.width),
               Math.min(superPref.height, screenMax.height));
     }
-    System.out.println(_preferredSize);
     return _preferredSize;
   }
 

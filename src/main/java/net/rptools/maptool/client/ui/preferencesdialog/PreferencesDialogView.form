@@ -1761,7 +1761,7 @@
                       <grid row="0" column="0" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
                     </constraints>
                     <properties/>
-                    <border type="none" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="Label.save">
+                    <border type="none" title-resource-bundle="net/rptools/maptool/language/i18n" title-key="Button.save">
                       <font name="Dialog" size="12" style="1"/>
                       <title-color color="-13538620"/>
                       <color color="-6710887"/>

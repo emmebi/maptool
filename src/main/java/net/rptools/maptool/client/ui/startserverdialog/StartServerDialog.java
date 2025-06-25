@@ -68,7 +68,9 @@ public class StartServerDialog extends AbeillePanel<StartServerDialogPreferences
             e -> {
               // We don't have a good, server-side way of testing anymore.
               boolean ok = MapTool.confirm("msg.info.server.networkingHelp");
-              if (ok) MapTool.showDocument(I18N.getString("msg.info.server.forumNFAQ_URL"));
+              if (ok) {
+                MapTool.showDocument(I18N.getString("msg.info.server.forumNFAQ_URL"));
+              }
             })
         .addButton(
             ButtonKind.CANCEL,
@@ -171,7 +173,7 @@ public class StartServerDialog extends AbeillePanel<StartServerDialogPreferences
         });
 
     getRootPane().setDefaultButton(dialogFactory.getDefaultButton());
-    getUseWebRTCCheckBox().setEnabled(!getRPToolsAlias().getText().isBlank());
+    getUseWebRTCCheckBox().setEnabled(!getRPToolsAlias().getText().isEmpty());
     return dialogFactory.displayWithReturnValue();
   }
 
@@ -229,14 +231,14 @@ public class StartServerDialog extends AbeillePanel<StartServerDialogPreferences
         .getOKButton()
         .addActionListener(
             e -> {
-              if (getPortTextField().getText().isBlank()) {
+              if (getPortTextField().getText().isEmpty()) {
                 MapTool.showError("ServerDialog.error.port");
                 return;
               }
               // If not using the password file then both the player and GM passwords must be
               // present and must differ.
               if (!usePasswordFile.isSelected()) {
-                if (gmPassword.getText().isBlank() || playerPassword.getText().isBlank()) {
+                if (gmPassword.getText().isEmpty() || playerPassword.getText().isEmpty()) {
                   MapTool.showError("ServerDialog.error.passwordMissing");
                   return;
                 }
@@ -278,7 +280,7 @@ public class StartServerDialog extends AbeillePanel<StartServerDialogPreferences
         .addDocumentListener(
             new DocumentListener() {
               private void checkName() {
-                getUseWebRTCCheckBox().setEnabled(!getRPToolsAlias().getText().isBlank());
+                getUseWebRTCCheckBox().setEnabled(!getRPToolsAlias().getText().isEmpty());
               }
 
               @Override
