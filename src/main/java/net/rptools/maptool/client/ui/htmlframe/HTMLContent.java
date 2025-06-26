@@ -145,7 +145,7 @@ public class HTMLContent {
    * @param str content as a string.
    * @param url URL that points to the content.
    * @param asset The asset that represents the content if it is a binary asset.
-   * @param contentType The type of content.
+   * @param type The type of content.
    */
   private record Content(
       @Nullable String str, @Nullable URL url, @Nullable Asset asset, @Nonnull ContentType type) {
@@ -195,34 +195,10 @@ public class HTMLContent {
    * @param javaBridgeInjected flag to indicate if the Java Bridge has been injected
    * @param baseUrlInjected flag to indicate if the base URL has been injected
    */
-  private HTMLContent(
-      @Nullable Content content, boolean javaBridgeInjected, boolean baseUrlInjected) {
+  private HTMLContent(Content content, boolean javaBridgeInjected, boolean baseUrlInjected) {
     this.content = content;
     this.javaBridgeInjected = javaBridgeInjected;
     this.baseUrlInjected = baseUrlInjected;
-  }
-
-  /**
-   * Factory method to create an HTMLContent object from a string. It will try to determine if the
-   * string is HTML or not, if you already know it is HTML, use {@link #htmlFromString(String)}
-   * instead.
-   *
-   * @param str the String content to be displayed
-   * @return an HTMLContent object
-   */
-  public static HTMLContent fromString(@Nonnull String str) {
-    boolean isHtml = false;
-    try {
-      var mediaType = Asset.getMediaType("", str.getBytes(StandardCharsets.UTF_8));
-      var assetType = Asset.Type.fromMediaType(mediaType);
-      if (assetType == Asset.Type.HTML) {
-        isHtml = true;
-      }
-    } catch (IOException e) {
-      // Do nothing, treat as normal String
-    }
-
-    return new HTMLContent(new Content(str, isHtml), false, false);
   }
 
   /**
@@ -313,65 +289,17 @@ public class HTMLContent {
     if (baseUrlInjected) {
       return this; // already injected so return the same object
     }
-    if (isHTMLString()) {
-      return new HTMLContent(
-          new Content(injectURLBase(content.str, baseUrl), true), javaBridgeInjected, true);
-    } else {
-      throw new IllegalStateException("HTMLContent is not a string");
-    }
-  }
-
-  /**
-   * Parses the HTML in the string and sets the base to the correct location.
-   *
-   * @param htmlString the HTML to parse.
-   * @param url the origin URL to set the base relative to
-   * @return a string containing the HTML with the base URL injected.
-   */
-  public String injectURLBase(@Nonnull String htmlString, @Nonnull URL url) {
-    var document = Jsoup.parse(htmlString);
-    var head = document.select("head").first();
-    if (head != null) {
-      addBase(document, url);
-    }
-    return document.html();
-  }
-
-  /**
-   * Injects the Java Bridge and the base URL into the HTML content if it is a string. If the
-   * content is a URL it will return the same object without any changes. If the content has already
-   * been injected it will return the same object.
-   *
-   * <p>If url is null, the base URL will not be injected. IF the conteant of the URL is not a html
-   * page, the base URL will not be injected.
-   *
-   * @param url the URL of the HTML content
-   * @return the HTMLContent object with the Java Bridge ad base URL injected.
-   * @throws IllegalStateException if the HTML content is not a string.
-   */
-  public HTMLContent injectJavaBridgeAndBaseUrl(@Nullable URL url) {
-    if (javaBridgeInjected && baseUrlInjected) {
-      return this; // both already injected so return the same object
-    }
     if (!isHTMLString()) {
       throw new IllegalStateException("HTMLContent is not a string");
     }
-    var newHtml = content.str;
-    var document = Jsoup.parse(newHtml);
+
+    var document = Jsoup.parse(content.str);
     var head = document.select("head").first();
     if (head != null) {
-      if (!baseUrlInjected && url != null) {
-        addBase(head, url);
-      }
-
-      if (!javaBridgeInjected) {
-        addCSP(head);
-        addJavaBridge(head);
-      }
-
-      newHtml = document.html();
+      addBase(document, baseUrl);
     }
-    return new HTMLContent(new Content(newHtml, true), true, true);
+
+    return new HTMLContent(new Content(document.html(), true), javaBridgeInjected, true);
   }
 
   /**
@@ -388,19 +316,19 @@ public class HTMLContent {
       return this; // No need to do anything
     }
 
-    return injectJavaBridgeAndBaseUrl(null);
-  }
-
-  /**
-   * Retunrs if this points to a URL that is an HTML page. This is determined by checking if the URL
-   * ends with .html or .htm.
-   */
-  private boolean urlPointsToHTML() {
-    if (isUrl()) {
-      String fname = content.url.getFile().toLowerCase();
-      return fname.endsWith(".html") || fname.endsWith(".htm");
+    if (!isHTMLString()) {
+      throw new IllegalStateException("HTMLContent is not a string");
     }
-    return false;
+    var newHtml = content.str;
+    var document = Jsoup.parse(newHtml);
+    var head = document.select("head").first();
+    if (head != null) {
+      addCSP(head);
+      addJavaBridge(head);
+
+      newHtml = document.html();
+    }
+    return new HTMLContent(new Content(newHtml, true), true, true);
   }
 
   /**
