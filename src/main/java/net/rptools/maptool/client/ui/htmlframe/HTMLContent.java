@@ -31,6 +31,7 @@ import net.rptools.maptool.model.library.Library;
 import net.rptools.maptool.model.library.LibraryManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.DataNode;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Tag;
 
@@ -132,7 +133,22 @@ public class HTMLContent {
 
   /** HTML content as a parsed Document */
   private record HtmlDocumentContent(
-      String str, boolean isJavaBridgeInjected, boolean isBaseUrlInjected) implements Content {}
+      Document document, boolean isJavaBridgeInjected, boolean isBaseUrlInjected)
+      implements Content {
+
+    public HtmlDocumentContent {
+      document = document.clone();
+    }
+
+    public HtmlDocumentContent(
+        String str, boolean isJavaBridgeInjected, boolean isBaseUrlInjected) {
+      this(Jsoup.parse(str), isJavaBridgeInjected, isBaseUrlInjected);
+    }
+
+    public String str() {
+      return document.html();
+    }
+  }
 
   /** URL that points to the content. */
   private record UrlContent(URL url) implements Content {}
@@ -246,20 +262,19 @@ public class HTMLContent {
     if (!(content instanceof HtmlDocumentContent htmlDocumentContent)) {
       throw new IllegalStateException("HTMLContent is not HTML");
     }
-
     if (htmlDocumentContent.isBaseUrlInjected()) {
       // Already injected so return the same object
       return this;
     }
 
-    var document = Jsoup.parse(htmlDocumentContent.str());
+    var document = htmlDocumentContent.document().clone();
     var head = document.select("head").first();
     if (head != null) {
       addBase(document, baseUrl);
     }
 
     return new HTMLContent(
-        new HtmlDocumentContent(document.html(), htmlDocumentContent.isJavaBridgeInjected(), true));
+        new HtmlDocumentContent(document, htmlDocumentContent.isJavaBridgeInjected(), true));
   }
 
   /**
@@ -277,14 +292,14 @@ public class HTMLContent {
       return this; // No need to do anything
     }
 
-    var document = Jsoup.parse(htmlDocumentContent.str());
+    var document = htmlDocumentContent.document().clone();
     var head = document.select("head").first();
     if (head != null) {
       addCSP(head);
       addJavaBridge(head);
     }
 
-    return new HTMLContent(new HtmlDocumentContent(document.html(), true, true));
+    return new HTMLContent(new HtmlDocumentContent(document, true, true));
   }
 
   /**
