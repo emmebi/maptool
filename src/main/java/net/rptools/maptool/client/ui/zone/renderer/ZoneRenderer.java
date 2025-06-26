@@ -833,6 +833,8 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       g2d.fillRect(0, 0, viewRect.width, viewRect.height);
       GraphicsUtil.drawBoxedString(
           g2d, loadingProgress.get(), viewRect.width / 2, viewRect.height / 2);
+      // Make sure we keep checking for completion.
+      repaintDebouncer.dispatch();
       return;
     }
     if (MapTool.getCampaign().isBeingSerialized()) {

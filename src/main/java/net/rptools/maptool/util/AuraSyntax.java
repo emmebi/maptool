@@ -110,6 +110,10 @@ public class AuraSyntax {
           currentGroup.lights().add(source);
         }
       }
+
+      if (currentGroup != null) {
+        categorized.addAllToCategory(currentGroup.name(), currentGroup.lights());
+      }
     } catch (IOException ioe) {
       MapTool.showError("msg.error.mtprops.aura.ioexception", ioe);
     }
