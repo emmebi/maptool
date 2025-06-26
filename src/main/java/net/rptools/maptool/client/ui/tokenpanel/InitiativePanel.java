@@ -92,6 +92,10 @@ public class InitiativePanel extends JPanel
    */
   private boolean initStateSecondLine = AppPreferences.initiativePanelShowsInitiativeOnLine2.get();
 
+  /** Flag indicating whether to display a confirmation dialog when resetting the round counter. */
+  private boolean warnWhenResettingRoundCounter =
+      AppPreferences.initiativePanelWarnWhenResettingRoundCounter.get();
+
   /** The zone data being displayed. */
   private Zone zone;
 
@@ -111,6 +115,11 @@ public class InitiativePanel extends JPanel
    * The menu item that tells the GM if players can only move their tokens when it is their turn.
    */
   private JCheckBoxMenuItem movementLockMenuItem;
+
+  /**
+   * The menu item for whether to display a confirmation dialog when resetting the round counter.
+   */
+  private JCheckBoxMenuItem warnWhenResettingRoundCounterMenuItem;
 
   /**
    * Flag indicating that the owners of tokens have been granted permission to restricted actions
@@ -153,12 +162,13 @@ public class InitiativePanel extends JPanel
     toolBar.add(new TextlessButton(PREV_ACTION));
     toolBar.add(new TextlessButton(TOGGLE_HOLD_ACTION));
     toolBar.add(new TextlessButton(NEXT_ACTION));
-    toolBar.add(new TextlessButton(RESET_COUNTER_ACTION));
 
     round = new JLabel("", SwingConstants.LEFT);
     toolBar.add(Box.createHorizontalGlue());
     toolBar.add(round);
     toolBar.add(Box.createHorizontalStrut(8));
+
+    toolBar.add(new TextlessButton(RESET_COUNTER_ACTION));
 
     // ensure that the preferred width is enough to show the round counter in fullscreen
     round.setText(I18N.getText("initPanel.round") + "WWW");
@@ -218,6 +228,8 @@ public class InitiativePanel extends JPanel
     I18N.setAction("initPanel.toggleOwnerPermissions", TOGGLE_OWNER_PERMISSIONS_ACTION);
     I18N.setAction("initPanel.toggleMovementLock", TOGGLE_MOVEMENT_LOCK_ACTION);
     I18N.setAction("initPanel.round", RESET_COUNTER_ACTION);
+    I18N.setAction(
+        "initPanel.warnWhenResettingRoundCounter", TOGGLE_WARN_WHEN_RESETTING_COUNTER_ACTION);
     I18N.setAction("initPanel.next", NEXT_ACTION);
     I18N.setAction("initPanel.prev", PREV_ACTION);
     updateView();
@@ -291,6 +303,11 @@ public class InitiativePanel extends JPanel
       movementLockMenuItem = new JCheckBoxMenuItem(TOGGLE_MOVEMENT_LOCK_ACTION);
       movementLockMenuItem.setSelected(list != null && movementLock);
       popupMenu.add(movementLockMenuItem);
+      warnWhenResettingRoundCounterMenuItem =
+          new JCheckBoxMenuItem(TOGGLE_WARN_WHEN_RESETTING_COUNTER_ACTION);
+      warnWhenResettingRoundCounterMenuItem.setSelected(
+          list != null && warnWhenResettingRoundCounter);
+      popupMenu.add(warnWhenResettingRoundCounterMenuItem);
       popupMenu.addSeparator();
       popupMenu.add(new JMenuItem(ADD_PCS_ACTION));
       popupMenu.add(new JMenuItem(ADD_ALL_ACTION));
@@ -850,6 +867,17 @@ public class InitiativePanel extends JPanel
         }
       };
 
+  /** Enable/Disable showing a warning dialog when resetting the round counter */
+  public final Action TOGGLE_WARN_WHEN_RESETTING_COUNTER_ACTION =
+      new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          warnWhenResettingRoundCounter = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+          AppPreferences.initiativePanelWarnWhenResettingRoundCounter.set(
+              warnWhenResettingRoundCounter);
+        }
+      };
+
   /** This action will reset the round counter for the initiative panel. */
   public final Action RESET_COUNTER_ACTION =
       new AbstractAction() {
@@ -859,10 +887,24 @@ public class InitiativePanel extends JPanel
             return;
           }
 
-          list.startUnitOfWork();
-          list.setRound(-1);
-          list.setCurrent(-1);
-          list.finishUnitOfWork();
+          int reset;
+          if (warnWhenResettingRoundCounter) {
+            reset =
+                JOptionPane.showConfirmDialog(
+                    null,
+                    I18N.getText("initPanel.warnWhenResettingRoundCounter.confirm"),
+                    I18N.getText("msg.title.messageDialogConfirm"),
+                    JOptionPane.YES_NO_OPTION);
+          } else {
+            reset = JOptionPane.YES_OPTION;
+          }
+
+          if (reset == JOptionPane.YES_OPTION) {
+            list.startUnitOfWork();
+            list.setRound(-1);
+            list.setCurrent(-1);
+            list.finishUnitOfWork();
+          }
         }
       };
 
