@@ -1335,6 +1335,7 @@ public class MapTool {
             AppActions.loadCampaign(campaignFile);
           }
         } catch (NoSuchElementException nse) {
+          AppPreferences.loadMruCampaignAtStart.set(false);
           log.info("MRU Campaign not loaded. List is empty.");
         }
       }

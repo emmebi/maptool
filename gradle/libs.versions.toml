@@ -30,7 +30,7 @@ sentry-log4j = { group = "io.sentry", name = "sentry-log4j2", version.ref = "sen
 # Networking
 # Web RTC
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version = "1.6.0" }
-webrtc = { group = "dev.onvoid.webrtc", name = "webrtc-java", version = "0.9.0" }
+webrtc = { group = "dev.onvoid.webrtc", name = "webrtc-java", version = "0.10.0" }
 # compression of messages between client and server
 apache-commons-compress = { group = "org.apache.commons", name = "commons-compress", version = "1.27.1" }
 zstd = { group = "com.github.luben", name = "zstd-jni", version = "1.5.7-3" }
@@ -52,7 +52,7 @@ imageio-tiff = { group = "com.twelvemonkeys.imageio", name = "imageio-tiff", ver
 imageio-batik = { group = "com.twelvemonkeys.imageio", name = "imageio-batik", version.ref = "imageio" }
 imageio-tga = { group = "com.twelvemonkeys.imageio", name = "imageio-tga", version.ref = "imageio" }
 imageio-bmp = { group = "com.twelvemonkeys.imageio", name = "imageio-bmp", version.ref = "imageio" }
-batik = { group = "org.apache.xmlgraphics", name = "batik-all", version = "1.17" }
+batik = { group = "org.apache.xmlgraphics", name = "batik-all", version = "1.19" }
 # PDF image extraction
 pdfbox = { group = "org.apache.pdfbox", name = "pdfbox", version.ref = "pdfbox" }
 pdfbox-tools = { group = "org.apache.pdfbox", name = "pdfbox-tools", version.ref = "pdfbox" }
