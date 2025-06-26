@@ -19,6 +19,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.ImageObserver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -274,6 +276,12 @@ public class ZoneViewModel {
       // We're done, until the cache is cleared
       return;
     }
+
+    ImageObserver observer =
+        Objects.requireNonNullElseGet(
+            MapTool.getFrame().getZoneRenderer(this.zone),
+            () -> (ImageObserver) (img, infoflags, x, y, width, height) -> false);
+
     // Get a list of all the assets in the zone
     Set<MD5Key> assetSet = zone.getAllAssetIds();
     assetSet.remove(null); // remove bad data
@@ -293,7 +301,7 @@ public class ZoneViewModel {
       downloadCount++;
 
       // Have we loaded the image into memory yet ?
-      Image image = ImageManager.getImage(asset.getMD5Key());
+      Image image = ImageManager.getImage(asset.getMD5Key(), observer);
       if (image == null || image == ImageManager.TRANSFERING_IMAGE) {
         loaded = false;
         continue;
