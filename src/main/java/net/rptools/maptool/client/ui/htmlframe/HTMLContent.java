@@ -138,6 +138,7 @@ public class HTMLContent {
 
     public HtmlDocumentContent {
       document = document.clone();
+      document.outputSettings().charset(StandardCharsets.US_ASCII);
     }
 
     public HtmlDocumentContent(
