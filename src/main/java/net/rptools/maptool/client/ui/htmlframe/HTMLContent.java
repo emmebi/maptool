@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.rptools.maptool.client.ui.htmlframe.HTMLWebViewManager.JavaBridge;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.Asset;
@@ -126,79 +125,31 @@ public class HTMLContent {
           .map(CSPContentDirective::getContent)
           .collect(Collectors.joining(" "));
 
-  /** The enumeration that represents the type of content. */
-  private enum ContentType {
-    /** The content is a string, possibly HTML. */
-    STRING,
-    /** HTML Content in a string */
-    HTML,
-    /** URL that points to the content. */
-    URL,
-    /** The asset that represents the content if it is a binary asset. */
-    ASSET
-  }
+  private sealed interface Content {}
 
-  /**
-   * The content type that this object represents. This is used to determine how to handle the
-   * content.
-   *
-   * @param str content as a string.
-   * @param url URL that points to the content.
-   * @param asset The asset that represents the content if it is a binary asset.
-   * @param type The type of content.
-   */
-  private record Content(
-      @Nullable String str, @Nullable URL url, @Nullable Asset asset, @Nonnull ContentType type) {
+  /** The content is a string, possibly HTML. */
+  private record StringContent(String str) implements Content {}
 
-    /**
-     * Constructor for the Content class if it is a string containing html.
-     *
-     * @param str content as a string.
-     * @param isHtml true if the content is HTML, false otherwise or unknown.
-     */
-    public Content(@Nonnull String str, boolean isHtml) {
-      this(str, null, null, isHtml ? ContentType.HTML : ContentType.STRING);
-    }
+  /** HTML content as a parsed Document */
+  private record HtmlDocumentContent(
+      String str, boolean isJavaBridgeInjected, boolean isBaseUrlInjected) implements Content {}
 
-    /**
-     * Constructor for the Content class if it is a URL.
-     *
-     * @param url URL that points to the content.
-     */
-    public Content(@Nonnull URL url) {
-      this(null, url, null, ContentType.URL);
-    }
+  /** URL that points to the content. */
+  private record UrlContent(URL url) implements Content {}
 
-    /**
-     * Constructor for the Content class if it is a binary asset.
-     *
-     * @param asset The asset that represents the content if it is a binary asset.
-     */
-    public Content(@Nonnull Asset asset) {
-      this(null, null, asset, ContentType.ASSET);
-    }
-  }
+  /** The asset that represents the content if it is a binary asset. */
+  private record AssetContent(Asset asset) implements Content {}
 
   /** The content represented. */
-  Content content;
-
-  /** Flag to indicate if the JavaBridge has been injected. */
-  private final boolean javaBridgeInjected;
-
-  /** Flag to indicate if the base URL has been injected. */
-  private final boolean baseUrlInjected;
+  private final Content content;
 
   /**
    * Constructor for the HTMLContent class.
    *
    * @param content The content represented.
-   * @param javaBridgeInjected flag to indicate if the Java Bridge has been injected
-   * @param baseUrlInjected flag to indicate if the base URL has been injected
    */
-  private HTMLContent(Content content, boolean javaBridgeInjected, boolean baseUrlInjected) {
+  private HTMLContent(Content content) {
     this.content = content;
-    this.javaBridgeInjected = javaBridgeInjected;
-    this.baseUrlInjected = baseUrlInjected;
   }
 
   /**
@@ -208,7 +159,7 @@ public class HTMLContent {
    * @return an HTMLContent object
    */
   public static HTMLContent htmlFromString(@Nonnull String html) {
-    return new HTMLContent(new Content(html, true), false, false);
+    return new HTMLContent(new HtmlDocumentContent(html, false, false));
   }
 
   /**
@@ -218,7 +169,7 @@ public class HTMLContent {
    * @return an HTMLContent object
    */
   public static HTMLContent fromURL(@Nonnull URL url) {
-    return new HTMLContent(new Content(url), false, false);
+    return new HTMLContent(new UrlContent(url));
   }
 
   /**
@@ -227,7 +178,7 @@ public class HTMLContent {
    * @return true if the HTML content is a URL, false otherwise
    */
   public boolean isUrl() {
-    return content.type == ContentType.URL;
+    return content instanceof UrlContent;
   }
 
   /**
@@ -235,8 +186,12 @@ public class HTMLContent {
    *
    * @return true if the HTML content is a string, false otherwise
    */
-  public boolean isHTMLString() {
-    return content.type == ContentType.HTML;
+  public boolean isHTMLDocument() {
+    return content instanceof HtmlDocumentContent;
+  }
+
+  public boolean isBinaryAsset() {
+    return content instanceof AssetContent;
   }
 
   /**
@@ -245,7 +200,12 @@ public class HTMLContent {
    * @return the HTML content as a string
    */
   public String getHtmlString() {
-    return content.str;
+    return switch (content) {
+      case AssetContent ignored -> null;
+      case HtmlDocumentContent htmlDocumentContent -> htmlDocumentContent.str();
+      case StringContent stringContent -> stringContent.str();
+      case UrlContent ignored -> null;
+    };
   }
 
   /**
@@ -254,15 +214,11 @@ public class HTMLContent {
    * @return the URL of the HTML content
    */
   public URL getUrl() {
-    return content.url;
-  }
-
-  public boolean isBinaryAsset() {
-    return content.type == ContentType.ASSET;
+    return content instanceof UrlContent(URL url) ? url : null;
   }
 
   public Asset getAsset() {
-    return content.asset;
+    return content instanceof AssetContent(Asset asset) ? asset : null;
   }
 
   /**
@@ -271,9 +227,10 @@ public class HTMLContent {
    * @return the HTML content as a data URL in base64 format.
    */
   public String getHtmlStringAsDataUrl() {
-    if (isHTMLString()) {
+    if (content instanceof HtmlDocumentContent htmlDocumentContent) {
       String encodedHtml =
-          Base64.getEncoder().encodeToString(content.str.getBytes(StandardCharsets.UTF_8));
+          Base64.getEncoder()
+              .encodeToString(htmlDocumentContent.str().getBytes(StandardCharsets.UTF_8));
       return "data:text/html;base64," + encodedHtml;
     } else {
       throw new IllegalStateException("HTMLContent is not a string");
@@ -286,20 +243,23 @@ public class HTMLContent {
    * @return the HTMLContent object with the base URL injected.
    */
   public HTMLContent injectURLBase(@Nonnull URL baseUrl) {
-    if (baseUrlInjected) {
-      return this; // already injected so return the same object
-    }
-    if (!isHTMLString()) {
-      throw new IllegalStateException("HTMLContent is not a string");
+    if (!(content instanceof HtmlDocumentContent htmlDocumentContent)) {
+      throw new IllegalStateException("HTMLContent is not HTML");
     }
 
-    var document = Jsoup.parse(content.str);
+    if (htmlDocumentContent.isBaseUrlInjected()) {
+      // Already injected so return the same object
+      return this;
+    }
+
+    var document = Jsoup.parse(htmlDocumentContent.str());
     var head = document.select("head").first();
     if (head != null) {
       addBase(document, baseUrl);
     }
 
-    return new HTMLContent(new Content(document.html(), true), javaBridgeInjected, true);
+    return new HTMLContent(
+        new HtmlDocumentContent(document.html(), htmlDocumentContent.isJavaBridgeInjected(), true));
   }
 
   /**
@@ -312,23 +272,19 @@ public class HTMLContent {
    * @return the HTMLContent object with the Java Bridge injected.
    */
   public HTMLContent injectJavaBridge() {
-    if (!isHTMLString() || javaBridgeInjected) {
+    if (!(content instanceof HtmlDocumentContent htmlDocumentContent)
+        || htmlDocumentContent.isJavaBridgeInjected()) {
       return this; // No need to do anything
     }
 
-    if (!isHTMLString()) {
-      throw new IllegalStateException("HTMLContent is not a string");
-    }
-    var newHtml = content.str;
-    var document = Jsoup.parse(newHtml);
+    var document = Jsoup.parse(htmlDocumentContent.str());
     var head = document.select("head").first();
     if (head != null) {
       addCSP(head);
       addJavaBridge(head);
-
-      newHtml = document.html();
     }
-    return new HTMLContent(new Content(newHtml, true), true, true);
+
+    return new HTMLContent(new HtmlDocumentContent(document.html(), true, true));
   }
 
   /**
@@ -339,44 +295,50 @@ public class HTMLContent {
    * @throws IllegalStateException if the content is not a URL.
    */
   public HTMLContent fetchContent() throws IOException {
-    if (!isUrl()) {
+    if (!(content instanceof UrlContent urlContent)) {
       throw new IllegalStateException("HTMLContent is not a URL");
     }
+
     try {
-      Optional<Library> libraryOpt = new LibraryManager().getLibrary(content.url).get();
+      Optional<Library> libraryOpt = new LibraryManager().getLibrary(urlContent.url()).get();
       if (libraryOpt.isEmpty()) {
         throw new IOException(
-            I18N.getText("msg.error.html.loadingURL", content.url.toExternalForm()));
+            I18N.getText("msg.error.html.loadingURL", urlContent.url().toExternalForm()));
       }
 
       var library = libraryOpt.get();
-      var assetKey = library.getAssetKey(content.url).get().orElse(null);
+      var assetKey = library.getAssetKey(urlContent.url()).get().orElse(null);
       // Check if the asset key is null, if so try reading the resource as a string from the
       // library
       if (assetKey == null) {
-        String html = library.readAsString(content.url).get();
+        String html = library.readAsString(urlContent.url()).get();
         if (html != null) {
           var mediaType = Asset.getMediaType("", html.getBytes(StandardCharsets.UTF_8));
           var assetType = Asset.Type.fromMediaType(mediaType);
-          return new HTMLContent(new Content(html, assetType == Asset.Type.HTML), false, false);
+
+          if (assetType == Asset.Type.HTML) {
+            return new HTMLContent(new HtmlDocumentContent(html, false, false));
+          }
+          return new HTMLContent(new StringContent(html));
         }
       }
 
       var asset = AssetManager.getAsset(assetKey);
       if (asset != null) {
         if (asset.isStringAsset()) {
-          return new HTMLContent(
-              new Content(asset.getDataAsString(), asset.getType() == Asset.Type.HTML),
-              false,
-              false);
+          if (asset.getType() == Asset.Type.HTML) {
+            return new HTMLContent(new HtmlDocumentContent(asset.getDataAsString(), false, false));
+          }
+          return new HTMLContent(new StringContent(asset.getDataAsString()));
         } else {
-          return new HTMLContent(new Content(asset), false, false);
+          return new HTMLContent(new AssetContent(asset));
         }
       }
     } catch (InterruptedException | ExecutionException e) {
       throw new IOException(e);
     }
-    throw new IOException(I18N.getText("msg.error.html.loadingURL", content.url.toExternalForm()));
+    throw new IOException(
+        I18N.getText("msg.error.html.loadingURL", urlContent.url().toExternalForm()));
   }
 
   /**
@@ -387,8 +349,8 @@ public class HTMLContent {
    * @throws IllegalStateException if the URL points to a binary asset.
    */
   public String fetchString() throws IOException {
-    if (isHTMLString()) {
-      return content.str;
+    if (content instanceof HtmlDocumentContent htmlDocumentContent) {
+      return htmlDocumentContent.str();
     } else {
       return fetchContent().getHtmlString();
     }
