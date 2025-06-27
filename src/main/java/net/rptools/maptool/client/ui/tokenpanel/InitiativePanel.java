@@ -92,10 +92,6 @@ public class InitiativePanel extends JPanel
    */
   private boolean initStateSecondLine = AppPreferences.initiativePanelShowsInitiativeOnLine2.get();
 
-  /** Flag indicating whether to display a confirmation dialog when resetting the round counter. */
-  private boolean warnWhenResettingRoundCounter =
-      AppPreferences.initiativePanelWarnWhenResettingRoundCounter.get();
-
   /** The zone data being displayed. */
   private Zone zone;
 
@@ -306,7 +302,7 @@ public class InitiativePanel extends JPanel
       warnWhenResettingRoundCounterMenuItem =
           new JCheckBoxMenuItem(TOGGLE_WARN_WHEN_RESETTING_COUNTER_ACTION);
       warnWhenResettingRoundCounterMenuItem.setSelected(
-          list != null && warnWhenResettingRoundCounter);
+          list != null && AppPreferences.initiativePanelWarnWhenResettingRoundCounter.get());
       popupMenu.add(warnWhenResettingRoundCounterMenuItem);
       popupMenu.addSeparator();
       popupMenu.add(new JMenuItem(ADD_PCS_ACTION));
@@ -872,9 +868,8 @@ public class InitiativePanel extends JPanel
       new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          warnWhenResettingRoundCounter = ((JCheckBoxMenuItem) e.getSource()).isSelected();
           AppPreferences.initiativePanelWarnWhenResettingRoundCounter.set(
-              warnWhenResettingRoundCounter);
+              ((JCheckBoxMenuItem) e.getSource()).isSelected());
         }
       };
 
@@ -887,18 +882,15 @@ public class InitiativePanel extends JPanel
             return;
           }
 
-          int reset;
-          if (warnWhenResettingRoundCounter) {
+          int reset = JOptionPane.YES_OPTION;
+          if (AppPreferences.initiativePanelWarnWhenResettingRoundCounter.get()) {
             reset =
                 JOptionPane.showConfirmDialog(
                     null,
                     I18N.getText("initPanel.warnWhenResettingRoundCounter.confirm"),
                     I18N.getText("msg.title.messageDialogConfirm"),
                     JOptionPane.YES_NO_OPTION);
-          } else {
-            reset = JOptionPane.YES_OPTION;
           }
-
           if (reset == JOptionPane.YES_OPTION) {
             list.startUnitOfWork();
             list.setRound(-1);
