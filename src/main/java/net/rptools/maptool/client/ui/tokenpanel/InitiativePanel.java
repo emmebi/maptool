@@ -882,16 +882,19 @@ public class InitiativePanel extends JPanel
             return;
           }
 
-          int reset = JOptionPane.YES_OPTION;
+          boolean reset;
           if (AppPreferences.initiativePanelWarnWhenResettingRoundCounter.get()) {
             reset =
-                JOptionPane.showConfirmDialog(
-                    null,
-                    I18N.getText("initPanel.warnWhenResettingRoundCounter.confirm"),
-                    I18N.getText("msg.title.messageDialogConfirm"),
-                    JOptionPane.YES_NO_OPTION);
+                (JOptionPane.showConfirmDialog(
+                        null,
+                        I18N.getText("initPanel.warnWhenResettingRoundCounter.confirm"),
+                        I18N.getText("msg.title.messageDialogConfirm"),
+                        JOptionPane.YES_NO_OPTION)
+                    == JOptionPane.YES_OPTION);
+          } else {
+            reset = true;
           }
-          if (reset == JOptionPane.YES_OPTION) {
+          if (reset) {
             list.startUnitOfWork();
             list.setRound(-1);
             list.setCurrent(-1);
