@@ -51,7 +51,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.Position.Bias;
 import javax.swing.text.html.HTMLDocument;
@@ -136,6 +135,10 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   /** Create a new token notes dialog. */
   public EditTokenDialog() {
     this(new TokenPropertiesDialog());
+  }
+
+  public void initPropertyTable() {
+    getPropertyTable().setModel(new TokenPropertyTableModel());
   }
 
   public void initGMNotesEditorPane() {
@@ -677,15 +680,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     EventQueue.invokeLater(
         () -> {
           PropertyTable pp = getPropertyTable();
-          if (token != null) {
-            var propertyList = MapTool.getCampaign().getTokenPropertyList(propertyType);
-
-            pp.setModel(
-                new TokenPropertyTableModel(
-                    token, propertyType, propertyList, propertyCellRenderer));
-          } else {
-            pp.setModel(new DefaultTableModel());
-          }
+          var propertyList = MapTool.getCampaign().getTokenPropertyList(propertyType);
+          pp.setModel(
+              new TokenPropertyTableModel(token, propertyType, propertyList, propertyCellRenderer));
           pp.expandAll();
         });
   }
@@ -925,7 +922,15 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setSpeechMap(((KeyValueTableModel) getSpeechTable().getModel()).getMap());
 
     /* Properties */
-    ((TokenPropertyTableModel) getPropertyTable().getModel()).applyTo(token);
+    var tableModel = getPropertyTable().getModel();
+    if (getPropertyTable().getModel() instanceof TokenPropertyTableModel tokenPropertyTableModel) {
+      tokenPropertyTableModel.applyTo(token);
+    } else {
+      log.warn(
+          "Property table model is not of the expected type; expected {} but got {}",
+          TokenPropertyTableModel.class,
+          tableModel.getClass());
+    }
 
     /* Charsheet */
     if (getCharSheetPanel().getImageId() != null) {
@@ -2165,8 +2170,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     private final List<TokenProperty> propertyList;
     private final Map<String, String> propertyMap;
 
+    public TokenPropertyTableModel() {
+      propertyList = List.of();
+      propertyMap = Map.of();
+    }
+
     public TokenPropertyTableModel(
-        Token model,
+        @Nullable Token model,
         String propertyType,
         List<TokenProperty> propertyList,
         TableCellRenderer propertyCellRenderer) {
@@ -2174,7 +2184,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
       this.propertyMap = new HashMap<>();
       for (TokenProperty property : propertyList) {
-        String value = (String) model.getProperty(property.getName());
+        String value = model == null ? null : (String) model.getProperty(property.getName());
         if (value == null) {
           value = property.getDefaultValue();
         }
