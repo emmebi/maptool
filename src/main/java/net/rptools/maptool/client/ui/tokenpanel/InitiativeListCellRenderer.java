@@ -255,7 +255,7 @@ public class InitiativeListCellRenderer extends JPanel
       int th = textHeight * (initStateSecondLine ? 2 : 1);
       Insets insets = getInsets();
       if (getIcon() != null) th = Math.max(th, getIcon().getIconHeight());
-      s.height = th + insets.top + insets.bottom - 4;
+      s.height = th + insets.top + insets.bottom;
       return s;
     }
   }
