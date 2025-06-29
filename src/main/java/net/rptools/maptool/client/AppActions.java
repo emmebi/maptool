@@ -41,6 +41,7 @@ import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import net.rptools.lib.FileUtil;
 import net.rptools.lib.MD5Key;
+import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.tool.FacingTool;
 import net.rptools.maptool.client.tool.Toolbox;
@@ -1927,9 +1928,9 @@ public class AppActions {
           }
 
           StartServerDialog dialog = new StartServerDialog();
-          dialog.showDialog();
+          boolean cancelled = dialog.showDialog().equals(GenericDialog.DENY);
 
-          if (!dialog.accepted()) { // Results stored in Preferences.userRoot()
+          if (cancelled) { // Results stored in Preferences.userRoot()
             return;
           }
 
@@ -2741,12 +2742,12 @@ public class AppActions {
 
     @Override
     public boolean isSelected() {
-      return AppState.getGridSize() == size;
+      return AppState.getGridLineWeight() == size;
     }
 
     @Override
     protected void executeAction() {
-      AppState.setGridSize(size);
+      AppState.setGridLineWeight(size);
       MapTool.getFrame().refresh();
     }
   }

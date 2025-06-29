@@ -41,6 +41,7 @@ import net.rptools.lib.MD5Key;
 import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.functions.TokenMoveFunctions;
+import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.ImageLabel;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.swing.label.FlatImageLabelFactory;
@@ -2433,8 +2434,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         if (getActiveLayer() == Zone.Layer.TOKEN) {
           if (AppPreferences.showDialogOnNewToken.get() || showDialog) {
             NewTokenDialog dialog = new NewTokenDialog(token, dropPoint.x, dropPoint.y);
-            dialog.showDialog();
-            if (!dialog.isSuccess()) {
+            if (dialog.showDialog().equals(GenericDialog.DENY)) {
               continue;
             }
           }
