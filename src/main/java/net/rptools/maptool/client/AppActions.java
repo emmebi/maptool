@@ -2721,10 +2721,10 @@ public class AppActions {
         protected void executeAction() {
           Campaign campaign = MapTool.getCampaign();
 
-          CampaignPropertiesDialog dialog = new CampaignPropertiesDialog(MapTool.getFrame());
+          CampaignPropertiesDialog dialog = new CampaignPropertiesDialog();
           dialog.setCampaign(campaign);
-          dialog.setVisible(true);
-          if (dialog.getStatus() == CampaignPropertiesDialog.Status.CANCEL) {
+          boolean cancelled = dialog.showDialog().equals(GenericDialog.DENY);
+          if (cancelled) {
             return;
           }
           MapTool.serverCommand().updateCampaign(campaign.getCampaignProperties());
