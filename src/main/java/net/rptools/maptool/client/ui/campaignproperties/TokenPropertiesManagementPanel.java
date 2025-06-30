@@ -825,7 +825,7 @@ public class TokenPropertiesManagementPanel extends AbeillePanel<CampaignPropert
     }
 
     Dimension headerDim = propertyTable.getTableHeader().getSize();
-    headerDim.height = (int) (hFont.getSize() * 3.41);
+    headerDim.height = (int) (hFont.getSize() * 3.71);
     propertyTable.getTableHeader().setPreferredSize(headerDim);
   }
 
