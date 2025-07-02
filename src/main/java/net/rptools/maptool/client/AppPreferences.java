@@ -32,7 +32,8 @@ import net.rptools.maptool.util.preferences.PreferenceStore;
 public class AppPreferences {
   private static final PreferenceStore store =
       new PreferenceStore(Preferences.userRoot().node(AppConstants.APP_NAME + "/prefs"));
-  private static final boolean PRINT_KEYS_MISSING_I18N_ON_STARTUP = false; // for finding pesky wabbitses
+  private static final boolean PRINT_KEYS_MISSING_I18N_ON_STARTUP =
+      false; // for finding pesky wabbitses
 
   public static PreferenceStore getAppPreferenceStore() {
     return store;
