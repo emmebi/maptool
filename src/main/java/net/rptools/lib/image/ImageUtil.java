@@ -24,7 +24,6 @@ import java.awt.image.ImageObserver;
 import java.awt.image.PixelGrabber;
 import java.io.*;
 import java.util.Arrays;
-import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.rptools.lib.MathUtil;
@@ -42,8 +41,6 @@ import org.apache.logging.log4j.Logger;
  * @author trevor
  */
 public class ImageUtil {
-  public static final String HINT_TRANSPARENCY = "hintTransparency";
-
   public static final FilenameFilter SUPPORTED_IMAGE_FILE_FILTER =
       (dir, name) -> {
         name = name.toLowerCase();
@@ -167,14 +164,10 @@ public class ImageUtil {
    * @return compatible BufferedImage
    */
   public static BufferedImage createCompatibleImage(Image img) {
-    return createCompatibleImage(img, null);
-  }
-
-  public static BufferedImage createCompatibleImage(Image img, Map<String, Object> hints) {
     if (img == null) {
       return null;
     }
-    return createCompatibleImage(img, img.getWidth(null), img.getHeight(null), hints);
+    return createCompatibleImage(img, img.getWidth(null), img.getHeight(null));
   }
 
   /**
@@ -184,21 +177,14 @@ public class ImageUtil {
    * @param img the image to copy
    * @param width width of the created image
    * @param height height of the created image
-   * @param hints a {@link Map} that may contain the key HINT_TRANSPARENCY to define a the
-   *     transparency color
    * @return a {@link BufferedImage} with a copy of img
    */
-  public static BufferedImage createCompatibleImage(
-      Image img, int width, int height, Map<String, Object> hints) {
+  public static BufferedImage createCompatibleImage(Image img, int width, int height) {
+
     width = Math.max(width, 1);
     height = Math.max(height, 1);
 
-    int transparency;
-    if (hints != null && hints.containsKey(HINT_TRANSPARENCY)) {
-      transparency = (Integer) hints.get(HINT_TRANSPARENCY);
-    } else {
-      transparency = pickBestTransparency(img);
-    }
+    int transparency = pickBestTransparency(img);
     BufferedImage compImg = new BufferedImage(width, height, transparency);
 
     Graphics2D g = null;
@@ -469,12 +455,7 @@ public class ImageUtil {
   }
 
   public static BufferedImage getCompatibleImage(String image) throws IOException {
-    return getCompatibleImage(image, null);
-  }
-
-  public static BufferedImage getCompatibleImage(String image, Map<String, Object> hints)
-      throws IOException {
-    return createCompatibleImage(getImage(image), hints);
+    return createCompatibleImage(getImage(image));
   }
 
   /**

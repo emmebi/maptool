@@ -547,7 +547,7 @@ public class RessourceManager {
               // big
               var image = ImageUtil.getImage(iconPath);
               if (image.getWidth(null) > width || image.getHeight(null) > height)
-                image = ImageUtil.createCompatibleImage(image, width, height, null);
+                image = ImageUtil.createCompatibleImage(image, width, height);
               return new ImageIcon(image);
             }
           } catch (IOException e) {
