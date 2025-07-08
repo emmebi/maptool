@@ -40,7 +40,6 @@ import net.rptools.lib.CodeTimer;
 import net.rptools.lib.CollectionUtil;
 import net.rptools.lib.MD5Key;
 import net.rptools.lib.StringUtil;
-import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.functions.TokenMoveFunctions;
 import net.rptools.maptool.client.swing.GenericDialog;
@@ -70,6 +69,7 @@ import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.model.zones.*;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
+import net.rptools.maptool.util.ImageSupport;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1792,7 +1792,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       timer.start("token-list-1b");
       // get token image, using image table if present
-      BufferedImage image = ImageUtil.getTokenImage(token, this);
+      BufferedImage image = ImageSupport.getTokenImage(token, this);
       timer.stop("token-list-1b");
 
       timer.start("token-list-5a");
