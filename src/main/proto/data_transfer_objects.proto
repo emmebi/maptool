@@ -706,12 +706,12 @@ message TransferableAddOnLibraryDto {
 }
 
 message TokenFootPrintDto {
-  repeated IntPointDto cell_set = 1;
+  string id = 1;
   string name = 2;
-  string id = 3;
-  bool is_default = 4;;
+  string localizedName = 3;
+  bool is_default = 4;
   double scale = 5;
-  bool localize_name = 6;
+  repeated IntPointDto cell_set = 6;
 }
 
 // region WallTopology graph
