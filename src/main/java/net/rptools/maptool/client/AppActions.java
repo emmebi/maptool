@@ -507,7 +507,7 @@ public class AppActions {
 
           // Probably don't have to create a new one each time
           PreferencesDialog dialog = new PreferencesDialog();
-          dialog.setVisible(true);
+          dialog.showDialog();
         }
       };
 
