@@ -14,11 +14,11 @@
  */
 package net.rptools.maptool.client;
 
+import static net.rptools.lib.OsDetection.withMenuShortcut;
+
 import com.jidesoft.docking.DockableFrame;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -41,6 +41,7 @@ import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import net.rptools.lib.FileUtil;
 import net.rptools.lib.MD5Key;
+import net.rptools.lib.OsDetection;
 import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.tool.FacingTool;
@@ -120,31 +121,7 @@ public class AppActions {
    */
   private static Set<Token> tokenCopySet = null;
 
-  private static final int menuShortcut = getMenuShortcutKeyMask();
   private static boolean keepIdsOnPaste = false;
-
-  private static int getMenuShortcutKeyMask() {
-    int key = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-    String prop = System.getProperty("os.name", "unknown");
-    if ("darwin".equalsIgnoreCase(prop)) {
-      // shortcut is CTRL...
-      if (key == InputEvent.CTRL_DOWN_MASK) {
-        key = InputEvent.META_DOWN_MASK;
-      }
-    }
-    return key;
-  }
-
-  public static KeyStroke withMenuShortcut(KeyStroke k) {
-    int modifiers = k.getModifiers() | AppActions.menuShortcut;
-    if (k.getKeyCode() != KeyEvent.VK_UNDEFINED) {
-      k = KeyStroke.getKeyStroke(k.getKeyCode(), modifiers);
-    } else {
-      k = KeyStroke.getKeyStroke(k.getKeyChar(), modifiers);
-    }
-
-    return k;
-  }
 
   /** This action will rotate through the PC tokens owned by the player. */
   public static final Action NEXT_TOKEN =
@@ -3126,7 +3103,7 @@ public class AppActions {
             return; // Nothing to do as its due to the JDK bug
             // https://bugs.openjdk.java.net/browse/JDK-8208712
           }
-        } else if ((e.getModifiers() & menuShortcut) != 0) {
+        } else if ((e.getModifiers() & OsDetection.menuShortcut) != 0) {
           lastAccelInvoke = e.getWhen();
         }
       }

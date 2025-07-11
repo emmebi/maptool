@@ -14,6 +14,11 @@
  */
 package net.rptools.lib;
 
+import java.awt.Toolkit;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import javax.swing.KeyStroke;
+
 public final class OsDetection {
 
   /** Returns true if currently running on a Windows based operating system. */
@@ -30,6 +35,30 @@ public final class OsDetection {
           || System.getProperty("os.name").indexOf("nux") >= 0
           || System.getProperty("os.name").indexOf("aix") >= 0
           || System.getProperty("os.name").indexOf("sunos") >= 0);
+
+  public static int menuShortcut = getMenuShortcutKeyMask();
+
+  private static int getMenuShortcutKeyMask() {
+    int key = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+    String prop = System.getProperty("os.name", "unknown");
+    if ("darwin".equalsIgnoreCase(prop)) {
+      if (key == InputEvent.CTRL_DOWN_MASK) {
+        key = InputEvent.META_DOWN_MASK;
+      }
+    }
+    return key;
+  }
+
+  public static KeyStroke withMenuShortcut(KeyStroke k) {
+    int modifiers = k.getModifiers() | menuShortcut;
+    if (k.getKeyCode() != KeyEvent.VK_UNDEFINED) {
+      k = KeyStroke.getKeyStroke(k.getKeyCode(), modifiers);
+    } else {
+      k = KeyStroke.getKeyStroke(k.getKeyChar(), modifiers);
+    }
+
+    return k;
+  }
 
   private OsDetection() {
     throw new RuntimeException("OsSupport is a static class");
