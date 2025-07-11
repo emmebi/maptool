@@ -1557,14 +1557,6 @@ public class PreferencesDialog extends AbeillePanel {
     }
   }
 
-  @Override
-  public void setVisible(boolean b) {
-    if (b) {
-      themeChanged = false;
-    }
-    super.setVisible(b);
-  }
-
   /**
    * Initializes and sets the initial state of various user preferences in the application. This
    * method is called during the initialization process.
@@ -1917,6 +1909,7 @@ public class PreferencesDialog extends AbeillePanel {
   }
 
   public void showDialog() {
+    themeChanged = false;
     dialogFactory.display();
   }
 }
