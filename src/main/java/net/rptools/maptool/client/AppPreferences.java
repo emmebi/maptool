@@ -14,12 +14,10 @@
  */
 package net.rptools.maptool.client;
 
-import com.twelvemonkeys.image.ResampleOp;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.io.File;
 import java.util.prefs.Preferences;
+import net.rptools.lib.image.RenderQuality;
 import net.rptools.maptool.client.walker.WalkerMetric;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.GridFactory;
@@ -793,63 +791,6 @@ public class AppPreferences {
               prefs.getInt("chatNotificationColorRed", defaultValue.getRed()),
               prefs.getInt("chatNotificationColorGreen", defaultValue.getGreen()),
               prefs.getInt("chatNotificationColorBlue", defaultValue.getBlue())));
-    }
-  }
-
-  public enum RenderQuality {
-    LOW_SCALING,
-    PIXEL_ART_SCALING,
-    MEDIUM_SCALING,
-    HIGH_SCALING;
-
-    public void setRenderingHints(Graphics2D g) {
-      switch (this) {
-        case LOW_SCALING, PIXEL_ART_SCALING -> {
-          g.setRenderingHint(
-              RenderingHints.KEY_INTERPOLATION,
-              RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-          g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-        }
-        case MEDIUM_SCALING -> {
-          g.setRenderingHint(
-              RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-          g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_DEFAULT);
-        }
-        case HIGH_SCALING -> {
-          g.setRenderingHint(
-              RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-          g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        }
-      }
-    }
-
-    public void setShrinkRenderingHints(Graphics2D d) {
-      switch (this) {
-        case LOW_SCALING, PIXEL_ART_SCALING -> {
-          d.setRenderingHint(
-              RenderingHints.KEY_INTERPOLATION,
-              RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-          d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-        }
-        case MEDIUM_SCALING -> {
-          d.setRenderingHint(
-              RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-          d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_DEFAULT);
-        }
-        case HIGH_SCALING -> {
-          d.setRenderingHint(
-              RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-          d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        }
-      }
-    }
-
-    public int getResampleOpFilter() {
-      return switch (this) {
-        case LOW_SCALING, PIXEL_ART_SCALING -> ResampleOp.FILTER_POINT;
-        case MEDIUM_SCALING -> ResampleOp.FILTER_TRIANGLE;
-        case HIGH_SCALING -> ResampleOp.FILTER_QUADRATIC;
-      };
     }
   }
 

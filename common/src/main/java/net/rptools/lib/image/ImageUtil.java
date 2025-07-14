@@ -17,23 +17,15 @@ package net.rptools.lib.image;
 import com.twelvemonkeys.image.ResampleOp;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
 import java.awt.image.PixelGrabber;
 import java.io.*;
 import java.util.Arrays;
-import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.rptools.lib.MathUtil;
-import net.rptools.maptool.client.AppConstants;
-import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.model.*;
-import net.rptools.maptool.util.ImageManager;
-import net.rptools.parser.ParserException;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,8 +34,6 @@ import org.apache.logging.log4j.Logger;
  * @author trevor
  */
 public class ImageUtil {
-  public static final String HINT_TRANSPARENCY = "hintTransparency";
-
   public static final FilenameFilter SUPPORTED_IMAGE_FILE_FILTER =
       (dir, name) -> {
         name = name.toLowerCase();
@@ -104,62 +94,6 @@ public class ImageUtil {
     return (r << 16) | (g << 8) | b;
   }
 
-  public static BufferedImage getScaledTokenImage(
-      BufferedImage img, Token token, Grid grid, double zoom) {
-
-    double imgW = img.getWidth();
-    double imgH = img.getHeight();
-    if (token.isSnapToScale()) {
-      TokenFootprint footprint = token.getFootprint(grid);
-      Rectangle2D footprintBounds = footprint.getBounds(grid);
-      // except gridless, this should be 1 for footprints larger than the grid
-      double fpS = footprint.getScale();
-      double fpW, fpH;
-      // size:  multiply by zoom level to prevent multiple scaling ops which lose definition, i.e.
-      // scale once
-      if (GridFactory.getGridType(grid).equals(GridFactory.NONE)) {
-        fpW = fpH = grid.getSize() * fpS * zoom; // all gridless are relative to the grid size
-      } else {
-        fpW = footprintBounds.getWidth() * fpS * zoom;
-        fpH = footprintBounds.getHeight() * fpS * zoom;
-      }
-      double sXY = token.getSizeScale();
-      double sX = token.getScaleX();
-      double sY = token.getScaleY();
-      // scale to fit image inside footprint bounds using the dimension that needs the most scaling,
-      // i.e. lowest ratio
-      double imageFootprintRatio;
-      if (token.getShape() == Token.TokenShape.FIGURE && grid.isIsometric()) {
-        imageFootprintRatio = fpW / imgW;
-      } else {
-        imageFootprintRatio = Math.min(fpW / imgW, fpH / imgH);
-      }
-      // combine with token scale properties
-      if (sX != 1 || sY != 1 || sXY != 1 || imageFootprintRatio != 1) {
-        int outputWidth = (int) Math.ceil(imgW * sXY * sX * imageFootprintRatio);
-        int outputHeight = (int) Math.ceil(imgH * sXY * sY * imageFootprintRatio);
-        token.setWidth(outputWidth);
-        token.setHeight(outputHeight);
-        try {
-          return ImageUtil.scaleBufferedImage(img, outputWidth, outputHeight);
-        } catch (Exception e) {
-          log.warn(e.getLocalizedMessage(), e);
-          return img;
-        }
-      }
-    } else {
-      Rectangle b = token.getBounds(grid.getZone());
-      try {
-        return ImageUtil.scaleBufferedImage(
-            img, (int) Math.ceil(b.width * zoom), (int) Math.ceil(b.height * zoom));
-      } catch (Exception e) {
-        log.warn(e.getLocalizedMessage(), e);
-        return img;
-      }
-    }
-    return img; // fallback, return original
-  }
-
   /**
    * Create a copy of the image that is compatible with the current graphics context
    *
@@ -167,14 +101,11 @@ public class ImageUtil {
    * @return compatible BufferedImage
    */
   public static BufferedImage createCompatibleImage(Image img) {
-    return createCompatibleImage(img, null);
-  }
-
-  public static BufferedImage createCompatibleImage(Image img, Map<String, Object> hints) {
     if (img == null) {
       return null;
     }
-    return createCompatibleImage(img, img.getWidth(null), img.getHeight(null), hints);
+    return createCompatibleImage(
+        img, img.getWidth(null), img.getHeight(null), RenderQuality.PIXEL_ART_SCALING);
   }
 
   /**
@@ -184,27 +115,22 @@ public class ImageUtil {
    * @param img the image to copy
    * @param width width of the created image
    * @param height height of the created image
-   * @param hints a {@link Map} that may contain the key HINT_TRANSPARENCY to define a the
-   *     transparency color
+   * @param renderQuality Scaling preferences
    * @return a {@link BufferedImage} with a copy of img
    */
   public static BufferedImage createCompatibleImage(
-      Image img, int width, int height, Map<String, Object> hints) {
+      Image img, int width, int height, RenderQuality renderQuality) {
+
     width = Math.max(width, 1);
     height = Math.max(height, 1);
 
-    int transparency;
-    if (hints != null && hints.containsKey(HINT_TRANSPARENCY)) {
-      transparency = (Integer) hints.get(HINT_TRANSPARENCY);
-    } else {
-      transparency = pickBestTransparency(img);
-    }
+    int transparency = pickBestTransparency(img);
     BufferedImage compImg = new BufferedImage(width, height, transparency);
 
     Graphics2D g = null;
     try {
       g = compImg.createGraphics();
-      AppPreferences.renderQuality.get().setRenderingHints(g);
+      renderQuality.setRenderingHints(g);
       g.drawImage(img, 0, 0, width, height, null);
     } finally {
       if (g != null) {
@@ -394,36 +320,6 @@ public class ImageUtil {
   }
 
   /**
-   * Flip the image and return a new image
-   *
-   * @param image the image to flip
-   * @param direction 0-nothing, 1-horizontal, 2-vertical, 3-both
-   * @return flipped BufferedImage
-   */
-  public static BufferedImage flipCartesian(
-      BufferedImage image, AppConstants.FLIP_DIRECTION direction) {
-    boolean flipH = AppConstants.FLIP_DIRECTION.isFlippedH(direction);
-    boolean flipV = AppConstants.FLIP_DIRECTION.isFlippedV(direction);
-    if (!flipH && !flipV) {
-      return image;
-    }
-
-    BufferedImage workImage =
-        new BufferedImage(image.getWidth(), image.getHeight(), image.getTransparency());
-
-    int workW = image.getWidth() * (flipH ? -1 : 1);
-    int workH = image.getHeight() * (flipV ? -1 : 1);
-    int workX = flipH ? image.getWidth() : 0;
-    int workY = flipV ? image.getHeight() : 0;
-
-    Graphics2D wig = workImage.createGraphics();
-    wig.drawImage(image, workX, workY, workW, workH, null);
-    wig.dispose();
-
-    return workImage;
-  }
-
-  /**
    * Load the image. Does not create a graphics configuration compatible version.
    *
    * @param file the file with the image in it
@@ -469,12 +365,7 @@ public class ImageUtil {
   }
 
   public static BufferedImage getCompatibleImage(String image) throws IOException {
-    return getCompatibleImage(image, null);
-  }
-
-  public static BufferedImage getCompatibleImage(String image, Map<String, Object> hints)
-      throws IOException {
-    return createCompatibleImage(getImage(image), hints);
+    return createCompatibleImage(getImage(image));
   }
 
   /**
@@ -499,62 +390,8 @@ public class ImageUtil {
     return bytesToImage(dataStream.toByteArray(), image);
   }
 
-  public static double getIsoFigureHeightOffset(Token token, Rectangle2D footprintBounds) {
-    if (token.getShape().equals(Token.TokenShape.FIGURE) && !token.getIsFlippedIso()) {
-      double imageFitRatio = getIsoFigureScaleFactor(token, footprintBounds);
-      double th = token.getHeight() * imageFitRatio;
-      return footprintBounds.getHeight() - th;
-    }
-    return 0;
-  }
-
-  /**
-   * Use width ratio unless height exceeds double footprint height
-   *
-   * @param token Token
-   * @param footprintBounds Rectangle
-   * @return double
-   */
-  public static double getIsoFigureScaleFactor(Token token, Rectangle2D footprintBounds) {
-    return Math.min(
-        footprintBounds.getWidth() / token.getWidth(),
-        footprintBounds.getHeight() * 2 / token.getHeight());
-  }
-
-  /**
-   * Checks to see if token has an image table and references that if the token has a facing
-   * otherwise uses basic image
-   *
-   * @param token the token to get the image from.
-   * @return BufferedImage
-   */
-  public static BufferedImage getTokenImage(Token token, ImageObserver... observers) {
-    BufferedImage image = null;
-    // Get the basic image
-    if (token.getHasImageTable() && token.hasFacing() && token.getImageTableName() != null) {
-      LookupTable lookupTable =
-          MapTool.getCampaign().getLookupTableMap().get(token.getImageTableName());
-      if (lookupTable != null) {
-        try {
-          LookupTable.LookupEntry result =
-              lookupTable.getLookup(Integer.toString(token.getFacing()));
-          if (result != null) {
-            image = ImageManager.getImage(result.getImageId(), observers);
-          }
-        } catch (ParserException p) {
-          // do nothing
-        }
-      }
-    }
-
-    if (image == null) {
-      // Adds zr as observer so we can repaint once the image is ready. Fixes #1700.
-      image = ImageManager.getImage(token.getImageAssetId(), observers);
-    }
-    return image;
-  }
-
-  public static BufferedImage flipIsometric(BufferedImage image, boolean toRhombus) {
+  public static BufferedImage flipIsometric(
+      BufferedImage image, boolean toRhombus, RenderQuality renderQuality) {
     BufferedImage workImage;
     boolean isSquished =
         MathUtil.inTolerance(image.getHeight(), image.getWidth() / 2d, image.getHeight() * 0.05);
@@ -587,9 +424,9 @@ public class ImageUtil {
     }
     if (toRhombus) {
       image = rotateImage(image, 45);
-      image = scaleBufferedImage(image, image.getWidth(), image.getHeight() / 2);
+      image = scaleBufferedImage(image, image.getWidth(), image.getHeight() / 2, renderQuality);
     } else {
-      image = scaleBufferedImage(image, image.getWidth(), image.getWidth());
+      image = scaleBufferedImage(image, image.getWidth(), image.getWidth(), renderQuality);
       image = rotateImage(image, -45);
     }
     return image;
@@ -601,11 +438,12 @@ public class ImageUtil {
    * @param image The BufferedImage to be scaled
    * @param width Desired width in px
    * @param height Desired height in px
+   * @param renderQuality Scaling preferences
    * @return The scaled BufferedImage
    */
-  public static BufferedImage scaleBufferedImage(BufferedImage image, int width, int height) {
-    ResampleOp resampleOp =
-        new ResampleOp(width, height, AppPreferences.renderQuality.get().getResampleOpFilter());
+  public static BufferedImage scaleBufferedImage(
+      BufferedImage image, int width, int height, RenderQuality renderQuality) {
+    ResampleOp resampleOp = new ResampleOp(width, height, renderQuality.getResampleOpFilter());
     return resampleOp.filter(image, null);
   }
 

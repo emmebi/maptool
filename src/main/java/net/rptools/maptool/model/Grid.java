@@ -19,6 +19,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -310,6 +311,15 @@ public abstract class Grid implements Cloneable {
    * @return a {@link ZonePoint} within the cell.
    */
   public abstract ZonePoint convert(CellPoint cp);
+
+  public ZonePoint midZonePoint(CellPoint a, CellPoint b) {
+    var centerA = getCellCenter(a);
+    var centerB = getCellCenter(b);
+    var midPoint =
+        new Point2D.Double(
+            (centerA.getX() + centerB.getX()) / 2, (centerA.getY() + centerB.getY()) / 2);
+    return new ZonePoint((int) midPoint.getX(), (int) midPoint.getY());
+  }
 
   public ZonePoint getNearestVertex(ZonePoint point) {
     double gridx = Math.round((point.x - getOffsetX()) / getCellWidth());

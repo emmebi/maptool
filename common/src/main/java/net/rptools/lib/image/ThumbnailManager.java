@@ -21,9 +21,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import net.rptools.lib.AwtUtil;
 import net.rptools.lib.MD5Key;
-import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.swing.SwingUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,17 +45,17 @@ public class ThumbnailManager {
     return thumbnailSize;
   }
 
-  public Image getThumbnail(File file) throws IOException {
+  public Image getThumbnail(File file, RenderQuality renderQuality) throws IOException {
     // Cache
     BufferedImage thumbnail = getCachedThumbnail(file);
     if (thumbnail != null) {
       return thumbnail;
     }
     // Create
-    return createThumbnail(file);
+    return createThumbnail(file, renderQuality);
   }
 
-  private Image createThumbnail(File file) throws IOException {
+  private Image createThumbnail(File file, RenderQuality renderQuality) throws IOException {
     // Gather info
     File thumbnailFile = getThumbnailFile(file);
     if (thumbnailFile.exists()) {
@@ -74,7 +73,7 @@ public class ThumbnailManager {
       return image;
     }
     // Transform the image
-    SwingUtil.constrainTo(
+    AwtUtil.constrainTo(
         imgSize,
         Math.min(image.getWidth(null), thumbnailSize.width),
         Math.min(image.getHeight(null), thumbnailSize.height));
@@ -82,7 +81,7 @@ public class ThumbnailManager {
         new BufferedImage(imgSize.width, imgSize.height, ImageUtil.pickBestTransparency(image));
 
     Graphics2D g = thumbnailImage.createGraphics();
-    AppPreferences.renderQuality.get().setShrinkRenderingHints(g);
+    renderQuality.setShrinkRenderingHints(g);
     g.drawImage(image, 0, 0, imgSize.width, imgSize.height, null);
     g.dispose();
 

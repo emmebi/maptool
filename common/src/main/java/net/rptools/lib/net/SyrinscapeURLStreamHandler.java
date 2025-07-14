@@ -12,21 +12,15 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.protocol.syrinscape;
+package net.rptools.lib.net;
 
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
-/**
- * Support "syrinscape-fantasy" URI in Swing components
- *
- * @author Jamz
- */
-public class SyrinscapeConnection extends URLConnection {
-  public SyrinscapeConnection(URL url) {
-    super(url);
-  }
-
+public class SyrinscapeURLStreamHandler extends URLStreamHandler {
   @Override
-  public void connect() {}
+  protected URLConnection openConnection(URL url) {
+    return new SyrinscapeConnection(url);
+  }
 }

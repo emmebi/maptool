@@ -26,9 +26,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.function.Supplier;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import net.rptools.lib.image.ImageUtil;
+import net.rptools.lib.image.RenderQuality;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,6 +50,13 @@ public class ImageTransferableHandler extends TransferableHandler {
     public DataFlavor getFlavor() {
       return flavor;
     }
+  }
+
+  private final Supplier<RenderQuality> renderQualitySupplier;
+
+  public ImageTransferableHandler(Supplier<RenderQuality> renderQualitySupplier) {
+    super();
+    this.renderQualitySupplier = renderQualitySupplier;
   }
 
   @Override

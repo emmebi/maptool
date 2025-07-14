@@ -14,7 +14,6 @@
  */
 package net.rptools.lib;
 
-import com.thoughtworks.xstream.XStream;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -41,10 +40,6 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-import net.rptools.maptool.client.ui.token.BarTokenOverlay;
-import net.rptools.maptool.model.AStarCellPointConverter;
-import net.rptools.maptool.model.ShapeType;
-import net.rptools.maptool.model.converters.WallTopologyConverter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -79,11 +74,8 @@ public class FileUtil {
     return FileUtils.readFileToByteArray(file);
   }
 
-  public static Object objFromResource(String res) throws IOException {
-    XStream xs = getConfiguredXStream();
-    try (InputStream is = FileUtil.class.getClassLoader().getResourceAsStream(res)) {
-      return xs.fromXML(new InputStreamReader(is, StandardCharsets.UTF_8));
-    }
+  public static InputStream getResourceAsStream(String res) {
+    return FileUtil.class.getClassLoader().getResourceAsStream(res);
   }
 
   public static byte[] loadResource(String resource) throws IOException {
@@ -479,22 +471,5 @@ public class FileUtil {
    */
   public static String stripInvalidCharacters(String fileName) {
     return fileName = fileName.replaceAll("[^\\w\\s.,-]", "_");
-  }
-
-  /**
-   * Return an XStream which allows net.rptools.**, java.awt.**, sun.awt.** May be too permissive,
-   * but it Works For Me(tm)
-   *
-   * @return a configured XStream
-   */
-  public static XStream getConfiguredXStream() {
-    XStream xStream = new XStream();
-    XStream.setupDefaultSecurity(xStream);
-    xStream.allowTypesByWildcard(new String[] {"net.rptools.**", "java.awt.**", "sun.awt.**"});
-    xStream.registerConverter(new AStarCellPointConverter());
-    xStream.registerConverter(new WallTopologyConverter(xStream));
-    xStream.addImmutableType(ShapeType.class, true);
-    xStream.addImmutableType(BarTokenOverlay.Side.class, true);
-    return xStream;
   }
 }

@@ -12,15 +12,19 @@
  * <http://www.gnu.org/licenses/> and specifically the Affero license
  * text at <http://www.gnu.org/licenses/agpl.html>.
  */
-package net.rptools.maptool.protocol.syrinscape;
+package net.rptools.lib;
 
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
+import java.util.EnumMap;
+import java.util.function.Function;
 
-public class SyrinscapeURLStreamHandler extends URLStreamHandler {
-  @Override
-  protected URLConnection openConnection(URL url) {
-    return new SyrinscapeConnection(url);
+public class CollectionUtil {
+  public static <K extends Enum<K>, V> EnumMap<K, V> newFilledEnumMap(
+      Class<K> keyType, Function<K, V> instantiator) {
+    final var map = new EnumMap<K, V>(keyType);
+    for (final var key : keyType.getEnumConstants()) {
+      final var value = instantiator.apply(key);
+      map.put(key, value);
+    }
+    return map;
   }
 }
