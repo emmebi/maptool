@@ -435,7 +435,6 @@ public class DungeonDraftImporter {
         var lightSource =
             LightSource.createRegular(
                 "uvtt-imported",
-                null,
                 new GUID(),
                 LightSource.Type.NORMAL,
                 false,
