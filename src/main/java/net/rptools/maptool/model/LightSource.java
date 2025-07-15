@@ -296,7 +296,7 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
       int onameLong = NumberUtils.toInt(o.name, Integer.MIN_VALUE);
       if (nameLong != Integer.MIN_VALUE && onameLong != Integer.MIN_VALUE)
         return nameLong - onameLong;
-      return name.compareTo(o.name);
+      return Objects.requireNonNull(name).compareTo(Objects.requireNonNull(o.name));
     }
     return 0;
   }
