@@ -319,33 +319,33 @@ public class CampaignProperties implements Serializable {
 
   private static LightSource createGenericLightSource(int radius) {
     return LightSource.createRegular(
-            String.format("%d", radius),
-            new GUID(),
-            LightSource.Type.NORMAL,
-            false,
-            false,
-            List.of(new Light(ShapeType.CIRCLE, 0, radius, 0, 360, null, 100, false, false)));
+        String.format("%d", radius),
+        new GUID(),
+        LightSource.Type.NORMAL,
+        false,
+        false,
+        List.of(new Light(ShapeType.CIRCLE, 0, radius, 0, 360, null, 100, false, false)));
   }
 
   private static LightSource createD20LightSource(String name, int radius) {
     return LightSource.createRegular(
-            String.format("%s - %d", name, radius),
-            new GUID(),
-            LightSource.Type.NORMAL,
-            false,
-            false,
-            List.of(
-                    new Light(ShapeType.CIRCLE, 0, radius, 0, 360, null, 100, false, false),
-                    new Light(
-                            ShapeType.CIRCLE,
-                            0,
-                            radius * 2,
-                            0,
-                            360,
-                            new DrawableColorPaint(new Color(0, 0, 0, 100)),
-                            100,
-                            false,
-                            false)));
+        String.format("%s - %d", name, radius),
+        new GUID(),
+        LightSource.Type.NORMAL,
+        false,
+        false,
+        List.of(
+            new Light(ShapeType.CIRCLE, 0, radius, 0, 360, null, 100, false, false),
+            new Light(
+                ShapeType.CIRCLE,
+                0,
+                radius * 2,
+                0,
+                360,
+                new DrawableColorPaint(new Color(0, 0, 0, 100)),
+                100,
+                false,
+                false)));
   }
 
   public String getDefaultSightType() {

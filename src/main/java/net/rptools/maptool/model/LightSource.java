@@ -76,9 +76,9 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
    * @param lights The set of lights that constitute the personal light source.
    */
   public static LightSource createPersonal(
-          boolean scaleWithToken, boolean ignoresVBL, Collection<Light> lights) {
+      boolean scaleWithToken, boolean ignoresVBL, Collection<Light> lights) {
     return new LightSource(
-            null, null, Type.NORMAL, scaleWithToken, ignoresVBL, ImmutableList.copyOf(lights));
+        null, null, Type.NORMAL, scaleWithToken, ignoresVBL, ImmutableList.copyOf(lights));
   }
 
   /**
@@ -94,23 +94,23 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
    * @param lights The set of lights that constitute the personal light source.
    */
   public static LightSource createRegular(
-          @Nonnull String name,
-          @Nonnull GUID id,
-          @Nonnull Type type,
-          boolean scaleWithToken,
-          boolean ignoresVBL,
-          @Nonnull Collection<Light> lights) {
+      @Nonnull String name,
+      @Nonnull GUID id,
+      @Nonnull Type type,
+      boolean scaleWithToken,
+      boolean ignoresVBL,
+      @Nonnull Collection<Light> lights) {
     return new LightSource(
-            name, id, type, scaleWithToken, ignoresVBL, ImmutableList.copyOf(lights));
+        name, id, type, scaleWithToken, ignoresVBL, ImmutableList.copyOf(lights));
   }
 
   private LightSource(
-          @Nullable String name,
-          @Nullable GUID id,
-          @Nonnull Type type,
-          boolean scaleWithToken,
-          boolean ignoresVBL,
-          @Nonnull List<Light> lights) {
+      @Nullable String name,
+      @Nullable GUID id,
+      @Nonnull Type type,
+      boolean scaleWithToken,
+      boolean ignoresVBL,
+      @Nonnull List<Light> lights) {
     this.name = name;
     this.id = id;
     this.type = type;
@@ -130,7 +130,7 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
   @Serial
   private @Nonnull Object readResolve() {
     final List<Light> originalLights =
-            Objects.requireNonNullElse(lightList, Collections.emptyList());
+        Objects.requireNonNullElse(lightList, Collections.emptyList());
     final List<Light> lights;
     if (lumens == Integer.MIN_VALUE) {
       // This is an up-to-date LightSource with lumens already stored in the Lights.
@@ -141,28 +141,28 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
       lights = new ArrayList<>();
       for (final var light : originalLights) {
         lights.add(
-                new Light(
-                        light.getShape(),
-                        light.getFacingOffset(),
-                        light.getRadius(),
-                        light.getWidth(),
-                        light.getArcAngle(),
-                        light.getPaint(),
-                        lumens == 0 ? 100 : lumens,
-                        light.isGM(),
-                        light.isOwnerOnly()));
+            new Light(
+                light.getShape(),
+                light.getFacingOffset(),
+                light.getRadius(),
+                light.getWidth(),
+                light.getArcAngle(),
+                light.getPaint(),
+                lumens == 0 ? 100 : lumens,
+                light.isGM(),
+                light.isOwnerOnly()));
       }
     }
 
     // Rather than modifying the current object, we'll create a replacement that is definitely
     // initialized properly.
     return new LightSource(
-            this.name,
-            this.id,
-            Objects.requireNonNullElse(this.type, Type.NORMAL),
-            this.scaleWithToken,
-            this.ignoresVBL,
-            ImmutableList.copyOf(lights));
+        this.name,
+        this.id,
+        Objects.requireNonNullElse(this.type, Type.NORMAL),
+        this.scaleWithToken,
+        this.ignoresVBL,
+        ImmutableList.copyOf(lights));
   }
 
   @Override
@@ -216,7 +216,7 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
   public record LightArea(Light light, Area area) {}
 
   public @Nonnull List<LightArea> getLightAreas(
-          @Nonnull Token token, @Nonnull Zone zone, double multiplier) {
+      @Nonnull Token token, @Nonnull Zone zone, double multiplier) {
     // Tracks the cumulative inner ranges of light sources so that we can cut them out of the
     // outer ranges and end up with disjoint sets, even when magnifying.
     // Note that this "hole punching" has nothing to do with lumen strength, it's just a way of
@@ -303,12 +303,12 @@ public final class LightSource implements Comparable<LightSource>, Serializable 
 
   public static @Nonnull LightSource fromDto(@Nonnull LightSourceDto dto) {
     return new LightSource(
-            dto.hasName() ? dto.getName().getValue() : null,
-            dto.hasId() ? GUID.valueOf(dto.getId().getValue()) : null,
-            Type.valueOf(dto.getType().name()),
-            dto.getScaleWithToken(),
-            dto.getIgnoresVBL(),
-            dto.getLightsList().stream().map(Light::fromDto).collect(ImmutableList.toImmutableList()));
+        dto.hasName() ? dto.getName().getValue() : null,
+        dto.hasId() ? GUID.valueOf(dto.getId().getValue()) : null,
+        Type.valueOf(dto.getType().name()),
+        dto.getScaleWithToken(),
+        dto.getIgnoresVBL(),
+        dto.getLightsList().stream().map(Light::fromDto).collect(ImmutableList.toImmutableList()));
   }
 
   public @Nonnull LightSourceDto toDto() {
