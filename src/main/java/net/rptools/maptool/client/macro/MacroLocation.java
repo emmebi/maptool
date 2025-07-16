@@ -51,6 +51,9 @@ public class MacroLocation {
   /** The location of the macro. */
   @Nonnull private final String location;
 
+  /** the location of the macro that can be called from macro code using the '@' syntax */
+  @Nonnull private final String callableLocation;
+
   /** The URI of the macro, if applicable. */
   @Nullable private final URI uri;
 
@@ -73,11 +76,13 @@ public class MacroLocation {
       @Nonnull String name,
       @Nonnull MacroSource source,
       @Nonnull String location,
+      @Nonnull String callableLocation,
       @Nullable URI uri,
       @Nullable Token token) {
     this.name = name;
     this.source = source;
     this.location = location;
+    this.callableLocation = callableLocation;
     this.uri = uri;
     this.token = token;
   }
@@ -89,8 +94,12 @@ public class MacroLocation {
    * @param source the source of the macro.
    * @param location the location of the macro.
    */
-  MacroLocation(@Nonnull String name, @Nonnull MacroSource source, @Nonnull String location) {
-    this(name, source, location, null, null);
+  MacroLocation(
+      @Nonnull String name,
+      @Nonnull MacroSource source,
+      @Nonnull String location,
+      @Nonnull String callableLocation) {
+    this(name, source, location, callableLocation, null, null);
   }
 
   /** Enumeration to represent the source of the macro. */
@@ -192,8 +201,11 @@ public class MacroLocation {
 
     if (qMacroNameLower.contains("@lib:")) {
       String macroName = qMacroName.substring(0, qMacroName.indexOf("@"));
-      String namespace = qMacroName.replaceFirst("^[^@]*@(?i)lib:", "");
-      return new MacroLocation(macroName, MacroSource.library, namespace, null, token);
+      String location = qMacroName.substring(qMacroName.indexOf("@") + 1);
+      String namespace = location.replaceFirst("(?i)lib:", "");
+      // TODO Note that token doesn't correspond to the lib token. It's whatever is impersonated at
+      //  the point of call, which could be unrelated. Should we even be passing it along here?
+      return new MacroLocation(macroName, MacroSource.library, namespace, location, null, token);
     }
 
     if (qMacroNameLower.contains("@this")) {
@@ -207,7 +219,8 @@ public class MacroLocation {
           return factory.createUnknownLocation(qMacroName);
         }
       }
-      return new MacroLocation(name, cfrom.getSource(), cfrom.getLocation(), null, token);
+      return new MacroLocation(
+          name, cfrom.getSource(), cfrom.getLocation(), cfrom.getCallableLocation(), null, token);
     }
 
     // If none of the above then assume it is a URI
@@ -270,13 +283,7 @@ public class MacroLocation {
    */
   @Nonnull
   public String getCallableLocation() {
-    if (source == MacroSource.token) {
-      return "Token:" + location;
-    } else if (source == MacroSource.library) {
-      return token != null ? token.getName() : location;
-    } else {
-      return location;
-    }
+    return callableLocation;
   }
 
   @Override
