@@ -89,7 +89,7 @@ public class MacroLocationFactory {
    */
   public MacroLocation createTokenLocation(@Nonnull String name, @Nonnull Token token) {
     return new MacroLocation(
-        name, MacroSource.token, token.getName(), "Token:" + token.getName(), null, token);
+        name, MacroSource.token, token.getName(), "Token:" + token.getName(), null);
   }
 
   /**
@@ -101,12 +101,7 @@ public class MacroLocationFactory {
    */
   public MacroLocation createLibTokenLocation(@Nonnull String name, @Nonnull Token libToken) {
     return new MacroLocation(
-        name,
-        MacroSource.library,
-        libToken.getName().substring(4),
-        libToken.getName(),
-        null,
-        libToken);
+        name, MacroSource.library, libToken.getName().substring(4), libToken.getName(), null);
   }
 
   /**
@@ -194,7 +189,7 @@ public class MacroLocationFactory {
     }
 
     return new MacroLocation(
-        uri.getPath().substring(1), MacroSource.uri, uri.getHost(), uri.getHost(), uri, null);
+        uri.getPath().substring(1), MacroSource.uri, uri.getHost(), uri.getHost(), uri);
   }
 
   /**
@@ -222,7 +217,6 @@ public class MacroLocationFactory {
         MacroSource.tooltip,
         token != null ? token.getName() : "",
         token != null ? token.getName() : "",
-        null,
-        token);
+        null);
   }
 }
