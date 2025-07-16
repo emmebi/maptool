@@ -154,18 +154,26 @@ public class MacroLocationFactory {
    * @return a new {@link MacroLocation} object for a URI location.
    */
   public MacroLocation createUriLocation(@Nonnull String name, @Nullable URI calledFrom) {
+    URI uri;
     try {
-      var uri = new URI(name);
-      if (uri.getScheme() == null) {
-        if (calledFrom == null) {
-          return createUnknownLocation(name);
-        }
-        uri = calledFrom.resolve(uri);
-      }
-      return new MacroLocation(uri.getPath(), MacroSource.uri, uri.getHost(), uri, null);
+      uri = new URI(name);
     } catch (URISyntaxException e) {
       return createUnknownLocation(name);
     }
+
+    if (uri.getHost() == null) {
+      if (calledFrom == null) {
+        return createUnknownLocation(name);
+      }
+      uri = calledFrom.resolve(uri);
+    }
+
+    var scheme = uri.getScheme();
+    if (scheme == null || !scheme.equalsIgnoreCase("lib")) {
+      return createUnknownLocation(name);
+    }
+
+    return new MacroLocation(uri.getPath().substring(1), MacroSource.uri, uri.getHost(), uri, null);
   }
 
   /**

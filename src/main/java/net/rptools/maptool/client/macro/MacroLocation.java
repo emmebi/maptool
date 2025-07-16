@@ -15,7 +15,6 @@
 package net.rptools.maptool.client.macro;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.rptools.maptool.model.Token;
@@ -212,26 +211,11 @@ public class MacroLocation {
     }
 
     // If none of the above then assume it is a URI
-    URI uri;
-    try {
-      uri = new URI(qMacroName);
-    } catch (URISyntaxException e) {
-      return factory.createUnknownLocation(qMacroName);
-    }
-
-    if (uri.getHost() == null) {
-      if (calledFrom != null && calledFrom.getSource() == MacroSource.uri) {
-        uri = calledFrom.getUri().resolve(uri);
-      } else {
-        return factory.createUnknownLocation(qMacroName);
-      }
-    }
-
-    if (uri.getScheme() == null || !uri.getScheme().toLowerCase().equals("lib")) {
-      return factory.createUnknownLocation(qMacroName);
-    }
-
-    return new MacroLocation(uri.getPath().substring(1), MacroSource.uri, uri.getHost(), uri, null);
+    return factory.createUriLocation(
+        qMacroName,
+        calledFrom != null && calledFrom.getSource() == MacroSource.uri
+            ? calledFrom.getUri()
+            : null);
   }
 
   /**
