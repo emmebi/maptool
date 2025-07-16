@@ -173,36 +173,22 @@ public class MacroLocation {
     String qMacroNameLower = qMacroName.toLowerCase();
 
     if (qMacroNameLower.contains("@campaign")) {
-      return new MacroLocation(
-          qMacroName.substring(0, qMacroName.indexOf("@")),
-          MacroSource.campaign,
-          MacroSource.campaign.getSourceName());
+      return factory.createCampaignLocation(qMacroName.substring(0, qMacroName.indexOf("@")));
     }
 
     if (qMacroNameLower.contains("@gm")) {
-      return new MacroLocation(
-          qMacroName.substring(0, qMacroName.indexOf("@")),
-          MacroSource.gm,
-          MacroSource.gm.getSourceName());
+      return factory.createGmLocation(qMacroName.substring(0, qMacroName.indexOf("@")));
     }
 
     if (qMacroNameLower.contains("@global")) {
-      return new MacroLocation(
-          qMacroName.substring(0, qMacroName.indexOf("@")),
-          MacroSource.global,
-          MacroSource.global.getSourceName());
+      return factory.createGlobalLocation(qMacroName.substring(0, qMacroName.indexOf("@")));
     }
 
     if (qMacroNameLower.contains("@token")) {
       if (token == null) {
         return factory.createUnknownLocation(qMacroName);
       }
-      return new MacroLocation(
-          qMacroName.substring(0, qMacroName.indexOf("@")),
-          MacroSource.token,
-          token.getName(),
-          null,
-          token);
+      return factory.createTokenLocation(qMacroName.substring(0, qMacroName.indexOf("@")), token);
     }
 
     if (qMacroNameLower.contains("@lib:")) {
