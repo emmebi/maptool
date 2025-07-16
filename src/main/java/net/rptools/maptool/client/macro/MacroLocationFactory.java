@@ -88,8 +88,7 @@ public class MacroLocationFactory {
    * @return a new {@link MacroLocation} object for a token.
    */
   public MacroLocation createTokenLocation(@Nonnull String name, @Nonnull Token token) {
-    return new MacroLocation(
-        name, MacroSource.token, token.getName(), "Token:" + token.getName(), null);
+    return new MacroLocation(name, MacroSource.token, token.getName(), "Token:" + token.getName());
   }
 
   /**
@@ -101,7 +100,7 @@ public class MacroLocationFactory {
    */
   public MacroLocation createLibTokenLocation(@Nonnull String name, @Nonnull Token libToken) {
     return new MacroLocation(
-        name, MacroSource.library, libToken.getName().substring(4), libToken.getName(), null);
+        name, MacroSource.library, libToken.getName().substring(4), libToken.getName());
   }
 
   /**
@@ -212,11 +211,8 @@ public class MacroLocationFactory {
    * @return a new {@link MacroLocation} object for a tooltip.
    */
   public MacroLocation createToolTipLocation(@Nullable Token token) {
+    var location = token != null ? token.getName() : "";
     return new MacroLocation(
-        MacroSource.tooltip.getSourceName(),
-        MacroSource.tooltip,
-        token != null ? token.getName() : "",
-        token != null ? token.getName() : "",
-        null);
+        MacroSource.tooltip.getSourceName(), MacroSource.tooltip, location, location);
   }
 }

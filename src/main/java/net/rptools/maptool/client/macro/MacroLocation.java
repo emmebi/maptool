@@ -197,7 +197,7 @@ public class MacroLocation {
       String macroName = qMacroName.substring(0, qMacroName.indexOf("@"));
       String location = qMacroName.substring(qMacroName.indexOf("@") + 1);
       String namespace = location.replaceFirst("(?i)lib:", "");
-      return new MacroLocation(macroName, MacroSource.library, namespace, location, null);
+      return new MacroLocation(macroName, MacroSource.library, namespace, location);
     }
 
     if (qMacroNameLower.contains("@this")) {
@@ -212,7 +212,7 @@ public class MacroLocation {
         }
       }
       return new MacroLocation(
-          name, cfrom.getSource(), cfrom.getLocation(), cfrom.getCallableLocation(), null);
+          name, cfrom.getSource(), cfrom.getLocation(), cfrom.getCallableLocation());
     }
 
     // If none of the above then assume it is a URI
