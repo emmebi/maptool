@@ -31,7 +31,7 @@ public class MacroLocationFactory {
   private MacroLocationFactory() {}
 
   /** The singleton instance of the factory. */
-  private static MacroLocationFactory instance = new MacroLocationFactory();
+  private static final MacroLocationFactory instance = new MacroLocationFactory();
 
   /**
    * Returns the singleton instance of the factory.
@@ -108,7 +108,7 @@ public class MacroLocationFactory {
   /**
    * Creates a new {@link MacroLocation} object for a library location.
    *
-   * @param name the name of the macro.
+   * @param functionName the name of the function.
    * @return a new {@link MacroLocation} object for a library location.
    */
   public MacroLocation createExecFunctionLocation(@Nonnull String functionName) {
@@ -171,7 +171,6 @@ public class MacroLocationFactory {
   /**
    * Creates a new {@link MacroLocation} object for the chat box.
    *
-   * @param token the token associated with the chat box.
    * @return a new {@link MacroLocation} object for a the chat box.
    */
   public MacroLocation createChatLocation() {
