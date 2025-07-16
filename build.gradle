@@ -346,6 +346,7 @@ def zipJpackageImage = tasks.register('zipJpackageImage', Zip) {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     implementation project(':common')
+    implementation project(':dicelib')
     implementation project(':clientserver')
     implementation project(':messages')
 

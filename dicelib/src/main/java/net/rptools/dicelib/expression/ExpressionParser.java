@@ -15,6 +15,8 @@
 package net.rptools.dicelib.expression;
 
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import net.rptools.dicelib.expression.function.ArsMagicaStress;
 import net.rptools.dicelib.expression.function.CountSuccessDice;
@@ -40,6 +42,7 @@ import net.rptools.dicelib.expression.function.ShadowRun5Dice;
 import net.rptools.dicelib.expression.function.ShadowRun5ExplodeDice;
 import net.rptools.dicelib.expression.function.UbiquityRoll;
 import net.rptools.dicelib.expression.function.advanced.AdvancedDiceRolls;
+import net.rptools.dicelib.expression.function.advanced.GenesysDiceRolls;
 import net.rptools.parser.*;
 import net.rptools.parser.transform.RegexpStringTransformer;
 import net.rptools.parser.transform.StringLiteralTransformer;
@@ -245,11 +248,28 @@ public class ExpressionParser {
               Pattern.compile("^([A-Za-z]+)!\"([^\"]*)\"$"), "advancedRoll('$1', " + "'$2')"),
           new Pair<>(Pattern.compile("^([A-Za-z]+)!'([^']*)'$"), "advancedRoll('$1', " + "'$2')"));
 
-  public ExpressionParser() {
-    this(DICE_PATTERNS);
+  /**
+   * @param variableLookup How to resolve variables in advanced dice expressions.
+   * @param propertyLookup How to resolve properties in advanced dice expressions.
+   * @param prompter How to resolve prompted values in advanced dice expressions.
+   */
+  public ExpressionParser(
+      BiFunction<VariableResolver, String, Object> variableLookup,
+      BiFunction<VariableResolver, String, Object> propertyLookup,
+      Function<String, String> prompter) {
+    this(DICE_PATTERNS, variableLookup, propertyLookup, prompter);
   }
 
-  public ExpressionParser(String[][] regexpTransforms) {
+  /**
+   * @param variableLookup How to resolve variables in advanced dice expressions.
+   * @param propertyLookup How to resolve properties in advanced dice expressions.
+   * @param prompter How to resolve prompted values in advanced dice expressions.
+   */
+  public ExpressionParser(
+      String[][] regexpTransforms,
+      BiFunction<VariableResolver, String, Object> variableLookup,
+      BiFunction<VariableResolver, String, Object> propertyLookup,
+      Function<String, String> prompter) {
 
     parser = createParser();
 
@@ -274,7 +294,8 @@ public class ExpressionParser {
     parser.addFunction(new DropHighestRoll());
     parser.addFunction(new KeepLowestRoll());
     parser.addFunction(new ArsMagicaStress());
-    parser.addFunction(new AdvancedDiceRolls());
+    parser.addFunction(
+        new AdvancedDiceRolls(new GenesysDiceRolls(variableLookup, propertyLookup, prompter)));
     parser.addFunction(new OpenEndedRoll());
 
     parser.addFunction(new If());
