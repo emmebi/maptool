@@ -1583,23 +1583,6 @@ public class Token implements Cloneable {
   }
 
   /**
-   * Like {@link #getDragAnchor(Zone)}, but assume the token is in cell {@code cellPoint}.
-   *
-   * @param zone The zone that the token lives in.
-   * @param cellPoint The cell in which the token should pretend to be located.
-   * @return The drag anchor the token would have if located at {@code cellPoint}.
-   */
-  public ZonePoint getDragAnchorAsIfLocatedInCell(Zone zone, CellPoint cellPoint) {
-    ZonePoint anchor = getDragAnchor(zone);
-    ZonePoint nearestGridCellVertex = zone.getGrid().convert(zone.getGrid().convert(anchor));
-    ZonePoint targetCellVertex = zone.getGrid().convert(cellPoint);
-
-    return new ZonePoint(
-        targetCellVertex.x + (anchor.x - nearestGridCellVertex.x),
-        targetCellVertex.y + (anchor.y - nearestGridCellVertex.y));
-  }
-
-  /**
    * Gets the point where the token should go, if it were to be snapped to the grid.
    *
    * @param zone the zone where the token is
