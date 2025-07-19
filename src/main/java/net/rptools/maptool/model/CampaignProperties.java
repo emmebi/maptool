@@ -302,8 +302,10 @@ public class CampaignProperties implements Serializable {
             createD20LightSource(I18N.getText("Default.campaign.lightSource.light.candle"), 5),
             createD20LightSource(I18N.getText("Default.campaign.lightSource.light.lamp"), 15),
             createD20LightSource(I18N.getText("Default.campaign.lightSource.light.torch"), 20),
-            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.everburning"), 20),
-            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.lanternHooded"), 30),
+            createD20LightSource(
+                I18N.getText("Default.campaign.lightSource.light.everburning"), 20),
+            createD20LightSource(
+                I18N.getText("Default.campaign.lightSource.light.lanternHooded"), 30),
             createD20LightSource(I18N.getText("Default.campaign.lightSource.light.sunrod"), 30)));
     categorizedLights.addAllToCategory(
         I18N.getText("Default.campaign.lightSource.category.generic"),
