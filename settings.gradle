@@ -16,4 +16,5 @@ include 'services:webservice'
 */
 
 rootProject.name = 'MapTool'
-include 'common', ':clientserver'
+include 'common', 'dicelib', 'messages', ':clientserver'
+

@@ -26,10 +26,13 @@ import net.rptools.parser.MapVariableResolver;
 import net.rptools.parser.ParserException;
 import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.EvaluationException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ExpressionParserTest {
+
+  private ExpressionParser parser;
 
   /**
    * Make sure these tests aren't using mock RunData instances that might still be Current.
@@ -38,11 +41,28 @@ public class ExpressionParserTest {
   @BeforeEach
   public void setUp() {
     RunData.setCurrent(null);
+    parser =
+        new ExpressionParser(
+            (resolver, name) -> {
+              try {
+                return resolver.getVariable(name);
+              } catch (ParserException e) {
+                throw new IllegalArgumentException(e);
+              }
+            },
+            (resolver, name) -> null,
+            (name) -> "");
+  }
+
+  /** Clear the RunData after each test, in case we leave a mock instance as Current. */
+  @AfterEach
+  public void clearRunData() {
+    RunData.setCurrent(null);
   }
 
   @Test
   public void testEvaluate() throws ParserException {
-    Result result = new ExpressionParser().evaluate("100+4d1*10");
+    Result result = parser.evaluate("100+4d1*10");
 
     assertNotNull(result);
     assertEquals("100+4d1*10", result.getExpression());
@@ -53,7 +73,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_Explode() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("100+10d6e+1");
+    Result result = parser.evaluate("100+10d6e+1");
 
     assertEquals(new BigDecimal(164), result.getValue());
   }
@@ -61,7 +81,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_Drop() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("100+10d6d2+1");
+    Result result = parser.evaluate("100+10d6d2+1");
 
     assertEquals(new BigDecimal(138), result.getValue());
   }
@@ -69,7 +89,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_Keep() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("100+10d6k8+1");
+    Result result = parser.evaluate("100+10d6k8+1");
 
     assertEquals(new BigDecimal(138), result.getValue());
   }
@@ -77,7 +97,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_Keep_error_tooManyDice() throws ParserException {
     try {
-      Result result = new ExpressionParser().evaluate("2d6k4");
+      Result result = parser.evaluate("2d6k4");
       fail("Expected EvaluationException from trying to keep too many dice");
     } catch (EvaluationException expected) {
       // test passes if expected exception is produced
@@ -87,7 +107,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_KeepLowest_error_tooManyDice() throws ParserException {
     try {
-      Result result = new ExpressionParser().evaluate("2d6kl4");
+      Result result = parser.evaluate("2d6kl4");
       fail("Expected EvaluationException from trying to keep too many dice");
     } catch (EvaluationException expected) {
       // test passes if expected exception is produced
@@ -97,7 +117,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_RerollOnceAndKeep() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("20d10rk5");
+    Result result = parser.evaluate("20d10rk5");
     // the sequence of rolls produced includes an instance of a 4 being replaced by a 3
     assertEquals(new BigDecimal(121), result.getValue());
   }
@@ -105,7 +125,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_RerollOnceAndChoose() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("20d10rc5");
+    Result result = parser.evaluate("20d10rc5");
     // in rerollAndChoose mode, the 4 gets preserved instead of being replaced by the 3
     assertEquals(new BigDecimal(122), result.getValue());
   }
@@ -113,7 +133,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_CountSuccess() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("100+10d6s4+1");
+    Result result = parser.evaluate("100+10d6s4+1");
 
     assertEquals(new BigDecimal(109), result.getValue());
   }
@@ -121,13 +141,13 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_ExplodingSuccess() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("10d4es6");
+    Result result = parser.evaluate("10d4es6");
     assertEquals("10d4es6", result.getExpression());
     assertEquals("explodingSuccess(10, 4, 6)", result.getDetailExpression());
     assertEquals("Dice: 1, 2, 2, 1, 2, 7, 1, 7, 2, 3, Successes: 2", result.getValue());
     RunData.setSeed(10423L);
 
-    result = new ExpressionParser().evaluate("10es9");
+    result = parser.evaluate("10es9");
     assertEquals("10es9", result.getExpression());
     assertEquals("explodingSuccess(10, 6, 9)", result.getDetailExpression());
     assertEquals("Dice: 4, 4, 4, 3, 16, 5, 1, 4, 14, 8, Successes: 2", result.getValue());
@@ -136,13 +156,13 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_OpenTest() throws ParserException {
     RunData.setSeed(10423L);
-    Result result = new ExpressionParser().evaluate("10d4o");
+    Result result = parser.evaluate("10d4o");
     assertEquals("10d4o", result.getExpression());
     assertEquals("openTest(10, 4)", result.getDetailExpression());
     assertEquals("Dice: 1, 2, 2, 1, 2, 7, 1, 7, 2, 3, Maximum: 7", result.getValue());
 
     RunData.setSeed(10423L);
-    result = new ExpressionParser().evaluate("10o");
+    result = parser.evaluate("10o");
     assertEquals("10o", result.getExpression());
     assertEquals("openTest(10, 6)", result.getDetailExpression());
     assertEquals("Dice: 4, 4, 4, 3, 16, 5, 1, 4, 14, 8, Maximum: 16", result.getValue());
@@ -151,7 +171,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR4Success() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr4");
+    Result result = parser.evaluate("5sr4");
     assertEquals("5sr4", result.getExpression());
     assertEquals("sr4(5)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 1  Results: 3 1 4 6 3 ", result.getValue());
@@ -160,7 +180,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR4GremlinSuccess() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr4g2");
+    Result result = parser.evaluate("5sr4g2");
     assertEquals("5sr4g2", result.getExpression());
     assertEquals("sr4(5, 2)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 1 *Gremlin Glitch*  Results: 3 1 4 6 3 ", result.getValue());
@@ -169,7 +189,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR4ExplodingSuccess() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr4e");
+    Result result = parser.evaluate("5sr4e");
     assertEquals("5sr4e", result.getExpression());
     assertEquals("sr4e(5)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 2  Results: 3 1 4 6 3 1 ", result.getValue());
@@ -178,7 +198,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR4ExplodingGremlinSuccess() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr4eg2");
+    Result result = parser.evaluate("5sr4eg2");
     assertEquals("5sr4eg2", result.getExpression());
     assertEquals("sr4e(5, 2)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 2 *Gremlin Glitch*  Results: 3 1 4 6 3 1 ", result.getValue());
@@ -187,7 +207,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR5Success() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr5");
+    Result result = parser.evaluate("5sr5");
     assertEquals("5sr5", result.getExpression());
     assertEquals("sr5(5)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 1  Results: 3 1 4 6 3 ", result.getValue());
@@ -196,7 +216,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR5GremlinSuccess() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr5g2");
+    Result result = parser.evaluate("5sr5g2");
     assertEquals("5sr5g2", result.getExpression());
     assertEquals("sr5(5, 2)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 1 *Gremlin Glitch*  Results: 3 1 4 6 3 ", result.getValue());
@@ -205,7 +225,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR5ExplodingSuccess() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr5e");
+    Result result = parser.evaluate("5sr5e");
     assertEquals("5sr5e", result.getExpression());
     assertEquals("sr5e(5)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 2  Results: 3 1 4 6 3 1 ", result.getValue());
@@ -214,7 +234,7 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_SR5ExplodingGremlinSuccess() throws ParserException {
     RunData.setSeed(10523L);
-    Result result = new ExpressionParser().evaluate("5sr5eg2");
+    Result result = parser.evaluate("5sr5eg2");
     assertEquals("5sr5eg2", result.getExpression());
     assertEquals("sr5e(5, 2)", result.getDetailExpression());
     assertEquals("Hits: 1 Ones: 2 *Gremlin Glitch*  Results: 3 1 4 6 3 1 ", result.getValue());
@@ -223,7 +243,6 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_HeroRoll() throws ParserException {
     RunData.setSeed(10423L);
-    ExpressionParser parser = new ExpressionParser();
     VariableResolver resolver = new MapVariableResolver();
 
     Result result = parser.evaluate("4.5d6h", resolver);
@@ -231,12 +250,14 @@ public class ExpressionParserTest {
 
     result = parser.evaluate("4.5d6b", resolver);
     assertEquals(new BigDecimal(5), result.getValue());
+  }
 
+  @Test
+  public void testEvaluate_HeroRoll2() throws ParserException {
     RunData.setSeed(10423L);
-    parser = new ExpressionParser();
-    resolver = new MapVariableResolver();
+    VariableResolver resolver = new MapVariableResolver();
 
-    result = parser.evaluate("4d6h", resolver);
+    Result result = parser.evaluate("4d6h", resolver);
     assertEquals(new BigDecimal(15), result.getValue());
 
     result = parser.evaluate("4d6b", resolver);
@@ -252,7 +273,6 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_FudgeRoll() throws ParserException {
     RunData.setSeed(10423L);
-    ExpressionParser parser = new ExpressionParser();
 
     Result result = parser.evaluate("dF");
     assertEquals(new BigDecimal(-1), result.getValue());
@@ -268,7 +288,6 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_UbiquityRoll() throws ParserException {
     RunData.setSeed(10423L);
-    ExpressionParser parser = new ExpressionParser();
 
     Result result = parser.evaluate("dU");
     assertEquals(new BigDecimal(0), result.getValue());
@@ -284,7 +303,6 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_ColorHex() throws ParserException {
     RunData.setSeed(10423L);
-    ExpressionParser parser = new ExpressionParser();
 
     Result result = parser.evaluate("#FF0000");
     assertEquals(new BigDecimal(new BigInteger("FF0000", 16)), result.getValue());
@@ -298,8 +316,6 @@ public class ExpressionParserTest {
 
   @Test
   public void testEvaluate_If() throws ParserException {
-    ExpressionParser parser = new ExpressionParser();
-
     evaluateExpression(parser, "if(10 > 2, 10, 2)", new BigDecimal(10));
     evaluateExpression(parser, "if(10 < 2, 10, 2)", new BigDecimal(2));
     evaluateStringExpression(parser, "if(10 < 2, 's1', 's2')", "s2");
@@ -309,7 +325,6 @@ public class ExpressionParserTest {
   @Test
   public void testEvaluate_Multiline() throws ParserException {
     RunData.setSeed(10423L);
-    ExpressionParser parser = new ExpressionParser();
 
     evaluateExpression(parser, "10 + \r\n d6 + \n 2", new BigDecimal(16));
 
@@ -335,22 +350,17 @@ public class ExpressionParserTest {
 
   @Test
   public void testNoTransformInStrings() throws ParserException {
-    ExpressionParser parser = new ExpressionParser();
-
     evaluateStringExpression(parser, "'10' + 'd10'", "10d10");
   }
 
   @Test
   public void testVariableRegexOverlaps() throws ParserException {
-    ExpressionParser parser = new ExpressionParser();
     Result result = parser.evaluate("food10 + 10", initVar("food10", new BigDecimal(10)));
     assertEquals(new BigDecimal(20), result.getValue());
   }
 
   @Test
   public void testNonDetailedExpression() throws ParserException {
-    ExpressionParser parser = new ExpressionParser();
-
     int[] flattenings = new int[] {0};
 
     MapVariableResolver resolver = new MapVariableResolver();

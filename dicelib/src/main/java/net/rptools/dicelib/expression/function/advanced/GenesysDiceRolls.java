@@ -15,13 +15,10 @@
 package net.rptools.dicelib.expression.function.advanced;
 
 import java.util.Map;
-import javax.swing.JOptionPane;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import net.rptools.maptool.advanceddice.genesys.GenesysDiceResult;
 import net.rptools.maptool.advanceddice.genesys.GenesysDiceRoller;
-import net.rptools.maptool.client.MapTool;
-import net.rptools.maptool.client.MapToolVariableResolver;
-import net.rptools.maptool.client.ui.theme.ThemeSupport;
-import net.rptools.maptool.client.ui.theme.ThemeSupport.ThemeColor;
 import net.rptools.maptool.language.I18N;
 import net.rptools.parser.ParserException;
 import net.rptools.parser.VariableResolver;
@@ -60,6 +57,19 @@ public class GenesysDiceRolls {
   private static final Map<DiceType, String> GS_FONT_NAME_MAP =
       Map.of(DiceType.StarWars, "EotE Symbol", DiceType.Genesys, "Genesys Glyphs and Dice");
 
+  private final BiFunction<VariableResolver, String, Object> variableLookup;
+  private final BiFunction<VariableResolver, String, Object> propertyLookup;
+  private final Function<String, String> prompter;
+
+  public GenesysDiceRolls(
+      BiFunction<VariableResolver, String, Object> variableLookup,
+      BiFunction<VariableResolver, String, Object> propertyLookup,
+      Function<String, String> prompter) {
+    this.variableLookup = variableLookup;
+    this.propertyLookup = propertyLookup;
+    this.prompter = prompter;
+  }
+
   /**
    * Roll the given dice string using genesys/starwars dice roll parser.
    *
@@ -69,7 +79,7 @@ public class GenesysDiceRolls {
    * @return the result of the roll.
    * @throws ParserException if there is an error parsing the expression.
    */
-  Object roll(DiceType diceType, String diceExpression, VariableResolver resolver)
+  public Object roll(DiceType diceType, String diceExpression, VariableResolver resolver)
       throws ParserException {
     var roller = new GenesysDiceRoller();
     try {
@@ -113,8 +123,6 @@ public class GenesysDiceRolls {
    * @return the formatted results.
    */
   private String formatResults(DiceType diceType, GenesysDiceResult result) {
-    var gray = ThemeSupport.getThemeColorHexString(ThemeColor.GREY);
-
     var sb = new StringBuilder();
     sb.append("<span>");
     sb.append("<font face='")
@@ -163,22 +171,12 @@ public class GenesysDiceRolls {
    * @return the value of the variable.
    */
   private int getVariable(VariableResolver resolver, String name) {
-    if (!resolver.getVariables().contains(name.toLowerCase())) {
-      throw new IllegalArgumentException(I18N.getText("advanced.roll.unknownVariable", name));
+    Object value = variableLookup.apply(resolver, name);
+    var result = integerResult(value, false);
+    if (result == null) {
+      throw new IllegalArgumentException(I18N.getText("advanced.roll.propertyNotNumber", name));
     }
-
-    try {
-      var value = resolver.getVariable(name);
-      var result = integerResult(value, false);
-
-      if (result == null) {
-        throw new IllegalArgumentException(I18N.getText("advanced.roll.variableNotNumber", name));
-      }
-
-      return result;
-    } catch (ParserException e) {
-      throw new IllegalArgumentException(e);
-    }
+    return result;
   }
 
   /**
@@ -189,22 +187,11 @@ public class GenesysDiceRolls {
    * @return the value of the property.
    */
   private int getProperty(VariableResolver resolver, String name) {
-    var mtResolver = (MapToolVariableResolver) resolver;
-    var token = mtResolver.getTokenInContext();
-    if (token == null) {
-      throw new IllegalArgumentException(I18N.getText("advanced.roll.noTokenInContext"));
-    }
-    var value = token.getProperty(name);
-
-    if (value == null) {
-      throw new IllegalArgumentException(I18N.getText("advanced.roll.unknownProperty", name));
-    }
-
+    Object value = propertyLookup.apply(resolver, name);
     var result = integerResult(value, true);
     if (result == null) {
       throw new IllegalArgumentException(I18N.getText("advanced.roll.propertyNotNumber", name));
     }
-
     return result;
   }
 
@@ -216,17 +203,9 @@ public class GenesysDiceRolls {
    * @return the value.
    */
   private int getPromptedValue(VariableResolver resolver, String name) {
-    var option =
-        JOptionPane.showInputDialog(
-            MapTool.getFrame(),
-            I18N.getText("lineParser.dialogValueFor", name),
-            I18N.getText("lineParser.dialogTitleNoToken"),
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            null,
-            1);
+    String option = prompter.apply(name);
     try {
-      return Integer.parseInt(option.toString());
+      return Integer.parseInt(option);
     } catch (NumberFormatException e) {
       throw new IllegalArgumentException(I18N.getText("advanced.roll.inputNotNumber", name));
     }
@@ -239,7 +218,7 @@ public class GenesysDiceRolls {
    * @param parseString attempt to parse string value of object if it is not a number.
    * @return the integer result.
    */
-  private Integer integerResult(Object value, boolean parseString) {
+  private static Integer integerResult(Object value, boolean parseString) {
     if (value instanceof Integer i) {
       return i;
     }
