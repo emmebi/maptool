@@ -296,18 +296,17 @@ public class CampaignProperties implements Serializable {
     if (!categorizedLights.isEmpty()) {
       return;
     }
-
     categorizedLights.addAllToCategory(
-        "D20",
+        I18N.getText("Default.campaign.lightSource.category.d20"),
         List.of(
-            createD20LightSource("Candle", 5),
-            createD20LightSource("Lamp", 15),
-            createD20LightSource("Torch", 20),
-            createD20LightSource("Everburning", 20),
-            createD20LightSource("Lantern, Hooded", 30),
-            createD20LightSource("Sunrod", 30)));
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.candle"), 5),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.lamp"), 15),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.torch"), 20),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.everburning"), 20),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.lanternHooded"), 30),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.sunrod"), 30)));
     categorizedLights.addAllToCategory(
-        "Generic",
+        I18N.getText("Default.campaign.lightSource.category.generic"),
         List.of(
             createGenericLightSource(5),
             createGenericLightSource(15),
