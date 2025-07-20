@@ -1438,7 +1438,11 @@ public class EditTokenDialog extends AbeillePanel<Token> {
                     MapTool.serverCommand()
                         .updateMaskTopology(
                             MapTool.getFrame().getCurrentZoneRenderer().getZone(),
-                            getTokenTopologyPanel().getToken().getTransformedMaskTopology(topology),
+                            getTokenTopologyPanel()
+                                .getToken()
+                                .getTransformedMaskTopology(
+                                    MapTool.getFrame().getCurrentZoneRenderer().getZone(),
+                                    topology),
                             false,
                             type);
                   }

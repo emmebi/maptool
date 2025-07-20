@@ -28,7 +28,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Transparency;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
@@ -50,7 +49,6 @@ import net.rptools.maptool.client.AppUtil;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolVariableResolver;
 import net.rptools.maptool.client.functions.json.JSONMacroFunctions;
-import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.ui.zone.renderer.ZoneRenderer;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.sheet.stats.StatSheetProperties;
@@ -1357,8 +1355,8 @@ public class Token implements Cloneable {
    * @param topologyType The type of topology to transform.
    * @return the transformed topology for the token
    */
-  public Area getTransformedMaskTopology(Zone.TopologyType topologyType) {
-    return getTransformedMaskTopology(getMaskTopology(topologyType));
+  public Area getTransformedMaskTopology(Zone zone, Zone.TopologyType topologyType) {
+    return getTransformedMaskTopology(zone, getMaskTopology(topologyType));
   }
 
   /**
@@ -1416,73 +1414,17 @@ public class Token implements Cloneable {
    * @author Jamz
    * @since 1.4.1.5
    */
-  public Area getTransformedMaskTopology(Area areaToTransform) {
+  public Area getTransformedMaskTopology(Zone zone, Area areaToTransform) {
     if (areaToTransform == null) {
       return null;
     }
 
-    Rectangle footprintBounds = getBounds(MapTool.getFrame().getCurrentZoneRenderer().getZone());
+    Rectangle footprintBounds = getBounds(zone);
     Dimension imgSize = new Dimension(getWidth(), getHeight());
-    SwingUtil.constrainTo(imgSize, footprintBounds.width, footprintBounds.height);
 
-    // Lets account for ISO images
-    double iso_ho = 0;
-    if (getShape() == TokenShape.FIGURE) {
-      double th = getHeight() * (double) footprintBounds.width / getWidth();
-      iso_ho = footprintBounds.height - th;
-      footprintBounds =
-          new Rectangle(
-              footprintBounds.x, footprintBounds.y - (int) iso_ho, footprintBounds.width, (int) th);
-    }
+    var imageTransform = TokenUtil.getRenderTransform(zone, this, imgSize, footprintBounds);
 
-    // Lets figure in offset if image is not free size/native size aka snapToScale
-    int offsetx = 0;
-    int offsety = 0;
-    if (isSnapToScale()) {
-      offsetx =
-          imgSize.width < footprintBounds.width ? (footprintBounds.width - imgSize.width) / 2 : 0;
-      offsety =
-          imgSize.height < footprintBounds.height
-              ? (footprintBounds.height - imgSize.height) / 2
-              : 0;
-    }
-    double tx = footprintBounds.x + offsetx;
-    double ty = footprintBounds.y + offsety + iso_ho;
-
-    // Apply the coordinate translation
-    AffineTransform atArea = AffineTransform.getTranslateInstance(tx, ty);
-
-    double scalerX = isSnapToScale() ? ((double) imgSize.width) / getWidth() : scaleX;
-    double scalerY = isSnapToScale() ? ((double) imgSize.height) / getHeight() : scaleY;
-
-    // Apply the rotation transformation...
-    if (getShape() == Token.TokenShape.TOP_DOWN && hasFacing()) {
-      // Find the center x,y coords of the rectangle
-      double rx = getWidth() / 2.0 * scalerX - getAnchor().getX();
-      double ry = getHeight() / 2.0 * scalerY - getAnchor().getY();
-
-      atArea.concatenate(
-          AffineTransform.getRotateInstance(Math.toRadians(getFacingInDegrees()), rx, ry));
-    }
-    // Apply the scale transformation
-    atArea.concatenate(AffineTransform.getScaleInstance(scalerX, scalerY));
-
-    // Lets account for flipped images...
-    if (isFlippedX) {
-      atArea.concatenate(AffineTransform.getScaleInstance(-1.0, 1.0));
-      atArea.concatenate(AffineTransform.getTranslateInstance(-getWidth(), 0));
-    }
-
-    if (isFlippedY) {
-      atArea.concatenate(AffineTransform.getScaleInstance(1.0, -1.0));
-      atArea.concatenate(AffineTransform.getTranslateInstance(0, -getHeight()));
-    }
-
-    if (getIsFlippedIso()) {
-      return new Area(atArea.createTransformedShape(IsometricGrid.isoArea(areaToTransform)));
-    }
-
-    return new Area(atArea.createTransformedShape(areaToTransform));
+    return new Area(imageTransform.createTransformedShape(areaToTransform));
   }
 
   public void setIsAlwaysVisible(boolean isAlwaysVisible) {

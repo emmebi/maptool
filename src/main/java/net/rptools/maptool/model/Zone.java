@@ -1061,7 +1061,7 @@ public class Zone {
           continue;
         }
 
-        var tokenArea = token.getTransformedMaskTopology(type);
+        var tokenArea = token.getTransformedMaskTopology(this, type);
         if (tokenArea != null) {
           topologies.add(tokenArea);
         }
