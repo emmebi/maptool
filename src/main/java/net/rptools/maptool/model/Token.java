@@ -1355,8 +1355,8 @@ public class Token implements Cloneable {
    * @param topologyType The type of topology to transform.
    * @return the transformed topology for the token
    */
-  public Area getTransformedMaskTopology(Zone.TopologyType topologyType) {
-    return getTransformedMaskTopology(getMaskTopology(topologyType));
+  public Area getTransformedMaskTopology(Zone zone, Zone.TopologyType topologyType) {
+    return getTransformedMaskTopology(zone, getMaskTopology(topologyType));
   }
 
   /**
@@ -1414,12 +1414,11 @@ public class Token implements Cloneable {
    * @author Jamz
    * @since 1.4.1.5
    */
-  public Area getTransformedMaskTopology(Area areaToTransform) {
+  public Area getTransformedMaskTopology(Zone zone, Area areaToTransform) {
     if (areaToTransform == null) {
       return null;
     }
 
-    var zone = MapTool.getFrame().getCurrentZoneRenderer().getZone();
     Rectangle footprintBounds = getBounds(zone);
     Dimension imgSize = new Dimension(getWidth(), getHeight());
 
