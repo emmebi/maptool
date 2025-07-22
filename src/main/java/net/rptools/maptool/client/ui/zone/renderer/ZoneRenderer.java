@@ -1313,7 +1313,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         return false;
       }
       final var lastPoint = path.getCellPath().getLast();
-      Rectangle tokBounds = token.getBounds(zone);
+      Rectangle tokBounds = token.getFootprintBounds(zone);
       tokenRectangle = new Rectangle();
       tokenRectangle.setBounds(
           lastPoint.x, lastPoint.y, (int) tokBounds.getWidth(), (int) tokBounds.getHeight());
@@ -2387,7 +2387,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
 
       // Token type
-      Rectangle size = token.getBounds(zone);
+      Rectangle size = token.getFootprintBounds(zone);
       switch (getActiveLayer()) {
         case TOKEN:
           // Players can't drop invisible tokens

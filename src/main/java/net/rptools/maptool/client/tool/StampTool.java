@@ -999,7 +999,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
         // Resize
         if (!token.isSnapToScale()) {
           double scale = renderer.getScale();
-          Rectangle footprintBounds = token.getBounds(renderer.getZone());
+          Rectangle footprintBounds = token.getFootprintBounds(renderer.getZone());
 
           double scaledWidth = (footprintBounds.width * scale);
           double scaledHeight = (footprintBounds.height * scale);
@@ -1194,7 +1194,7 @@ public class StampTool extends DefaultTool implements ZoneOverlay {
         zp.x += snapOffsetX;
         zp.y += snapOffsetY;
       } else {
-        Rectangle tokenSize = tokenBeingDragged.getBounds(renderer.getZone());
+        Rectangle tokenSize = tokenBeingDragged.getFootprintBounds(renderer.getZone());
         int x = tokenDragCurrent.x + (micro ? dx : (tokenSize.width * dx));
         int y = tokenDragCurrent.y + (micro ? dy : (tokenSize.height * dy));
         zp = new ZonePoint(x, y);

@@ -200,7 +200,7 @@ public class TokenVBL {
   }
 
   public static Area transformTopology_toToken(Zone zone, Token token, Area topologyUnderToken) {
-    Rectangle footprintBounds = token.getBounds(zone);
+    Rectangle footprintBounds = token.getFootprintBounds(zone);
 
     // Reverse all token transformations so we can store a raw untransformed version on the Token.
     AffineTransform atArea = new AffineTransform();

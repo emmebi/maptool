@@ -148,7 +148,7 @@ public class ImageUtil {
         }
       }
     } else {
-      Rectangle b = token.getBounds(grid.getZone());
+      Rectangle b = token.getFootprintBounds(grid.getZone());
       try {
         return ImageUtil.scaleBufferedImage(
             img, (int) Math.ceil(b.width * zoom), (int) Math.ceil(b.height * zoom));
