@@ -1067,11 +1067,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
       for (BarTokenOverlay bar : MapTool.getCampaign().getTokenBarsMap().values()) {
         JSlider slider = new JSlider(0, 100);
         JCheckBox hide = new JCheckBox(I18N.getString("EditTokenDialog.checkbox.state.hide"));
-        hide.putClientProperty("JSlider", slider);
         hide.addChangeListener(
             e -> {
-              JSlider js = (JSlider) ((JCheckBox) e.getSource()).getClientProperty("JSlider");
-              js.setEnabled(!((JCheckBox) e.getSource()).isSelected());
+              slider.setEnabled(!((JCheckBox) e.getSource()).isSelected());
             });
         slider.setName(bar.getName());
         slider.setPaintLabels(true);
@@ -1992,7 +1990,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         log.error("Error while loading multiline property editor theme", e);
       }
       JScrollPane localJScrollPane = new RTextScrollPane(j);
-      localJScrollPane.setVerticalScrollBarPolicy(22);
+      localJScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
       localJScrollPane.setAutoscrolls(true);
       localJScrollPane.setPreferredSize(new Dimension(300, 200));
       setBorder(BorderFactory.createEmptyBorder(10, 5, 5, 5));
