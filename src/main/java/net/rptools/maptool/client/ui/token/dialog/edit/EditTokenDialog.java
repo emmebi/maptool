@@ -1065,7 +1065,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
     /* Add sliders to the bar panel */
     var barsPanel = getBarsPanel();
-    barsPanel.setLayout(new MigLayout("wrap 1", "[fill,grow]"));
+    barsPanel.setLayout(new MigLayout("wrap 2,gapx 5%", "[fill,grow][fill,grow]"));
     barsPanel.removeAll();
     if (MapTool.getCampaign().getTokenBarsMap().isEmpty()) {
       barsPanel.setVisible(false);
@@ -1081,11 +1081,15 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         slider.setName(bar.getName());
         slider.setPaintLabels(true);
         slider.setPaintTicks(true);
-        slider.setMajorTickSpacing(20);
-        slider.createStandardLabels(20);
-        slider.setMajorTickSpacing(10);
+        slider.setMajorTickSpacing(25);
+        slider.setLabelTable(slider.createStandardLabels(50));
+        slider.setMinorTickSpacing(5);
 
-        JPanel tokenbarPanel = new JPanel(new MigLayout("wrap 2", "[fill,grow][fill,grow]"));
+        // Sliders by default have a fixed preferred size. Overriding it to zero will instead let
+        // MigLayout grow the slider to fill the space.
+        slider.setPreferredSize(new Dimension(0, 0));
+
+        JPanel tokenbarPanel = new JPanel(new MigLayout("wrap 2", "[fill][fill,grow]"));
         tokenbarPanel.add(new JLabel(bar.getName() + ":"));
         tokenbarPanel.add(slider, "span 1 2 align right");
         tokenbarPanel.add(hide);
