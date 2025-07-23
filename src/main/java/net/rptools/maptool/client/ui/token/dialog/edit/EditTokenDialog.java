@@ -173,6 +173,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         });
   }
 
+  public void initStatesAndBarsPanel() {
+    var test = (JScrollPane) getComponent("statesAndBarsScrollPane");
+    // This number is a bit arbitrary, but importantly it is much bigger than the default of 1 pixel
+    // but still likely to be smaller than a single bar's height.
+    test.getVerticalScrollBar().setUnitIncrement(20);
+  }
+
   public void initTerrainModifierOperationComboBox() {
     getTerrainModifierOperationComboBox()
         .setModel(new DefaultComboBoxModel<>(TerrainModifierOperation.values()));
