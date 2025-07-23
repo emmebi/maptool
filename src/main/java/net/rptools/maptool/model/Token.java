@@ -1419,7 +1419,7 @@ public class Token implements Cloneable {
       return null;
     }
 
-    Rectangle footprintBounds = getBounds(zone);
+    Rectangle footprintBounds = getFootprintBounds(zone);
     Dimension imgSize = new Dimension(getWidth(), getHeight());
 
     var imageTransform = TokenUtil.getRenderTransform(zone, this, imgSize, footprintBounds);
@@ -1439,7 +1439,7 @@ public class Token implements Cloneable {
     return name;
   }
 
-  public Rectangle getBounds(Zone zone) {
+  public Rectangle getFootprintBounds(Zone zone) {
     Grid grid = zone.getGrid();
     TokenFootprint footprint = getFootprint(grid);
     Rectangle footprintBounds =
@@ -1477,6 +1477,48 @@ public class Token implements Cloneable {
     return footprintBounds;
   }
 
+  public Rectangle getImageBounds(Zone zone) {
+    Grid grid = zone.getGrid();
+    TokenFootprint footprint = getFootprint(grid);
+    Rectangle footprintBounds =
+        footprint.getBounds(grid, grid.convert(new ZonePoint(getX(), getY())));
+
+    double w;
+    double h;
+
+    // Sizing
+    if (!isSnapToScale()) {
+      w = getWidth() * scaleX;
+      h = getHeight() * scaleY;
+      if (grid.isIsometric() && getShape() == Token.TokenShape.FIGURE) {
+        // Native size figure tokens need to follow iso rules
+        h = (w / 2);
+      }
+    } else {
+      w = footprintBounds.width * footprint.getScale() * sizeScale;
+      h = footprintBounds.height * footprint.getScale() * sizeScale;
+    }
+    // Positioning
+    if (!isSnapToGrid()) {
+      footprintBounds.x = getX();
+      footprintBounds.y = getY();
+    } else {
+      if (getLayer().isSnapToGridAtCenter()) {
+        // Center it on the footprint
+        footprintBounds.x -= (int) ((w - footprintBounds.width) / 2d);
+        footprintBounds.y -= (int) ((h - footprintBounds.height) / 2d);
+      }
+    }
+    footprintBounds.width = (int) w; // perhaps make this a double
+    footprintBounds.height = (int) h;
+
+    // Offset
+    footprintBounds.x += anchorX;
+    footprintBounds.y += anchorY;
+
+    return footprintBounds;
+  }
+
   /**
    * Return the drag anchor of the token.
    *
@@ -1497,7 +1539,7 @@ public class Token implements Cloneable {
         dragAnchorY = getY() + (int) centerOffset.y;
       } else {
         // Anchor at the layout center.
-        Rectangle tokenBounds = getBounds(zone);
+        Rectangle tokenBounds = getFootprintBounds(zone);
         dragAnchorX = tokenBounds.x + tokenBounds.width / 2 - anchorX;
         dragAnchorY = tokenBounds.y + tokenBounds.height / 2 - anchorY;
       }
@@ -1569,7 +1611,7 @@ public class Token implements Cloneable {
    */
   private Point2D.Double getSnapToUnsnapOffset(Zone zone) {
     double offsetX, offsetY;
-    Rectangle tokenBounds = getBounds(zone);
+    Rectangle tokenBounds = getFootprintBounds(zone);
     Grid grid = zone.getGrid();
     if (grid.getCapabilities().isSnapToGridSupported() || !getLayer().isSnapToGridAtCenter()) {
       if (!getLayer().isSnapToGridAtCenter() || isSnapToScale()) {

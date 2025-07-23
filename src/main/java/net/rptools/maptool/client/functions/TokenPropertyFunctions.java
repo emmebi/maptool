@@ -779,7 +779,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       Zone zone = zoneR.getZone();
 
       // Get the pixel width or height of a given token
-      Rectangle tokenBounds = token.getBounds(zone);
+      Rectangle tokenBounds = token.getImageBounds(zone);
 
       if (functionName.equalsIgnoreCase("getTokenWidth")) {
         return BigDecimal.valueOf(tokenBounds.width);
@@ -803,7 +803,7 @@ public class TokenPropertyFunctions extends AbstractFunction {
       Zone zone = zoneR.getZone();
 
       double magnitude = getBigDecimalFromParam(functionName, parameters, 0).doubleValue();
-      Rectangle tokenBounds = token.getBounds(zone);
+      Rectangle tokenBounds = token.getImageBounds(zone);
 
       double oldWidth = tokenBounds.width;
       double oldHeight = tokenBounds.height;
