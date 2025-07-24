@@ -182,7 +182,6 @@ public class DrawPanelPopupMenu extends JPopupMenu {
    * Duplicates selected drawings...
    *
    * <p>... but currently limited to templates only as we can drag and manipulate those
-   *
    */
   public static class DuplicateDrawingAction extends AbstractAction {
 

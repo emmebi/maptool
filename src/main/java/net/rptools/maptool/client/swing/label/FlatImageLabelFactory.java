@@ -15,12 +15,17 @@
 package net.rptools.maptool.client.swing.label;
 
 import java.awt.Color;
+import java.awt.Paint;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.AppStyle;
 import net.rptools.maptool.client.swing.label.FlatImageLabel.Justification;
 import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.Token;
 import net.rptools.maptool.model.Token.Type;
+import net.rptools.maptool.model.drawing.DrawablePaint;
+import net.rptools.maptool.model.drawing.DrawnElement;
+import net.rptools.maptool.model.drawing.Pen;
+import net.rptools.maptool.util.GraphicsUtil;
 
 /**
  * The FlatImageLabelFactory class is responsible for creating instances of FlatImageLabel objects.
@@ -125,5 +130,65 @@ public class FlatImageLabelFactory {
         Justification.Center,
         borderSize,
         label.getBorderArc());
+  }
+
+  /**
+   * Retrieves the map image label based on the provided {@link DrawnElement}.
+   *
+   * <p>Label color properties are derived from the drawn element's {@link Pen}. Note that because
+   * drawn elements can be transparent or use image assets, we establish an actual {@link Color} or
+   * resort to contrasting or default colors.
+   *
+   * <p>Label format properties are based on existing user preferences for token labels (e.g. label
+   * border width, etc)
+   *
+   * @param drawnElement The DrawnElement representing the entity on the map.
+   * @return A new map image label with the specified properties.
+   */
+  public FlatImageLabel getMapImageLabel(DrawnElement drawnElement) {
+
+    Pen pen = drawnElement.getPen();
+
+    Color bgColor = null;
+    if (pen.getBackgroundMode() != Pen.MODE_TRANSPARENT) {
+      DrawablePaint bgDrawablePaint = pen.getBackgroundPaint();
+      if (bgDrawablePaint != null) {
+        Paint bgPaint = bgDrawablePaint.getPaint();
+        if (bgPaint instanceof Color) {
+          bgColor = (Color) bgPaint;
+        }
+      }
+    }
+
+    Color fgColor = null;
+    if (pen.getForegroundMode() != Pen.MODE_TRANSPARENT) {
+      DrawablePaint fgDrawablePaint = pen.getPaint();
+      if (fgDrawablePaint != null) {
+        Paint fgPaint = fgDrawablePaint.getPaint();
+        if (fgPaint instanceof Color) {
+          fgColor = (Color) fgPaint;
+        }
+      }
+    }
+
+    // We may not have colors yet due to pen transparency or image assets, so go set some
+    if (fgColor == null && bgColor == null) {
+      bgColor = new Color(255, 255, 255, 0);
+      fgColor = new Color(0, 0, 0, 0);
+    } else if (fgColor == null) {
+      fgColor = GraphicsUtil.contrast(bgColor);
+    } else if (bgColor == null) {
+      bgColor = GraphicsUtil.contrast(fgColor);
+    }
+
+    // Use other label settings from the user's preferences
+    int fontSize = AppPreferences.mapLabelFontSize.get();
+    var font = AppStyle.labelFont.deriveFont(AppStyle.labelFont.getStyle(), fontSize);
+    boolean showBorder = AppPreferences.mapLabelShowBorder.get();
+    int borderWidth = showBorder ? AppPreferences.mapLabelBorderWidth.get() : 0;
+    int borderArc = AppPreferences.mapLabelBorderArc.get();
+
+    return new FlatImageLabel(
+        4, 4, fgColor, bgColor, fgColor, font, Justification.Center, borderWidth, borderArc);
   }
 }
