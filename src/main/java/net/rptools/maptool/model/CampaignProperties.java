@@ -16,7 +16,6 @@ package net.rptools.maptool.model;
 
 import com.google.protobuf.StringValue;
 import java.awt.Color;
-import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import net.rptools.lib.MD5Key;
 import net.rptools.maptool.client.AppPreferences;
-import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.ui.token.AbstractTokenOverlay;
 import net.rptools.maptool.client.ui.token.BarTokenOverlay;
 import net.rptools.maptool.client.ui.token.BooleanTokenOverlay;
@@ -49,6 +47,8 @@ import net.rptools.maptool.client.ui.token.TwoImageBarTokenOverlay;
 import net.rptools.maptool.client.ui.token.TwoToneBarTokenOverlay;
 import net.rptools.maptool.client.ui.token.XTokenOverlay;
 import net.rptools.maptool.client.ui.token.YieldTokenOverlay;
+import net.rptools.maptool.language.I18N;
+import net.rptools.maptool.model.drawing.DrawableColorPaint;
 import net.rptools.maptool.model.sheet.stats.StatSheetLocation;
 import net.rptools.maptool.model.sheet.stats.StatSheetManager;
 import net.rptools.maptool.model.sheet.stats.StatSheetProperties;
@@ -58,8 +58,12 @@ import net.rptools.maptool.server.proto.TokenPropertyListDto;
 
 public class CampaignProperties implements Serializable {
 
+  private static final String PROP_PREFIX = "Default.campaign.tokenProperty.name.";
+  private static final String SHORT_PROP_PREFIX = "Default.campaign.tokenProperty.name.short.";
+
   /** The property type to fall back to for the default when none is defined. */
-  private static final String FALLBACK_DEFAULT_TOKEN_PROPERTY_TYPE = "Basic";
+  private static final String FALLBACK_DEFAULT_TOKEN_PROPERTY_TYPE =
+      I18N.getText("Default.campaign.tokenPropertyType");
 
   /** The default property type for tokens. */
   private String defaultTokenPropertyType = FALLBACK_DEFAULT_TOKEN_PROPERTY_TYPE;
@@ -292,15 +296,57 @@ public class CampaignProperties implements Serializable {
     if (!categorizedLights.isEmpty()) {
       return;
     }
+    categorizedLights.addAllToCategory(
+        I18N.getText("Default.campaign.lightSource.category.d20"),
+        List.of(
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.candle"), 5),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.lamp"), 15),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.torch"), 20),
+            createD20LightSource(
+                I18N.getText("Default.campaign.lightSource.light.everburning"), 20),
+            createD20LightSource(
+                I18N.getText("Default.campaign.lightSource.light.lanternHooded"), 30),
+            createD20LightSource(I18N.getText("Default.campaign.lightSource.light.sunrod"), 30)));
+    categorizedLights.addAllToCategory(
+        I18N.getText("Default.campaign.lightSource.category.generic"),
+        List.of(
+            createGenericLightSource(5),
+            createGenericLightSource(15),
+            createGenericLightSource(20),
+            createGenericLightSource(30),
+            createGenericLightSource(40),
+            createGenericLightSource(60)));
+  }
 
-    try {
-      Map<String, List<LightSource>> map = LightSource.getDefaultLightSources();
-      for (var entry : map.entrySet()) {
-        categorizedLights.addAllToCategory(entry.getKey(), entry.getValue());
-      }
-    } catch (IOException ioe) {
-      MapTool.showError("CampaignProperties.error.initLightSources", ioe);
-    }
+  private static LightSource createGenericLightSource(int radius) {
+    return LightSource.createRegular(
+        String.format("%d", radius),
+        new GUID(),
+        LightSource.Type.NORMAL,
+        false,
+        false,
+        List.of(new Light(ShapeType.CIRCLE, 0, radius, 0, 360, null, 100, false, false)));
+  }
+
+  private static LightSource createD20LightSource(String name, int radius) {
+    return LightSource.createRegular(
+        String.format("%s - %d", name, radius),
+        new GUID(),
+        LightSource.Type.NORMAL,
+        false,
+        false,
+        List.of(
+            new Light(ShapeType.CIRCLE, 0, radius, 0, 360, null, 100, false, false),
+            new Light(
+                ShapeType.CIRCLE,
+                0,
+                radius * 2,
+                0,
+                360,
+                new DrawableColorPaint(new Color(0, 0, 0, 100)),
+                100,
+                false,
+                false)));
   }
 
   public String getDefaultSightType() {
@@ -343,18 +389,46 @@ public class CampaignProperties implements Serializable {
     }
 
     List<TokenProperty> list = new ArrayList<>();
-    list.add(new TokenProperty("Strength", "Str"));
-    list.add(new TokenProperty("Dexterity", "Dex"));
-    list.add(new TokenProperty("Constitution", "Con"));
-    list.add(new TokenProperty("Intelligence", "Int"));
-    list.add(new TokenProperty("Wisdom", "Wis"));
-    list.add(new TokenProperty("Charisma", "Char"));
-    list.add(new TokenProperty("HP", true, true, false));
-    list.add(new TokenProperty("AC", true, true, false));
-    list.add(new TokenProperty("Defense", "Def"));
-    list.add(new TokenProperty("Movement", "Mov"));
-    list.add(new TokenProperty("Elevation", "Elv", true, false, false));
-    list.add(new TokenProperty("Description", "Des"));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "strength"), I18N.getText(SHORT_PROP_PREFIX + "strength")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "dexterity"),
+            I18N.getText(SHORT_PROP_PREFIX + "dexterity")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "constitution"),
+            I18N.getText(SHORT_PROP_PREFIX + "constitution")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "intelligence"),
+            I18N.getText(SHORT_PROP_PREFIX + "intelligence")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "wisdom"), I18N.getText(SHORT_PROP_PREFIX + "wisdom")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "charisma"), I18N.getText(SHORT_PROP_PREFIX + "charisma")));
+    list.add(new TokenProperty(I18N.getText(PROP_PREFIX + "hp"), true, true, false));
+    list.add(new TokenProperty(I18N.getText(PROP_PREFIX + "ac"), true, true, false));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "defense"), I18N.getText(SHORT_PROP_PREFIX + "defense")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "movement"), I18N.getText(SHORT_PROP_PREFIX + "movement")));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "elevation"),
+            I18N.getText(SHORT_PROP_PREFIX + "elevation"),
+            true,
+            false,
+            false));
+    list.add(
+        new TokenProperty(
+            I18N.getText(PROP_PREFIX + "description"),
+            I18N.getText(SHORT_PROP_PREFIX + "description")));
 
     tokenTypeMap.put(getDefaultTokenPropertyType(), list);
   }

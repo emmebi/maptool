@@ -51,7 +51,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.Position.Bias;
 import javax.swing.text.html.HTMLDocument;
@@ -64,9 +63,7 @@ import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.MapTool;
 import net.rptools.maptool.client.MapToolUtil;
 import net.rptools.maptool.client.functions.TokenBarFunction;
-import net.rptools.maptool.client.swing.AbeillePanel;
-import net.rptools.maptool.client.swing.ColorWell;
-import net.rptools.maptool.client.swing.GenericDialog;
+import net.rptools.maptool.client.swing.*;
 import net.rptools.maptool.client.swing.htmleditorsplit.HtmlEditorSplit;
 import net.rptools.maptool.client.ui.ImageAssetPanel;
 import net.rptools.maptool.client.ui.sheet.stats.StatSheetComboBoxRenderer;
@@ -100,7 +97,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 
-/** This dialog is used to display all of the token states and notes to the user. */
+/** This dialog is used to display all the token states and notes to the user. */
 public class EditTokenDialog extends AbeillePanel<Token> {
 
   /** The size used to constrain the icon. */
@@ -119,7 +116,8 @@ public class EditTokenDialog extends AbeillePanel<Token> {
   private final WordWrapCellRenderer propertyCellRenderer = new WordWrapCellRenderer();
 
   private boolean tokenSaved;
-  private GenericDialog dialog;
+  private final GenericDialogFactory dialogFactory =
+      GenericDialog.getFactory().createOkCancelButtons().setDefaultButton(ButtonKind.OK);
   private ImageAssetPanel imagePanel;
   private final LibraryManager libraryManager = new LibraryManager();
 
@@ -138,10 +136,17 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     this(new TokenPropertiesDialog());
   }
 
+  @SuppressWarnings("unused")
+  public void initPropertyTable() {
+    getPropertyTable().setModel(new TokenPropertyTableModel());
+  }
+
+  @SuppressWarnings("unused")
   public void initGMNotesEditorPane() {
     setGmNotesEnabled(MapTool.getPlayer().isGM());
   }
 
+  @SuppressWarnings("unused")
   public void initStatSheetComboBoxes() {
     var sheetCombo = getStatSheetCombo();
     sheetCombo.setRenderer(new StatSheetComboBoxRenderer());
@@ -170,46 +175,48 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         });
   }
 
+  @SuppressWarnings("unused")
   public void initTerrainModifierOperationComboBox() {
     getTerrainModifierOperationComboBox()
         .setModel(new DefaultComboBoxModel<>(TerrainModifierOperation.values()));
   }
 
+  @SuppressWarnings("unused")
   public void initTerrainModifiersIgnoredList() {
     DefaultListModel<TerrainModifierOperation> operationModel = new DefaultListModel<>();
     getTerrainModifiersIgnoredList().setModel(operationModel);
     EnumSet.allOf(TerrainModifierOperation.class).forEach(operationModel::addElement);
   }
 
+  @SuppressWarnings("unused")
   public void initUniqueLightSourcesTextPane() {
     setUniqueLightSourcesEnabled(MapTool.getPlayer().isGM());
   }
 
+  @SuppressWarnings("unused")
   public void initUniqueAurasTextPane() {
     setUniqueAurasEnabled(MapTool.getPlayer().isGM());
   }
 
+  @SuppressWarnings("unused")
   public void initJtsMethodComboBox() {
     getJtsMethodComboBox().setModel(new DefaultComboBoxModel<>(JTS_SimplifyMethodType.values()));
   }
 
   public void showDialog(Token token) {
-    dialog =
-        new GenericDialog(I18N.getString("EditTokenDialog.msg.title"), MapTool.getFrame(), this) {
-          private static final long serialVersionUID = 5439449816096482201L;
-
-          @Override
-          public void closeDialog() {
-
-            if (!autoGenerateTopologySwingWorker.isDone()) {
-              log.info("Stopping autoGenerateTopologySwingWorker...");
-              autoGenerateTopologySwingWorker.cancel(true);
-            }
-
-            unbind();
-            super.closeDialog();
-          }
-        };
+    dialogFactory
+        .setDialogTitle(I18N.getString("EditTokenDialog.msg.title"))
+        .setContent(this)
+        .makeModal(true)
+        .setCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
+        .onBeforeClose(
+            e -> {
+              if (!autoGenerateTopologySwingWorker.isDone()) {
+                log.info("Stopping autoGenerateTopologySwingWorker...");
+                autoGenerateTopologySwingWorker.cancel(true);
+              }
+              unbind();
+            });
     getTokenLayoutPanel().reset(token);
     getFlippedX()
         .addChangeListener(
@@ -233,14 +240,12 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     getTokenTopologyPanel().reset(token);
     bind(token);
 
-    getRootPane().setDefaultButton(getOKButton());
+    getRootPane().setDefaultButton((JButton) dialogFactory.getDialog().getOKButton());
     setGmNotesEnabled(MapTool.getPlayer().isGM());
     getComponent("@GMName").setEnabled(MapTool.getPlayer().isGM());
 
     setUniqueLightSourcesEnabled(MapTool.getPlayer().isGM());
     setUniqueAurasEnabled(MapTool.getPlayer().isGM());
-
-    dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
     setLibTokenPaneEnabled(token.isLibToken());
     validateLibTokenURIAccess(getNameField().getText());
@@ -259,7 +264,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     } else {
       combo.setSelectedItem(new StatSheetManager().getStatSheet(token.getStatSheet().id()));
     }
-    dialog.showDialog();
+    dialogFactory.display();
   }
 
   private void validateLibTokenURIAccess(String name) {
@@ -361,13 +366,11 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     /* Updates the Property Type list. */
     updatePropertyTypeCombo();
 
-    /* Set the selected item in Property Type list. Triggers a itemStateChanged event if index != 0 */
-    getPropertyTypeCombo().setSelectedItem(token.getPropertyType());
-
-    /* If index == 0, the itemStateChanged event wasn't triggered, so we update. Fix #1504 */
-    if (getPropertyTypeCombo().getSelectedIndex() == 0) {
-      updatePropertiesTable(token, (String) getPropertyTypeCombo().getSelectedItem());
-    }
+    /* Set the selected item in Property Type list. */
+    var propertyType = token.getPropertyType();
+    getPropertyTypeCombo().setSelectedItem(propertyType);
+    /* Make sure the right properties are displayed. */
+    updatePropertiesTable(token, propertyType);
 
     getSightTypeCombo()
         .setSelectedItem(
@@ -565,10 +568,12 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     return (HtmlEditorSplit) getComponent("playerNotesEditor");
   }
 
+  @SuppressWarnings("unused")
   public void initTypeCombo() {
     getTypeCombo().setModel(new DefaultComboBoxModel<>(Type.values()));
   }
 
+  @SuppressWarnings("unused")
   public void initLibTokenTable() {
     getNameField()
         .getDocument()
@@ -679,15 +684,9 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     EventQueue.invokeLater(
         () -> {
           PropertyTable pp = getPropertyTable();
-          if (token != null) {
-            var propertyList = MapTool.getCampaign().getTokenPropertyList(propertyType);
-
-            pp.setModel(
-                new TokenPropertyTableModel(
-                    token, propertyType, propertyList, propertyCellRenderer));
-          } else {
-            pp.setModel(new DefaultTableModel());
-          }
+          var propertyList = MapTool.getCampaign().getTokenPropertyList(propertyType);
+          pp.setModel(
+              new TokenPropertyTableModel(token, propertyType, propertyList, propertyCellRenderer));
           pp.expandAll();
         });
   }
@@ -777,17 +776,6 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   public JLabel getLibTokenURIErrorLabel() {
     return (JLabel) getComponent("Label.LibURIError");
-  }
-
-  public void initOKButton() {
-    getOKButton()
-        .addActionListener(
-            e -> {
-              if (commit()) {
-                unbind();
-                dialog.closeDialog();
-              }
-            });
   }
 
   @Override
@@ -927,7 +915,15 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     token.setSpeechMap(((KeyValueTableModel) getSpeechTable().getModel()).getMap());
 
     /* Properties */
-    ((TokenPropertyTableModel) getPropertyTable().getModel()).applyTo(token);
+    var tableModel = getPropertyTable().getModel();
+    if (getPropertyTable().getModel() instanceof TokenPropertyTableModel tokenPropertyTableModel) {
+      tokenPropertyTableModel.applyTo(token);
+    } else {
+      log.warn(
+          "Property table model is not of the expected type; expected {} but got {}",
+          TokenPropertyTableModel.class,
+          tableModel.getClass());
+    }
 
     /* Charsheet */
     if (getCharSheetPanel().getImageId() != null) {
@@ -982,23 +978,6 @@ public class EditTokenDialog extends AbeillePanel<Token> {
         .getZone()
         .tokenMaskTopologyChanged(token.getMaskTopologyTypes());
     return true;
-  }
-
-  public JButton getOKButton() {
-    return (JButton) getComponent("okButton");
-  }
-
-  public void initCancelButton() {
-    getCancelButton()
-        .addActionListener(
-            e -> {
-              unbind();
-              dialog.closeDialog();
-            });
-  }
-
-  public JButton getCancelButton() {
-    return (JButton) getComponent("cancelButton");
   }
 
   public PropertyTable getPropertyTable() {
@@ -1298,7 +1277,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
   public void initTokenLayoutPanel() {
     TokenLayoutRenderPanel layoutPanel = new TokenLayoutRenderPanel();
-    new TokenLayoutPanelHelper(this, layoutPanel, getOKButton());
+    new TokenLayoutPanelHelper(this, layoutPanel, dialogFactory.getDialog().getOKButton());
     layoutPanel.setMinimumSize(new Dimension(150, 125));
     layoutPanel.setPreferredSize(new Dimension(150, 125));
     layoutPanel.setName("tokenLayout");
@@ -2167,8 +2146,13 @@ public class EditTokenDialog extends AbeillePanel<Token> {
     private final List<TokenProperty> propertyList;
     private final Map<String, String> propertyMap;
 
+    public TokenPropertyTableModel() {
+      propertyList = List.of();
+      propertyMap = Map.of();
+    }
+
     public TokenPropertyTableModel(
-        Token model,
+        @Nullable Token model,
         String propertyType,
         List<TokenProperty> propertyList,
         TableCellRenderer propertyCellRenderer) {
@@ -2176,7 +2160,7 @@ public class EditTokenDialog extends AbeillePanel<Token> {
 
       this.propertyMap = new HashMap<>();
       for (TokenProperty property : propertyList) {
-        String value = (String) model.getProperty(property.getName());
+        String value = model == null ? null : (String) model.getProperty(property.getName());
         if (value == null) {
           value = property.getDefaultValue();
         }
