@@ -39,8 +39,6 @@ import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.*;
 import net.rptools.maptool.util.ImageManager;
 import net.rptools.maptool.util.ImageSupport;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Support class that does much of the heavy lifting for TokenLayoutPanel. Links control components
@@ -842,7 +840,6 @@ class TokenLayoutPanelHelper {
      * @return Flipped bufferedImage
      */
     private BufferedImage getFlippedImage(BufferedImage bi) {
-      log.debug("getFlippedImage - flipStates: " + flipDirections);
       ImageSupport.FlipDirection direction =
           ImageSupport.FlipDirection.getFlipDirection(
               flipDirections.contains(ImageSupport.FlipDirection.HORIZONTAL),
