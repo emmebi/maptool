@@ -323,7 +323,6 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
   @Override
   public void mousePressed(MouseEvent e) {
     super.mousePressed(e);
-    LOGGER.info("mousePressed ******************************************************");
 
     // Do not disrupt current dragging operations by pressing other mouse buttons
     if (isDraggingMap() || isDraggingSelectionBox || isDraggingDrawings) {
@@ -377,7 +376,6 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
    */
   @Override
   public void mouseReleased(MouseEvent e) {
-    super.mouseReleased(e);
 
     // So that keystrokes end up in the right place
     renderer.requestFocusInWindow();
@@ -386,7 +384,7 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
     boolean multiSelect = e.isShiftDown();
 
     // RIGHT MOUSE BUTTON - Select drawing if unselected and show popup menu
-    if (SwingUtilities.isRightMouseButton(e) && !isDraggingDrawings && !isDraggingSelectionBox) {
+    if (SwingUtilities.isRightMouseButton(e) && !isDraggingDrawings && !isDraggingSelectionBox && !isDraggingMap()) {
       DrawnElement de = getDrawnElementAtMouse(e);
       if (de != null) {
         GUID id = de.getDrawable().getId();
@@ -403,9 +401,8 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
         boolean isTemplate = isTemplate(de);
         if (selectedTool == TemplatePointerTool.class && isTemplate
             || selectedTool == DrawingPointerTool.class && !isTemplate) {
-          LOGGER.info("selectedDrawableIdSet: {}", selectedDrawableIdSet);
-          new DrawPanelPopupMenu(selectedDrawableIdSet, e.getX(), e.getY(), renderer, de, true)
-              .showPopup(renderer);
+            new DrawPanelPopupMenu(selectedDrawableIdSet, e.getX(), e.getY(), renderer, de, true)
+                    .showPopup(renderer);
         }
       }
     }
@@ -498,6 +495,8 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
     } else {
       renderer.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
     }
+
+    super.mouseReleased(e);
   }
 
   /**
@@ -1306,7 +1305,6 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
             if (templateType.equals("BlastTemplate")) {
               int OffsetX = ((BlastTemplate) atDragged).getOffsetX();
               int OffsetY = ((BlastTemplate) atDragged).getOffsetY();
-              LOGGER.info("atDragged BlastTemplate: {}", OffsetX + " " + OffsetY);
               ((BlastTemplate) atOriginal).setControlCellOffset(OffsetX, OffsetY);
             } else if (templateType.equals("ConeTemplate")) {
               ((ConeTemplate) atOriginal).setDirection(((ConeTemplate) atDragged).getDirection());
