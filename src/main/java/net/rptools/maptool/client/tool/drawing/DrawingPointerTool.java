@@ -384,7 +384,10 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
     boolean multiSelect = e.isShiftDown();
 
     // RIGHT MOUSE BUTTON - Select drawing if unselected and show popup menu
-    if (SwingUtilities.isRightMouseButton(e) && !isDraggingDrawings && !isDraggingSelectionBox && !isDraggingMap()) {
+    if (SwingUtilities.isRightMouseButton(e)
+        && !isDraggingDrawings
+        && !isDraggingSelectionBox
+        && !isDraggingMap()) {
       DrawnElement de = getDrawnElementAtMouse(e);
       if (de != null) {
         GUID id = de.getDrawable().getId();
@@ -401,8 +404,8 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
         boolean isTemplate = isTemplate(de);
         if (selectedTool == TemplatePointerTool.class && isTemplate
             || selectedTool == DrawingPointerTool.class && !isTemplate) {
-            new DrawPanelPopupMenu(selectedDrawableIdSet, e.getX(), e.getY(), renderer, de, true)
-                    .showPopup(renderer);
+          new DrawPanelPopupMenu(selectedDrawableIdSet, e.getX(), e.getY(), renderer, de, true)
+              .showPopup(renderer);
         }
       }
     }
