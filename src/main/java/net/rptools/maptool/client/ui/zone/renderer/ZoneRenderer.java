@@ -37,10 +37,12 @@ import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.rptools.lib.CodeTimer;
+import net.rptools.lib.CollectionUtil;
 import net.rptools.lib.MD5Key;
-import net.rptools.lib.image.ImageUtil;
+import net.rptools.lib.StringUtil;
 import net.rptools.maptool.client.*;
 import net.rptools.maptool.client.functions.TokenMoveFunctions;
+import net.rptools.maptool.client.swing.GenericDialog;
 import net.rptools.maptool.client.swing.ImageLabel;
 import net.rptools.maptool.client.swing.SwingUtil;
 import net.rptools.maptool.client.swing.label.FlatImageLabelFactory;
@@ -65,10 +67,9 @@ import net.rptools.maptool.model.Zone.Layer;
 import net.rptools.maptool.model.drawing.*;
 import net.rptools.maptool.model.player.Player;
 import net.rptools.maptool.model.zones.*;
-import net.rptools.maptool.util.CollectionUtil;
 import net.rptools.maptool.util.GraphicsUtil;
 import net.rptools.maptool.util.ImageManager;
-import net.rptools.maptool.util.StringUtil;
+import net.rptools.maptool.util.ImageSupport;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1250,10 +1251,9 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
             var blockedMoves = entry.getValue();
 
             for (CellPoint point : blockedMoves) {
-              ZonePoint zp = point.midZonePoint(getZone().getGrid(), targetPoint);
-              double r = (zp.x - 1) * 45;
+              ZonePoint zp = getZone().getGrid().midZonePoint(point, targetPoint);
               showBlockedMoves(
-                  g, zp, r, RessourceManager.getImage(Images.ZONE_RENDERER_BLOCK_MOVE), 1.0f);
+                  g, zp, RessourceManager.getImage(Images.ZONE_RENDERER_BLOCK_MOVE), 1.0f);
             }
           }
         }
@@ -1584,8 +1584,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
     this.repaintDebouncer.dispatch();
   }
 
-  public void showBlockedMoves(
-      Graphics2D g, ZonePoint point, double angle, BufferedImage image, float size) {
+  public void showBlockedMoves(Graphics2D g, ZonePoint point, BufferedImage image, float size) {
     // Resize image to size of 1/4 size of grid
     double resizeWidth = zone.getGrid().getCellWidth() / image.getWidth() * .25;
     double resizeHeight = zone.getGrid().getCellHeight() / image.getHeight() * .25;
@@ -1801,7 +1800,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
 
       timer.start("token-list-1b");
       // get token image, using image table if present
-      BufferedImage image = ImageUtil.getTokenImage(token, this);
+      BufferedImage image = ImageSupport.getTokenImage(token, this);
       timer.stop("token-list-1b");
 
       timer.start("token-list-5a");
@@ -2441,8 +2440,7 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
         if (getActiveLayer() == Zone.Layer.TOKEN) {
           if (AppPreferences.showDialogOnNewToken.get() || showDialog) {
             NewTokenDialog dialog = new NewTokenDialog(token, dropPoint.x, dropPoint.y);
-            dialog.showDialog();
-            if (!dialog.isSuccess()) {
+            if (dialog.showDialog().equals(GenericDialog.DENY)) {
               continue;
             }
           }
