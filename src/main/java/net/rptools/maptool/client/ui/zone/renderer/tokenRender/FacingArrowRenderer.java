@@ -42,10 +42,11 @@ public class FacingArrowRenderer {
 
   /** An arrow facing horizontally to the positive x-axis, with its point at (0, 0). */
   private static Path2D UNIT_ARROW;
+
   static {
     try {
       UNIT_ARROW = DOVETAIL;
-    } catch (Exception e){
+    } catch (Exception e) {
       UNIT_ARROW = TRIANGLE;
     }
   }
