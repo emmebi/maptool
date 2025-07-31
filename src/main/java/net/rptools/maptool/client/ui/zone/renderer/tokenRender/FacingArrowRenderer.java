@@ -25,24 +25,24 @@ import net.rptools.maptool.client.ui.zone.ZoneViewModel.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
 import net.rptools.maptool.model.Token.TokenShape;
 import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.util.svg.SVGUtil;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 public class FacingArrowRenderer {
   private static final Logger log = LogManager.getLogger(FacingArrowRenderer.class);
+  private static final double tailX = -0.25;
+  private static final double dovetailX = -0.15;
+  private static final double tailY = .35;
+  public static final Path2D DOVETAIL =
+      SVGUtil.DrawingUtil.svgToPath2D(
+          String.format("M 0,0 L %1$f2 -%2$f2 L %3$f2 0 L %1$f2 %2$f2 z", tailX, tailY, dovetailX));
+  public static final Path2D TRIANGLE =
+      SVGUtil.DrawingUtil.svgToPath2D(
+          String.format("M 0,0 L %1$f2 -%2$f2 L %1$f2 %2$f2 z", tailX, tailY));
 
   /** An arrow facing horizontally to the positive x-axis, with its point at (0, 0). */
-  private static final Path2D UNIT_ARROW;
-
-  static {
-    final double tailX = -0.25;
-    final double tailY = .35;
-    UNIT_ARROW = new Path2D.Double();
-    UNIT_ARROW.moveTo(0, 0);
-    UNIT_ARROW.lineTo(tailX, -tailY);
-    UNIT_ARROW.lineTo(tailX, tailY);
-    UNIT_ARROW.closePath();
-  }
+  private static final Path2D UNIT_ARROW = DOVETAIL;
 
   private final RenderHelper renderHelper;
   private final Zone zone;
