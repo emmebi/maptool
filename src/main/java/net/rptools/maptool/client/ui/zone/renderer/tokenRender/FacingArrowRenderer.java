@@ -41,7 +41,14 @@ public class FacingArrowRenderer {
       SVGUtils.svgToPath2D(String.format("M 0,0 L %1$f2 -%2$f2 L %1$f2 %2$f2 z", tailX, tailY));
 
   /** An arrow facing horizontally to the positive x-axis, with its point at (0, 0). */
-  private static final Path2D UNIT_ARROW = DOVETAIL;
+  private static Path2D UNIT_ARROW;
+  static {
+    try {
+      UNIT_ARROW = DOVETAIL;
+    } catch (Exception e){
+      UNIT_ARROW = TRIANGLE;
+    }
+  }
 
   private final RenderHelper renderHelper;
   private final Zone zone;
