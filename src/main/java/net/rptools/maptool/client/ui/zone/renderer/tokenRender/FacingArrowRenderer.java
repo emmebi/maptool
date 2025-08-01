@@ -21,11 +21,13 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import net.rptools.lib.CodeTimer;
 import net.rptools.lib.SVGUtils;
+import net.rptools.lib.image.ImageUtil;
 import net.rptools.maptool.client.AppPreferences;
 import net.rptools.maptool.client.ui.zone.ZoneViewModel.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
 import net.rptools.maptool.model.Token.TokenShape;
 import net.rptools.maptool.model.Zone;
+import net.rptools.maptool.util.GraphicsUtil;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -55,8 +57,13 @@ public class FacingArrowRenderer {
   private final Zone zone;
 
   private final ArrayList<Color> figureFillColours = new ArrayList<>();
-  private final Color fillColour = Color.YELLOW;
-  private final Color borderColour = Color.DARK_GRAY;
+  private Color fillColour = AppPreferences.facingArrowBGColour.get();
+  private Color borderColour = AppPreferences.facingArrowBorderColour.get();
+
+  {
+    AppPreferences.facingArrowBGColour.onChange(color -> fillColour = color);
+    AppPreferences.facingArrowBorderColour.onChange(color -> borderColour = color);
+  }
 
   public FacingArrowRenderer(RenderHelper renderHelper, Zone zone) {
     this.renderHelper = renderHelper;
@@ -124,7 +131,9 @@ public class FacingArrowRenderer {
       timer.stop("FacingArrowRenderer-fill");
 
       timer.start("FacingArrowRenderer-draw");
+      tokenG.setRenderingHints(ImageUtil.getRenderingHintsQuality());
       tokenG.setColor(borderColour);
+      tokenG.setStroke(new BasicStroke(0.85f));
       tokenG.draw(facingArrow);
       timer.stop("FacingArrowRenderer-draw");
     } catch (Exception e) {

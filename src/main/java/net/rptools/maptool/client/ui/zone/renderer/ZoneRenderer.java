@@ -1817,11 +1817,6 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       tokenRenderer.renderToken(token, position, tokenG, opacity);
       timer.stop("token-list-7");
 
-      timer.start("token-list-8");
-      // Facing
-      facingArrowRenderer.paintArrow(tokenG, position);
-      timer.stop("token-list-8");
-
       timer.start("token-list-9");
       // Set up the graphics so that the overlay can just be painted.
       Rectangle2D tokenBounds = zoneScale.toScreenSpace(position.transformedBounds().getBounds2D());
@@ -1866,6 +1861,11 @@ public class ZoneRenderer extends JComponent implements DropTargetListener {
       }
       locG.dispose();
       timer.stop("token-list-10");
+
+      timer.start("token-list-8");
+      // Facing
+      facingArrowRenderer.paintArrow(tokenG, position);
+      timer.stop("token-list-8");
 
       timer.start("token-list-11");
       // Keep track of which tokens have been drawn for post-processing on them later
