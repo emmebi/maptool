@@ -21,7 +21,6 @@ import net.rptools.lib.image.RenderQuality;
 import net.rptools.maptool.client.walker.WalkerMetric;
 import net.rptools.maptool.language.I18N;
 import net.rptools.maptool.model.GridFactory;
-import net.rptools.maptool.model.Halo;
 import net.rptools.maptool.model.Label;
 import net.rptools.maptool.model.Zone;
 import net.rptools.maptool.util.preferences.Preference;
@@ -173,22 +172,6 @@ public class AppPreferences {
               .defineInteger("haloLineWidth", 2)
               .setLabel("Preferences.label.halo.width")
               .setTooltip("Preferences.label.halo.width.tooltip");
-
-  public static final Preference.Numeric<Double> haloLineWeight =
-      store.defineDouble("haloLineWeight", 2);
-  public static final Preference<Boolean> haloIsoFlip = store.defineBoolean("haloIsoFlip", true);
-  public static final Preference<Boolean> haloUseFacing =
-      store.defineBoolean("haloUseFacing", true);
-  public static final Preference.Numeric<Integer> haloType =
-      store.defineInteger("haloType", Halo.Type.getDefaultIndex());
-  public static final Preference.Numeric<Integer> haloStyle =
-      store.defineInteger("haloStyle", Halo.Style.getDefaultIndex());
-  public static final Preference.Numeric<Integer> haloImage = store.defineInteger("haloImage", 0);
-  public static final Preference.Numeric<Integer> haloColor =
-      store.defineInteger(
-          "haloColor",
-          MapToolUtil.getColor(MapToolUtil.getColorNames().toArray(String[]::new)[3]).getRGB());
-  public static final Preference<Boolean> haloFilled = store.defineBoolean("haloFilled", false);
 
   public static final Preference.Numeric<Integer> typingNotificationDurationInSeconds =
       (Preference.Numeric<Integer>)
