@@ -619,15 +619,14 @@ public class AppPreferences {
           "Preferences.label.tokens.portrait.mouse.tooltip",
           true);
   public static final Preference<Color> facingArrowBGColour =
-          store
-                  .defineColor("facingArrowBGColour", Color.yellow, false)
-                  .setLabel("Preferences.label.tokens.arrow.background");
+      store
+          .defineColor("facingArrowBGColour", Color.yellow, false)
+          .setLabel("Preferences.label.tokens.arrow.background");
 
   public static final Preference<Color> facingArrowBorderColour =
-          store
-                  .defineColor("facingArrowBorderColour", Color.darkGray, false)
-                  .setLabel("Preferences.label.tokens.arrow.border");
-
+      store
+          .defineColor("facingArrowBorderColour", Color.darkGray, false)
+          .setLabel("Preferences.label.tokens.arrow.border");
 
   public static final Preference<Boolean> forceFacingArrow =
       store.defineBoolean(

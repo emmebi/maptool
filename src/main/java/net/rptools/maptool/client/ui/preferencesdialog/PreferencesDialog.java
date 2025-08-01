@@ -244,14 +244,13 @@ public class PreferencesDialog extends AbeillePanel {
 
   /** Checkbox for if macro link details should be suppressed in tooltips. */
   private final JCheckBox suppressToolTipsMacroLinks = getCheckBox("suppressToolTipsMacroLinks");
+
   /** ColorWell for the facing arrow border colour. */
   private final ColorWell facingArrowBorderColour =
-          (ColorWell) getComponent("facingArrowBorderColour");
+      (ColorWell) getComponent("facingArrowBorderColour");
 
-  /** ColorWell for the facing arrow border colour. */
-  private final ColorWell facingArrowColour =
-          (ColorWell) getComponent("facingArrowColour");
-
+  /** ColorWell for the facing arrow colour. */
+  private final ColorWell facingArrowColour = (ColorWell) getComponent("facingArrowColour");
 
   /** ColorWell for the completed trusted path output foreground color. */
   private final ColorWell trustedOutputForeground =
@@ -878,14 +877,14 @@ public class PreferencesDialog extends AbeillePanel {
             });
 
     facingArrowColour.addActionListener(
-            e -> {
-              AppPreferences.facingArrowBGColour.set(facingArrowColour.getColor());
-            });
+        e -> {
+          AppPreferences.facingArrowBGColour.set(facingArrowColour.getColor());
+        });
 
     facingArrowBorderColour.addActionListener(
-            e -> {
-              AppPreferences.facingArrowBorderColour.set(facingArrowBorderColour.getColor());
-            });
+        e -> {
+          AppPreferences.facingArrowBorderColour.set(facingArrowBorderColour.getColor());
+        });
 
     chatNotificationColor.addActionListener(
         e -> {

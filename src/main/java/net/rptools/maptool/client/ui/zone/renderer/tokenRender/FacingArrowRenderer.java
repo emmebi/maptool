@@ -27,7 +27,6 @@ import net.rptools.maptool.client.ui.zone.ZoneViewModel.TokenPosition;
 import net.rptools.maptool.client.ui.zone.renderer.RenderHelper;
 import net.rptools.maptool.model.Token.TokenShape;
 import net.rptools.maptool.model.Zone;
-import net.rptools.maptool.util.GraphicsUtil;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
