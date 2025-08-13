@@ -204,7 +204,9 @@ public class DrawPanelPopupMenu extends JPopupMenu {
       var frame = MapTool.getFrame();
       var renderer = frame.getCurrentZoneRenderer();
 
-      if (selectedDrawings.isEmpty()) return;
+      if (selectedDrawings.isEmpty()) {
+        return;
+      }
 
       // check to see if this is the required action
       for (GUID id : selectedDrawings) {

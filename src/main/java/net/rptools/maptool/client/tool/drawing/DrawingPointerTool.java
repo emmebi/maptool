@@ -75,7 +75,7 @@ import org.apache.logging.log4j.Logger;
  *
  * <ul>
  *   <li>Shows the name label (if it has a name)
- *   <li><kbd>CTRL</kbd>+<kbd>C</kbd> duplicate selected
+ *   <li><kbd>CTRL</kbd>+<kbd>V</kbd> duplicate selected
  *   <li><kbd>DELETE</kbd> delete selected
  * </ul>
  *
@@ -120,13 +120,16 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
    */
   private static final Set<DrawnElement> draggedDrawnElementSet = new HashSet<>();
 
-  /** Factory to generate {@link FlatImageLabel}s for drawing/template name labels. */
-  private static final FlatImageLabelFactory flatImageLabelFactory = new FlatImageLabelFactory();
+  /**
+   * Factory to generate {@link FlatImageLabel}s for drawing/template name labels. Will be assigned
+   * prior to each use as user color preferences may change.
+   */
+  private static FlatImageLabelFactory flatImageLabelFactory;
 
   /**
    * Stores the factory generated {@link FlatImageLabel}s by each {@link Drawable}'s {@link GUID}
-   * Note if a drawn element's pen changes, this also requires flushing the related entry here.
-   * Currently, this flushing is done when the layer or zone changes.
+   * Currently, this cache is flushed when the layer or zone changes, or when this tool is
+   * deselected.
    */
   private static final HashMap<GUID, FlatImageLabel> flatImageLabelCache = new HashMap<>();
 
@@ -305,6 +308,7 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
         renderer.setCursor(Cursor.getDefaultCursor());
         GUID id = drawnElementAtMouseMove.getDrawable().getId();
         if (!flatImageLabelCache.containsKey(id)) {
+          flatImageLabelFactory = new FlatImageLabelFactory();
           flatImageLabelCache.put(
               id, flatImageLabelFactory.getMapImageLabel(drawnElementAtMouseMove));
         }
@@ -562,7 +566,7 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
 
     if (renderer != null) {
 
-      // Paints a selected border box around the pre-dragged template position
+      // Paints a selected border box around the pre-dragged drawing position
       for (var id : selectedDrawableIdSet) {
         DrawnElement de = renderer.getZone().getDrawnElement(id);
         if (de == null) continue;
@@ -653,8 +657,12 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
 
     // If the mouse is over halfway to the next vertex, move it there (both X & Y)
     int grid = (int) (getZone().getGrid().getSize() * renderer.getScale());
-    if (mouse.x - working.x >= grid / 2) working.x += getZone().getGrid().getSize();
-    if (mouse.y - working.y >= grid / 2) working.y += getZone().getGrid().getSize();
+    if (mouse.x - working.x >= grid / 2) {
+      working.x += getZone().getGrid().getSize();
+    }
+    if (mouse.y - working.y >= grid / 2) {
+      working.y += getZone().getGrid().getSize();
+    }
     return working;
   }
 
@@ -727,9 +735,8 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
   }
 
   /**
-   * Get a {@link List} of {@link DrawnElement}s on the selected {@link
-   * net.rptools.maptool.model.Zone.Layer}. A GM can get a list from any layer, whereas Players are
-   * limited to the player (token) layer.
+   * Get a {@link List} of {@link DrawnElement}s on the selected {@link Zone.Layer}. A GM can get a
+   * list from any layer, whereas Players are limited to the player (token) layer.
    *
    * @param reverse Whether to reverse the order, or not.
    * @return A list of drawn elements.
@@ -926,6 +933,7 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
 
         GUID id = drawnElement.getDrawable().getId();
         if (!flatImageLabelCache.containsKey(id)) {
+          flatImageLabelFactory = new FlatImageLabelFactory();
           flatImageLabelCache.put(id, flatImageLabelFactory.getMapImageLabel(drawnElement));
         }
 
@@ -1144,8 +1152,8 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
    * displaying the dragged drawings. e.g. for templates this could be either a change in position,
    * path, direction, and/or size.
    *
-   * <p>In the event of the Escape key being pressed while dragging, any changes to dragged drawings
-   * will not be applied to the original drawings.
+   * <p>In the event of the <kbd>Escape</kbd> key being pressed while dragging, any changes to
+   * dragged drawings will not be applied to the original drawings.
    */
   private void setDraggedDrawnElementsSet() {
     List<DrawnElement> drawableList = getDrawnElementsOnLayerList(false);
