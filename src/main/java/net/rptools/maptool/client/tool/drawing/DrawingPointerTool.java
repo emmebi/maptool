@@ -75,7 +75,7 @@ import org.apache.logging.log4j.Logger;
  *
  * <ul>
  *   <li>Shows the name label (if it has a name)
- *   <li><kbd>CTRL</kbd>+<kbd>V</kbd> duplicate selected
+ *   <li><kbd>CTRL</kbd>+<kbd>V</kbd> duplicate selected (templates only)
  *   <li><kbd>DELETE</kbd> delete selected
  * </ul>
  *
@@ -83,7 +83,7 @@ import org.apache.logging.log4j.Logger;
  *
  * <ul>
  *   <li><kbd>Left Press</kbd> Show the template(s) size/radius
- *   <li><kbd>Left Drag</kbd> if a GM or server movement policy permitting, move the template(s),
+ *   <li><kbd>Left Drag</kbd> if a GM or server movement policy permits, move the template(s),
  *       will then show the movement distance according using the movement metric setting.
  * </ul>
  *
