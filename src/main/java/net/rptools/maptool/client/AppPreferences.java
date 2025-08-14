@@ -424,8 +424,7 @@ public class AppPreferences {
   public static final Preference<Color> npcMapLabelBackground =
       store
           .defineColor("npcMapLabelBG", Color.LIGHT_GRAY, true)
-          .setLabel("Preferences.label.access.tokenLabel.npcBackground")
-          .setTooltip("Preferences.colorwell.access.tokenLabel.npcBackground.tooltip");
+          .setLabel("Preferences.label.access.tokenLabel.npcBackground");
 
   /** The foreground color to use for NPC map labels. */
   public static final Preference<Color> npcMapLabelForeground =
