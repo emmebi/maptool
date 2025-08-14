@@ -83,8 +83,8 @@ import org.apache.logging.log4j.Logger;
  *
  * <ul>
  *   <li><kbd>Left Press</kbd> Show the template(s) size/radius
- *   <li><kbd>Left Drag</kbd> if a GM or server movement policy permits, move the template(s),
- *       will then show the movement distance according using the movement metric setting.
+ *   <li><kbd>Left Drag</kbd> if a GM or server movement policy permits, move the template(s), will
+ *       then show the movement distance according using the movement metric setting.
  * </ul>
  *
  * <h6>Once selected (single template only):</h6>
