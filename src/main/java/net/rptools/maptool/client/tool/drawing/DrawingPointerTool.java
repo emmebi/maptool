@@ -312,6 +312,7 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
           flatImageLabelCache.put(
               id, flatImageLabelFactory.getMapImageLabel(drawnElementAtMouseMove));
         }
+        renderer.repaint();
       } else {
         renderer.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
       }
