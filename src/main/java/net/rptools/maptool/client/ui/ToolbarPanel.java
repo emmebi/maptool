@@ -264,6 +264,11 @@ public class ToolbarPanel extends JToolBar {
 
   private OptionPanel createDrawPanel() {
     OptionPanel panel = new OptionPanel();
+
+    panel
+        .add(DrawingPointerTool.class)
+        .setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_DRAW_POINTER));
+
     panel
         .add(DeleteDrawingTool.class)
         .setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_DRAW_DELETE));
@@ -287,18 +292,24 @@ public class ToolbarPanel extends JToolBar {
         .addTool(
             new DrawingTool<>("tool.oval.instructions", "tool.oval.tooltip", new OvalStrategy()))
         .setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_DRAW_OVAL));
-    panel.add(TextTool.class).setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_DRAW_TEXT));
     panel
         .addTool(
             new DrawingTool<>(
                 "tool.rect.instructions", "tool.isorectangle.tooltip", new IsoRectangleStrategy()))
         .setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_DRAW_DIAMOND));
 
+    addSeparator(panel, 11);
+
+    panel.add(TextTool.class).setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_DRAW_TEXT));
+
     return panel;
   }
 
   private OptionPanel createTemplatePanel() {
     OptionPanel panel = new OptionPanel();
+    panel
+        .add(TemplatePointerTool.class)
+        .setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TEMPLATE_POINTER));
     panel
         .add(RadiusTemplateTool.class)
         .setIcon(RessourceManager.getBigIcon(Icons.TOOLBAR_TEMPLATE_RADIUS));

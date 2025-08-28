@@ -447,6 +447,30 @@ public class PreferencesDialog extends AbeillePanel {
   /** ColorWell for displaying the non-visibility token label background color. */
   private final ColorWell nonVisTokenLabelBG = (ColorWell) getComponent("nonVisTokenLabelBG");
 
+  /** ColorWell for displaying the drawing label foreground color. */
+  private final ColorWell drawingDrawableLabelForegroundColorWell =
+      (ColorWell) getComponent("drawingDrawableLabelForegroundColorWell");
+
+  /** ColorWell for displaying the drawing label background color. */
+  private final ColorWell drawingDrawableLabelBackgroundColorWell =
+      (ColorWell) getComponent("drawingDrawableLabelBackgroundColorWell");
+
+  /** ColorWell for displaying the drawing label border color. */
+  private final ColorWell drawingDrawableLabelBorderColorWell =
+      (ColorWell) getComponent("drawingDrawableLabelBorderColorWell");
+
+  /** ColorWell for displaying the template label foreground color. */
+  private final ColorWell templateDrawableLabelForegroundColorWell =
+      (ColorWell) getComponent("templateDrawableLabelForegroundColorWell");
+
+  /** ColorWell for displaying the template label background color. */
+  private final ColorWell templateDrawableLabelBackgroundColorWell =
+      (ColorWell) getComponent("templateDrawableLabelBackgroundColorWell");
+
+  /** ColorWell for displaying the template label border color. */
+  private final ColorWell templateDrawableLabelBorderColorWell =
+      (ColorWell) getComponent("templateDrawableLabelBorderColorWell");
+
   /** Spinner for setting the token label font size. */
   private final JSpinner labelFontSizeSpinner = getSpinner("labelFontSizeSpinner");
 
@@ -663,6 +687,16 @@ public class PreferencesDialog extends AbeillePanel {
     nonVisTokenLabelFG.setColor(AppPreferences.nonVisibleTokenMapLabelForeground.get());
     nonVisTokenLabelBG.setColor(AppPreferences.nonVisibleTokenMapLabelBackground.get());
     nonVisTokenLabelBorderColor.setColor(AppPreferences.nonVisibleTokenMapLabelBorder.get());
+    drawingDrawableLabelForegroundColorWell.setColor(
+        AppPreferences.drawingMapLabelForegroundColor.get());
+    drawingDrawableLabelBackgroundColorWell.setColor(
+        AppPreferences.drawingMapLabelBackgroundColor.get());
+    drawingDrawableLabelBorderColorWell.setColor(AppPreferences.drawingMapLabelBorderColor.get());
+    templateDrawableLabelForegroundColorWell.setColor(
+        AppPreferences.templateMapLabelForegroundColor.get());
+    templateDrawableLabelBackgroundColorWell.setColor(
+        AppPreferences.templateMapLabelBackgroundColor.get());
+    templateDrawableLabelBorderColorWell.setColor(AppPreferences.templateMapLabelBorderColor.get());
 
     labelFontSizeSpinner.setValue(AppPreferences.mapLabelFontSize.get());
     labelBorderWidthSpinner.setValue(AppPreferences.mapLabelBorderWidth.get());
@@ -728,6 +762,10 @@ public class PreferencesDialog extends AbeillePanel {
             pcTokenLabelBorderColor.setVisible(true); // Disabling a color well does not work
             npcTokenLabelBorderColor.setVisible(true); // Disabling a color well does not work
             nonVisTokenLabelBorderColor.setVisible(true); // Disabling a color well does not work
+            drawingDrawableLabelBorderColorWell.setVisible(
+                true); // Disabling a color well does not work
+            templateDrawableLabelBorderColorWell.setVisible(
+                true); // Disabling a color well does not work
             labelBorderWidthSpinner.setEnabled(true);
             labelBorderArcSpinner.setEnabled(true);
             AppPreferences.mapLabelShowBorder.set(true);
@@ -735,6 +773,10 @@ public class PreferencesDialog extends AbeillePanel {
             pcTokenLabelBorderColor.setVisible(false); // Disabling a color well does not work
             npcTokenLabelBorderColor.setVisible(false); // Disabling a color well does not work
             nonVisTokenLabelBorderColor.setVisible(false); // Disabling a color well does not  work
+            drawingDrawableLabelBorderColorWell.setVisible(
+                false); // Disabling a color well does not work
+            templateDrawableLabelBorderColorWell.setVisible(
+                false); // Disabling a color well does not work
             labelBorderWidthSpinner.setEnabled(false);
             labelBorderArcSpinner.setEnabled(false);
             AppPreferences.mapLabelShowBorder.set(false);
@@ -747,12 +789,16 @@ public class PreferencesDialog extends AbeillePanel {
       pcTokenLabelBorderColor.setVisible(true);
       npcTokenLabelBorderColor.setVisible(true);
       nonVisTokenLabelBorderColor.setVisible(true);
+      drawingDrawableLabelBorderColorWell.setVisible(true);
+      templateDrawableLabelBorderColorWell.setVisible(true);
       labelBorderWidthSpinner.setEnabled(true);
       labelBorderArcSpinner.setEnabled(true);
     } else {
       pcTokenLabelBorderColor.setVisible(false);
       npcTokenLabelBorderColor.setVisible(false);
       nonVisTokenLabelBorderColor.setVisible(false);
+      drawingDrawableLabelBorderColorWell.setVisible(false);
+      templateDrawableLabelBorderColorWell.setVisible(false);
       labelBorderWidthSpinner.setEnabled(false);
       labelBorderArcSpinner.setEnabled(false);
     }
@@ -1237,6 +1283,42 @@ public class PreferencesDialog extends AbeillePanel {
     nonVisTokenLabelFG.addActionListener(
         e -> {
           AppPreferences.nonVisibleTokenMapLabelForeground.set(nonVisTokenLabelFG.getColor());
+        });
+
+    drawingDrawableLabelBackgroundColorWell.addActionListener(
+        e -> {
+          AppPreferences.drawingMapLabelBackgroundColor.set(
+              drawingDrawableLabelBackgroundColorWell.getColor());
+        });
+
+    drawingDrawableLabelForegroundColorWell.addActionListener(
+        e -> {
+          AppPreferences.drawingMapLabelForegroundColor.set(
+              drawingDrawableLabelForegroundColorWell.getColor());
+        });
+
+    drawingDrawableLabelBorderColorWell.addActionListener(
+        e -> {
+          AppPreferences.drawingMapLabelBorderColor.set(
+              drawingDrawableLabelBorderColorWell.getColor());
+        });
+
+    templateDrawableLabelBackgroundColorWell.addActionListener(
+        e -> {
+          AppPreferences.templateMapLabelBackgroundColor.set(
+              templateDrawableLabelBackgroundColorWell.getColor());
+        });
+
+    templateDrawableLabelForegroundColorWell.addActionListener(
+        e -> {
+          AppPreferences.templateMapLabelForegroundColor.set(
+              templateDrawableLabelForegroundColorWell.getColor());
+        });
+
+    templateDrawableLabelBorderColorWell.addActionListener(
+        e -> {
+          AppPreferences.templateMapLabelBorderColor.set(
+              templateDrawableLabelBorderColorWell.getColor());
         });
 
     labelFontSizeSpinner.addChangeListener(
