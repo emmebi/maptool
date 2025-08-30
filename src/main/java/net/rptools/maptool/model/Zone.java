@@ -1678,7 +1678,7 @@ public class Zone {
 
   private DrawnElement findDrawnElement(List<DrawnElement> list, GUID id) {
     for (DrawnElement de : list) {
-      if (de.getDrawable().getId() == id) {
+      if (de.getDrawable().getId().equals(id)) {
         return de;
       }
       if (de.getDrawable() instanceof DrawablesGroup) {
