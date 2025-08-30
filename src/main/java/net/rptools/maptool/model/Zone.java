@@ -1416,6 +1416,7 @@ public class Zone {
     final var elementList = drawablesByLayer.get(drawnElement.getDrawable().getLayer());
     for (DrawnElement de : elementList) {
       if (de.getDrawable().getId().equals(drawnElement.getDrawable().getId())) {
+        de.setDrawable(drawnElement.getDrawable());
         de.setPen(new Pen(pen));
         break;
       }

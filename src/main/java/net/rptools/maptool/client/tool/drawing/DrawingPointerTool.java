@@ -1324,7 +1324,7 @@ public class DrawingPointerTool extends DefaultTool implements ZoneOverlay, Mous
 
             // Server drawing update
             MapTool.serverCommand().updateDrawing(zone.getId(), deOriginal.getPen(), deOriginal);
-            renderer.getZone().addDrawable(deOriginal.getPen(), deOriginal.getDrawable());
+            renderer.getZone().updateDrawable(deOriginal, deOriginal.getPen());
           }
         }
       } // end for
