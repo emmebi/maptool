@@ -1416,6 +1416,7 @@ public class Zone {
     final var elementList = drawablesByLayer.get(drawnElement.getDrawable().getLayer());
     for (DrawnElement de : elementList) {
       if (de.getDrawable().getId().equals(drawnElement.getDrawable().getId())) {
+        de.setDrawable(drawnElement.getDrawable());
         de.setPen(new Pen(pen));
         break;
       }
@@ -1677,7 +1678,7 @@ public class Zone {
 
   private DrawnElement findDrawnElement(List<DrawnElement> list, GUID id) {
     for (DrawnElement de : list) {
-      if (de.getDrawable().getId() == id) {
+      if (de.getDrawable().getId().equals(id)) {
         return de;
       }
       if (de.getDrawable() instanceof DrawablesGroup) {
